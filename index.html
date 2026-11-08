@@ -498,7 +498,9 @@ window.setupPushNotifications = async function(userName) {
             padding: 18px 24px;
             border-radius: 24px;
             border: 1.5px solid #cfdfeb;
-            margin-bottom: 20px
+            margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .chub-logo {
@@ -3606,7 +3608,70 @@ window.setupPushNotifications = async function(userName) {
         #twoFactorVerifyModal .modal-box {
             z-index: 5001 !important;
         }
-                /* Force PFX Password modal to sit above all other modals */
+        
+               /* ===== ENHANCED PRETTY MANAGER THEME ===== */
+        body.manager-theme {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+        }
+        body.manager-theme .app-container {
+            box-shadow: 0 25px 50px -12px rgba(49, 46, 129, 0.25);
+            border: 1px solid #c7d2fe;
+        }
+        body.manager-theme .title-hero {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+            box-shadow: 0 14px 30px -10px rgba(49, 46, 129, .6);
+        }
+        body.manager-theme .title-hero .title-sub {
+            color: #c7d2fe;
+        }
+        body.manager-theme .title-hero h1 .title-accent {
+            background: linear-gradient(90deg, #fbbf24, #fcd34d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        body.manager-theme .subhead {
+            background: #ffffff;
+            border-color: #c7d2fe;
+            box-shadow: 0 4px 12px rgba(67, 56, 202, 0.08);
+        }
+        body.manager-theme #mainSidebar {
+            border-color: #c7d2fe;
+            box-shadow: 0 16px 34px -14px rgba(49, 46, 129, 0.3);
+        }
+        body.manager-theme #mainSidebar .sidebar-brand .brand-icon {
+            background: linear-gradient(135deg, #4338ca, #312e81);
+        }
+        body.manager-theme #mainSidebar .sidebar-item.active {
+            background: linear-gradient(135deg, #4338ca 0%, #312e81 100%);
+            box-shadow: 0 10px 22px -6px rgba(67, 56, 202, .45);
+        }
+        body.manager-theme #mainSidebar .sidebar-item.active::before {
+            background: #fbbf24;
+            box-shadow: 0 0 12px rgba(251, 191, 36, .6);
+        }
+        body.manager-theme .btn-primary {
+            background: linear-gradient(135deg, #4338ca, #312e81);
+            box-shadow: 0 10px 18px -8px rgba(67, 56, 202, .4);
+        }
+        body.manager-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #3730a3, #1e1b4b);
+        }
+        body.manager-theme #dualRoleSwitcher {
+            background: #ffffff;
+            border-color: #fbbf24;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+        }
+        body.manager-theme #dualRoleSwitcher span {
+            color: #4338ca;
+        }
+        body.manager-theme #viewModeSelect {
+            border-color: #c7d2fe;
+            color: #4338ca;
+            background: #eef2ff;
+        }
+
+        /* Force PFX Password modal to sit above all other modals */
         #pfxPasswordModal {
             z-index: 6000 !important;
         }
@@ -3693,6 +3758,166 @@ window.setupPushNotifications = async function(userName) {
         body.dark .user-feedback-card .ufc-subject { color:#cbd5e1; }
         body.dark .user-feedback-card .ufc-body { background:#0f172a; color:#cbd5e1; border-color:#334155; }
         body.dark .user-feedback-card textarea { background:#0f172a; color:#e2e8f0; border-color:#334155; }
+
+        /* ============================================================
+           SIDEBAR NAVIGATION SYSTEM
+           ============================================================ */
+        .app-body {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+            margin-top: 8px;
+            width: 100%;
+        }
+        .app-main { width: 100%; min-width: 0; display: flex; flex-direction: column; min-height: calc(100vh - 120px); }
+
+        #mainSidebar {
+            width: 260px;
+            flex-shrink: 0;
+            background: #fff;
+            border-radius: 24px;
+            border: 1px solid #e2eaf1;
+            box-shadow: 0 16px 34px -14px rgba(11, 59, 92, .22);
+            padding: 18px 12px;
+            position: sticky;
+            top: 16px;
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
+            transition: transform .3s ease;
+            z-index: 5000;
+        }
+        #mainSidebar::-webkit-scrollbar { width: 5px; }
+        #mainSidebar::-webkit-scrollbar-thumb { background: #cfdfeb; border-radius: 10px; }
+
+        #mainSidebar .sidebar-brand {
+            display: flex; align-items: center; gap: 10px;
+            padding: 4px 8px 14px;
+            border-bottom: 2px solid #eef6fc;
+            margin-bottom: 10px;
+            font-weight: 800; color: #12405e; font-size: 1.02rem;
+        }
+        #mainSidebar .sidebar-brand .brand-icon {
+            font-size: 1.35rem;
+            background: linear-gradient(135deg, #0b3d91, #2a6b96);
+            color: #fff;
+            width: 36px; height: 36px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            box-shadow: 0 6px 14px -4px rgba(11, 59, 92, .4);
+        }
+        #mainSidebar .sidebar-section-label {
+            font-size: .68rem; text-transform: uppercase;
+            letter-spacing: 1.4px; color: #9cb9d0; font-weight: 800;
+            padding: 12px 12px 6px; display: block;
+        }
+        #mainSidebar .sidebar-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 14px; border-radius: 14px;
+            color: #12405e; text-decoration: none;
+            font-weight: 600; font-size: .89rem;
+            cursor: pointer; transition: all .18s ease;
+            margin-bottom: 4px; border: 1.5px solid transparent;
+            position: relative; user-select: none;
+            background: transparent; width: 100%;
+            text-align: left; font-family: inherit;
+        }
+        #mainSidebar .sidebar-item:hover {
+            background: #eef6fc; border-color: #cfdfeb; transform: translateX(3px);
+        }
+        #mainSidebar .sidebar-item.active {
+            background: linear-gradient(135deg, #0b3d91 0%, #1e4a6d 100%);
+            color: #fff; box-shadow: 0 10px 22px -6px rgba(11, 59, 92, .45);
+            border-color: transparent; transform: translateX(0);
+        }
+        #mainSidebar .sidebar-item.active::before {
+            content: '';
+            position: absolute; left: -12px; top: 50%;
+            transform: translateY(-50%);
+            width: 5px; height: 26px; background: #7fc8ff;
+            border-radius: 0 6px 6px 0;
+            box-shadow: 0 0 12px rgba(127, 200, 255, .6);
+        }
+        #mainSidebar .sidebar-item .si-icon {
+            font-size: 1.15rem; flex-shrink: 0;
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 22px;
+        }
+        #mainSidebar .sidebar-item .si-label { flex: 1; }
+        #mainSidebar .sidebar-item .si-badge {
+            background: #b33a3a; color: white; font-size: .68rem;
+            font-weight: 800; padding: 2px 8px; border-radius: 12px;
+            min-width: 22px; text-align: center; display: none;
+        }
+        #mainSidebar .sidebar-item .si-badge.show { display: inline-block; }
+        #mainSidebar .sidebar-item.active .si-badge { background: rgba(255,255,255,.28); }
+
+        .sidebar-footer {
+            margin-top: 12px; padding-top: 12px;
+            border-top: 2px solid #eef6fc;
+        }
+        .sidebar-footer .sidebar-item { color: #b33a3a; }
+        .sidebar-footer .sidebar-item:hover { background: #fff5f5; border-color: #f0b8b8; }
+
+        /* View panes — only one visible at a time */
+        .view-pane { display: none; width: 100%; box-sizing: border-box; }
+        .view-pane.active { display: block; width: 100%; animation: viewFadeIn .35s ease; }
+        
+        /* Force all main sections and cards to be full width */
+        .app-main > *, 
+        .app-main #technicianSection, 
+        .app-main #inchargeSection, 
+        .app-main #supervisorSection, 
+        .app-main #assetsManagerSection, 
+        .app-main #infraManagerSection,
+        .app-main .card,
+        .app-main .dash-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
+        @keyframes viewFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile */
+        #sidebarToggle {
+            display: none !important;
+            background: linear-gradient(135deg, #0b3d91, #1e4a6d);
+            color: #fff; border: none;
+            padding: 12px 20px; border-radius: 14px;
+            font-weight: 700; font-size: .9rem;
+            cursor: pointer; margin-bottom: 14px;
+            box-shadow: 0 10px 20px -6px rgba(11, 59, 92, .4);
+            align-items: center; gap: 8px; font-family: inherit;
+            position: sticky; top: 8px; z-index: 100;
+        }
+        #sidebarOverlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(10, 30, 50, .55); z-index: 4999;
+        }
+        #sidebarOverlay.show { display: block; }
+
+        @media (max-width: 900px) {
+            .app-body { grid-template-columns: 1fr; }
+            #sidebarToggle.show { display: inline-flex !important; }
+            #mainSidebar {
+                position: fixed; top: 0; left: 0; bottom: 0;
+                width: 280px; max-width: 85vw;
+                border-radius: 0 24px 24px 0;
+                transform: translateX(-110%);
+                max-height: 100vh; padding-top: 20px;
+                box-shadow: 20px 0 50px -15px rgba(0,0,0,.4);
+            }
+            #mainSidebar.open { transform: translateX(0); }
+        }
+
+        body.dark #mainSidebar { background: #1e293b; border-color: #334155; }
+        body.dark #mainSidebar .sidebar-brand { color: #cbd5e1; border-color: #334155; }
+        body.dark #mainSidebar .sidebar-item { color: #cbd5e1; }
+        body.dark #mainSidebar .sidebar-item:hover { background: #0f172a; border-color: #475569; }
+        body.dark #mainSidebar .sidebar-item.active { background: linear-gradient(135deg, #0b3d91, #1e4a6d); color: #fff; }
+        body.dark .sidebar-footer { border-color: #334155; }
     </style>
 </head>
 
@@ -3764,7 +3989,8 @@ window.setupPushNotifications = async function(userName) {
         </div>
 
         <div class="subhead">
-            <div class="tech-info">
+            <!-- Left Side: User Info -->
+            <div class="tech-info" style="flex: 1 1 auto; justify-content: flex-start;">
                 <span id="roleIcon">👨‍🔧</span>
                 <span id="roleLabel">Technician:</span>
                 <span class="sync-status"
@@ -3773,7 +3999,19 @@ window.setupPushNotifications = async function(userName) {
                 </span>
                 <select id="technicianSelect" style="display:none;"></select>
             </div>
-            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+
+            <!-- ✅ CENTERED DUAL ROLE SWITCHER -->
+            <div id="dualRoleSwitcher" style="display:none; align-items:center; gap:10px; background:linear-gradient(135deg, #fff9ec 0%, #fff 100%); padding:8px 18px; border-radius:40px; border:2px solid #f4d97a; box-shadow: 0 4px 12px rgba(244, 217, 122, 0.3); margin: 0 15px; flex-shrink: 0; transition: all 0.3s ease;">
+                <span style="font-size:.9rem; font-weight:800; color:#7a5300;">Active View:</span>
+                <select id="viewModeSelect" style="padding:8px 16px; border-radius:20px; border:1.5px solid #f4d97a; font-weight:800; color:#7a5300; background:white; outline:none; cursor:pointer; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                    <option value="incharge">👔 In-Charge</option>
+                    <option value="supervisor">👑 Manager</option>
+                </select>
+            </div>
+
+            <!-- Right Side: Buttons -->
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap; flex: 1 1 auto; justify-content: flex-end;">
+
                 <div class="user-avatar" id="headerAvatar" title="Change profile picture">
                     <span id="headerAvatarInitials">—</span>
                 </div>
@@ -3806,7 +4044,317 @@ window.setupPushNotifications = async function(userName) {
                 </div>
             </div>
         </div>
+        <!-- ============ SIDEBAR NAVIGATION ============ -->
+        <button id="sidebarToggle" type="button">☰ Menu</button>
 
+        <div class="app-body">
+            <aside id="mainSidebar">
+                <div class="sidebar-brand">
+                    <span class="brand-icon">🧊</span>
+                    <span>CHUB Nav</span>
+                </div>
+                <div id="sidebarMenu"></div>
+            </aside>
+            <div id="sidebarOverlay"></div>
+            <div class="app-main">
+
+        <!-- ============ EQUIPMENT MONITORING SECTION ============ -->
+        <div id="equipmentMonitoringSection" style="display: none;">
+            
+            <!-- Header -->
+            <div class="card" style="margin-bottom: 24px; border: 2px solid #1e4a6d;">
+                <div class="card-header" style="background: linear-gradient(135deg, #1e4a6d, #0b3d91); color: white;">
+                    <span>📊</span> Equipment Monitoring &amp; Weekly Log
+                </div>
+                <div class="card-body">
+                    <div class="grid-3-wide" style="margin-bottom: 20px;">
+                        <div class="field-group">
+                            <label>Equipment Category *</label>
+                            <select id="monitorCategory" class="form-control" style="font-weight: 700;">
+                                <option value="generator">⚡ Generators</option>
+                                <option value="ups">🔋 UPS</option>
+                                <option value="wastewater">💧 Waste Water Treatment</option>
+                                <option value="compressor">🌬️ Air Compressor</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>Select Unit *</label>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <select id="monitorUnitSelect" class="form-control" style="font-weight: 700; flex:1;"></select>
+                                <button type="button" id="editMonitorUnitBtn" class="btn-secondary" style="padding: 8px 12px; font-size:0.85rem; display:none;">✏️ Edit</button>
+                                <button type="button" id="deleteMonitorUnitBtn" class="btn-danger" style="padding: 8px 12px; font-size:0.85rem; display:none;">🗑️ Delete</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORM VIEW (Only for Infrastructure Technicians) -->
+            <div id="monitorFormWrap" style="display: none;">
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-body">
+                        <div class="field-group">
+                            <label>Monitoring Date *</label>
+                            <input type="date" id="monitorDate" class="form-control" style="max-width: 250px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GENERATOR CHECKLISTS -->
+                <div id="monitor-cat-generator" class="monitor-checklist-group">
+                <!-- 1. Fluids & Operational Data -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header" style="background:#eef6fc; color:#1e4a6d;"><span>🚰</span> Fluids &amp; Operational Data</div>
+                    <div class="card-body">
+                        <div class="grid-3">
+                            <!-- Fuel & Coolant -->
+                            <div class="card" style="border: 1px solid #cfdfeb;">
+                                <div class="card-header" style="background:#f9fcff; color:#0b3d91;"><span>💧</span> Fuel, Coolant &amp; Oil Levels</div>
+                                <div class="card-body">
+                                    <div class="field-group">
+                                        <label>Fuel level (%)</label>
+                                        <input type="number" id="gen_fuelLevel" class="form-control" placeholder="e.g. 75" min="0" max="100">
+                                    </div>
+                                    <div class="field-group">
+                                        <label>Coolant level</label>
+                                        <div style="display:flex; gap:5px;">
+                                            <button type="button" class="btn-secondary level-btn" data-target="gen_coolant" data-val="MIN" style="flex:1; padding:8px;">MIN</button>
+                                            <button type="button" class="btn-secondary level-btn" data-target="gen_coolant" data-val="MEDIUM" style="flex:1; padding:8px;">MEDIUM</button>
+                                            <button type="button" class="btn-secondary level-btn" data-target="gen_coolant" data-val="MAX" style="flex:1; padding:8px;">MAX</button>
+                                        </div>
+                                        <input type="hidden" id="gen_coolant" value="MEDIUM">
+                                    </div>
+                                    <div class="field-group">
+                                        <label>Oil level</label>
+                                        <div style="display:flex; gap:5px;">
+                                            <button type="button" class="btn-secondary level-btn" data-target="gen_oil" data-val="LOW" style="flex:1; padding:8px;">LOW</button>
+                                            <button type="button" class="btn-secondary level-btn" data-target="gen_oil" data-val="MEDIUM" style="flex:1; padding:8px;">MEDIUM</button>
+                                            <button type="button" class="btn-secondary level-btn" data-target="gen_oil" data-val="MAX" style="flex:1; padding:8px;">MAX</button>
+                                        </div>
+                                        <input type="hidden" id="gen_oil" value="MEDIUM">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Weekly Operational Data -->
+                            <div class="card" style="border: 1px solid #cfdfeb; grid-column: span 2;">
+                                <div class="card-header" style="background:#f9fcff; color:#0b3d91;"><span>📊</span> Weekly Operational Data</div>
+                                <div class="card-body">
+                                    <div class="field-group">
+                                        <label>Weekly capacity of refilled diesel (Liters)</label>
+                                        <input type="number" id="gen_dieselRefilled" class="form-control" placeholder="e.g. 120.5">
+                                    </div>
+                                    <div class="field-group">
+                                        <label>Weekly diesel bought / received (Liters)</label>
+                                        <input type="number" id="gen_dieselBought" class="form-control" placeholder="e.g. 500">
+                                    </div>
+                                    <div class="field-group">
+                                        <label>Current total run hours on meter</label>
+                                        <div style="display:flex; gap:10px; align-items:center;">
+                                            <input type="number" id="gen_runHours" class="form-control" placeholder="Hours e.g. 12450">
+                                            <span>h</span>
+                                            <input type="number" id="gen_runMins" class="form-control" placeholder="Min e.g. 30">
+                                            <span>min</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Visual, Protection & ATS -->
+                <div class="grid-3">
+                    <!-- Visual & Mechanical -->
+                    <div class="card">
+                        <div class="card-header"><span>🔧</span> Visual &amp; Mechanical</div>
+                        <div class="card-body">
+                            <div class="check-item"><input type="checkbox" id="gen_v1"><label for="gen_v1">No leaks (oil, coolant, fuel)</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_v2"><label for="gen_v2">Belt tension &amp; wear</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_v3"><label for="gen_v3">Hoses &amp; connections condition</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_v4"><label for="gen_v4">Radiator / cooling fins clean</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_v5"><label for="gen_v5">Battery terminals &amp; electrolyte level</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_v6"><label for="gen_v6">Mounting bolts &amp; vibration isolators</label></div>
+                            <div class="field-group" style="margin-top:15px;">
+                                <label>📝 Remarks (visual)</label>
+                                <input type="text" id="gen_remVisual" class="form-control">
+                            </div>
+                            <div class="field-group">
+                                <label>Overall condition:</label>
+                                <div class="rating-block">
+                                    <div class="rating-option"><input type="radio" name="gen_ratingVisual" value="Good" checked><label>Good</label></div>
+                                    <div class="rating-option"><input type="radio" name="gen_ratingVisual" value="Fair"><label>Fair</label></div>
+                                    <div class="rating-option"><input type="radio" name="gen_ratingVisual" value="Needs attention"><label>Needs attention</label></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Protection Systems -->
+                    <div class="card">
+                        <div class="card-header"><span>🛡️</span> Protection Systems</div>
+                        <div class="card-body">
+                            <div class="check-item"><input type="checkbox" id="gen_p1"><label for="gen_p1">Low oil pressure shutdown</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_p2"><label for="gen_p2">High coolant temperature shutdown</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_p3"><label for="gen_p3">Overcrank / overspeed trip</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_p4"><label for="gen_p4">Low coolant level alarm</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_p5"><label for="gen_p5">Emergency stop function</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_p6"><label for="gen_p6">Battery charger &amp; voltage (24V)</label></div>
+                            <div class="field-group" style="margin-top:15px;">
+                                <label>📝 Remarks (protection)</label>
+                                <input type="text" id="gen_remProtect" class="form-control">
+                            </div>
+                            <div class="field-group">
+                                <label>Protection status:</label>
+                                <div class="rating-block">
+                                    <div class="rating-option"><input type="radio" name="gen_ratingProtect" value="All functional" checked><label>All functional</label></div>
+                                    <div class="rating-option"><input type="radio" name="gen_ratingProtect" value="Partially tested"><label>Partially tested</label></div>
+                                    <div class="rating-option"><input type="radio" name="gen_ratingProtect" value="Fault found"><label>Fault found</label></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ATS / Transfer -->
+                    <div class="card">
+                        <div class="card-header"><span>🔄</span> ATS / Transfer</div>
+                        <div class="card-body">
+                            <div class="check-item"><input type="checkbox" id="gen_a1"><label for="gen_a1">Phase rotation change detection</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_a2"><label for="gen_a2">Automatic transfer test (simulate outage)</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_a3"><label for="gen_a3">Voltage &amp; frequency on transfer (400V / 50Hz)</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_a4"><label for="gen_a4">Return to normal after delay</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_a5"><label for="gen_a5">Phase failure detection</label></div>
+                            <div class="check-item"><input type="checkbox" id="gen_a6"><label for="gen_a6">Under/overvoltage detection</label></div>
+                            <div class="field-group" style="margin-top:15px;">
+                                <label>📝 Remarks (ATS)</label>
+                                <input type="text" id="gen_remAts" class="form-control">
+                            </div>
+                            <div class="field-group">
+                                <label>Transfer performance:</label>
+                                <div class="rating-block">
+                                    <div class="rating-option"><input type="radio" name="gen_ratingAts" value="Smooth" checked><label>Smooth</label></div>
+                                    <div class="rating-option"><input type="radio" name="gen_ratingAts" value="Delayed"><label>Delayed</label></div>
+                                    <div class="rating-option"><input type="radio" name="gen_ratingAts" value="Issue"><label>Issue</label></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                </div> <!-- END GENERATOR CHECKLISTS -->
+
+                <!-- UPS CHECKLISTS -->
+                <div id="monitor-cat-ups" class="monitor-checklist-group" style="display: none;">
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-header" style="background:#eef6fc; color:#1e4a6d;">
+                            <span>🔋</span> UPS Monitoring Checklist
+                            <span id="upsPhaseBadge" style="margin-left:auto;background:#9cb9d0;color:#fff;padding:4px 14px;border-radius:20px;font-size:.8rem;font-weight:700;">—</span>
+                        </div>
+                        <div class="card-body">
+                            <div id="upsChecklistBox"><div class="info-loading">Select a UPS unit…</div></div>
+                            <div class="field-group" style="margin-top:15px;">
+                                <label>📝 General remarks</label>
+                                <input type="text" id="ups_remarks" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WASTE WATER CHECKLISTS -->
+                <div id="monitor-cat-wastewater" class="monitor-checklist-group" style="display: none;">
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-header" style="background:#eef6fc; color:#1e4a6d;"><span>💧</span> Waste Water Monitoring Data</div>
+                        <div class="card-body">
+                            <div class="field-group">
+                                <label>Pump Pressure (Bar)</label>
+                                <input type="text" id="ww_pressure" class="form-control" placeholder="e.g. 3.5">
+                            </div>
+                            <div class="field-group">
+                                <label>📝 Remarks</label>
+                                <input type="text" id="ww_remarks" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMPRESSOR CHECKLISTS -->
+                <div id="monitor-cat-compressor" class="monitor-checklist-group" style="display: none;">
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-header" style="background:#eef6fc; color:#1e4a6d;"><span>🌬️</span> Air Compressor Monitoring Data</div>
+                        <div class="card-body">
+                            <div class="field-group">
+                                <label>Discharge Pressure (Psi)</label>
+                                <input type="text" id="comp_pressure" class="form-control" placeholder="e.g. 120">
+                            </div>
+                            <div class="field-group">
+                                <label>📝 Remarks</label>
+                                <input type="text" id="comp_remarks" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signoff-section" style="margin-top: 24px;">
+                    <div class="signoff-left">
+                        <span class="label">✅ SIGN-OFF · Monitoring completed by</span>
+                        <span class="tech" id="monitorTechName">—</span>
+                    </div>
+                    <div class="signoff-right">
+                        <button class="btn-primary" id="saveMonitoringBtn"><span>💾</span> Save Monitoring Log</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HISTORY OVERVIEW (Only for In-Charges) -->
+            <div id="monitorHistoryWrap" style="display: none;">
+                <div class="card">
+                    <div class="card-header" style="background:#f9fcff; color:#1e4a6d; display:flex; justify-content:space-between;">
+                        <span><span>📋</span> Monitoring Log History</span>
+                        <button class="btn-secondary" id="refreshMonitorHistoryBtn" style="padding:6px 14px; font-size:0.8rem;">🔄 Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div style="overflow-x:auto;">
+                            <table class="inv-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Category / Unit</th>
+                                        <th>Dept</th>
+                                        <th>Technician</th>
+                                        <th>Condition</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monitorHistoryBody">
+                                    <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ MONITORING ACTION BUTTONS (PM STYLE) ============ -->
+            <div class="action-buttons" id="monitoringActionButtons" style="display: none; margin-top: 24px; justify-content: center;">
+                <div style="display:flex; align-items:center; gap:8px; background:#eef6fc; padding:8px 16px; border-radius:40px; border:1.5px solid #bdd3e6; box-shadow: 0 4px 10px -4px rgba(0,0,0,.1);">
+                    <label for="monActionCategoryFilter" style="font-weight:700; color:#12405e; font-size:.85rem; white-space:nowrap;">🔍 Filter Type:</label>
+                    <select id="monActionCategoryFilter" style="padding:6px 12px; border-radius:20px; border:1px solid #bdd3e6; font-weight:700; color:#0b3d91; background:white; outline:none; cursor:pointer;">
+                        <option value="all">All Equipment</option>
+                        <option value="generator">⚡ Generators</option>
+                        <option value="ups">🔋 UPS</option>
+                        <option value="wastewater">💧 Waste Water</option>
+                        <option value="compressor">🌬️ Air Compressor</option>
+                    </select>
+                </div>
+                <button class="btn-pdf" id="exportMonitorPdfBtn"><span>📄</span> Export Current as PDF</button>
+                <button class="btn-pdf-all" id="downloadMonitorHistoryBtn" style="background:#7a4c9c;"><span>📚</span> Download All Records (PDF)</button>
+                <button class="btn-pdf-all" id="monDownloadAnalysisBtn" style="background:#0b6b3a;"><span>📊</span> Download Analysis Report (PDF)</button>
+                <button class="btn-sync" id="monSyncBtn"><span>🔄</span> Sync pending (<span id="monPendingCount">0</span>)</button>
+                <button class="btn-secondary" id="resetMonitorFormBtn">⟲ Reset form</button>
+            </div>
+
+        </div>
         <!-- ============ TECHNICIAN SECTION ============ -->
         <div id="technicianSection">
            
@@ -4372,6 +4920,89 @@ window.setupPushNotifications = async function(userName) {
                     </div>
                 </div>
             </div>
+
+            <!-- ⬇️ NEW CARD: IN-CHARGE PM STATUS ⬇️ -->
+            <div class="card collapsible-card collapsed" id="inchargePmStatusCard"
+                style="margin-bottom:28px;border:2px solid #0b3d91;">
+                <div class="card-header" style="background:#e8f1fb;color:#0b3d91;">
+                    <span>📅</span> Department PM Status
+                    <span id="inchargePmStatusBadge"
+                        style="margin-left:auto;background:#0b3d91;color:white;padding:3px 12px;border-radius:20px;font-size:.8rem;font-weight:700;">—</span>
+                    <span class="collapse-caret">▼</span>
+                </div>
+                <div class="card-body">
+                    <p style="font-size:.88rem;color:#3a6583;margin-bottom:14px;">
+                        Live preventive-maintenance status of every unit in your department. Sorted by urgency
+                        (overdue first).
+                    </p>
+                    <div id="inchargePmStatusKpis"
+                        style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px;">
+                    </div>
+                    
+                    <!-- ⬇️ NEW SEARCH & CATEGORY FILTERS ⬇️ -->
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center; background:#f9fcff; padding:12px 16px; border-radius:14px; border:1px solid #e2eaf1;">
+                        <input type="text" id="inchargePmStatusSearch" placeholder="🔍 Search Tag, SN, or Model..." 
+                               style="flex:1; min-width:220px; padding:10px 16px; border-radius:30px; border:1.5px solid #cfdfeb; font-family:inherit; font-size:.9rem;">
+                        
+                        <select id="inchargePmStatusCategory" 
+                                style="min-width:180px; padding:10px 16px; border-radius:30px; border:1.5px solid #cfdfeb; font-family:inherit; font-weight:600; color:#12405e; cursor:pointer; font-size:.9rem;">
+                            <option value="all">🗂️ All Categories</option>
+                            <option value="fridge">🧊 Fridge / Freezer</option>
+                            <option value="ac">❄️ Air Conditioner</option>
+                            <option value="electrical">⚡ Electrical</option>
+                            <option value="biomedical">🏥 Biomedical</option>
+                            <option value="ups">🔋 UPS</option>
+                            <option value="laundry">🧺 Laundry</option>
+                            <option value="compressor">🌬️ Air Compressor</option>
+                            <option value="vacuum">🌀 Vacuum System</option>
+                            <option value="wastewater">💧 Waste Water</option>
+                            <option value="generator">🔌 Generators</option>
+                            <option value="mortuary">⚰️ Mortuary</option>
+                            <option value="incinerator">🔥 Incinerators</option>
+                            <option value="lightning">⚡ Lightening</option>
+                            <option value="access_control">🚪 Access Control</option>
+                            <option value="equipment">📦 Other</option>
+                        </select>
+                    </div>
+                    <!-- ⬆️ END NEW FILTERS ⬆️ -->
+
+                    <div class="filter-selector" id="inchargePmStatusFilterBar" style="margin-bottom:12px;">
+                        <div class="filter-chip active" data-status="all">📋 All</div>
+                        <div class="filter-chip" data-status="overdue">🚨 Overdue</div>
+                        <div class="filter-chip" data-status="pending">⏳ Due Soon</div>
+                        <div class="filter-chip" data-status="maintained">✅ Maintained</div>
+                        <div class="filter-chip" data-status="never">⚪ Never serviced</div>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+                        <button class="btn-secondary" id="inchargePmStatusRefreshBtn"
+                            style="padding:10px 20px;font-size:.85rem;">🔄 Refresh</button>
+                        <button class="btn-pdf" id="inchargePmStatusDownloadBtn"
+                            style="padding:10px 20px;font-size:.85rem;">📄 Download PM Status PDF</button>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="inv-table" id="inchargePmStatusTable">
+                            <thead>
+                                <tr>
+                                    <th>Equipment</th>
+                                    <th>Tag</th>
+                                    <th>Location</th>
+                                    <th>Last PM</th>
+                                    <th>Next PM</th>
+                                    <th>Days Left</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inchargePmStatusBody">
+                                <tr>
+                                    <td colspan="8" style="text-align:center;color:#5b7b96;padding:14px;">Loading…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- ⬆️ END NEW CARD ⬆️ -->
 
             <div class="card collapsible-card collapsed" id="inchargeDisposalCard"
                 style="margin-bottom:28px;border:2px solid #f4a300;display:none;">
@@ -5107,46 +5738,23 @@ window.setupPushNotifications = async function(userName) {
             <button class="btn-secondary" id="resetBtn">⟲ Reset form</button>
         </div>
 
+
+
         <div class="status-message" id="statusMessage">
             <span>✅</span> <span id="statusText">Checklist signed off successfully!</span>
         </div>
 
-        <div style="margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:12px;">
-            <span class="footer-note">Records since 03 Jul 2026 · CHUB site · System © 2026 Hillaly KUBWIMANA — All
-                rights reserved</span>
-            <a href="https://buymeacoffee.com/khillaly" target="_blank"
-                style="display:inline-flex;align-items:center;gap:8px;background:#1e4a6d;color:white;padding:12px 24px;border-radius:40px;text-decoration:none;font-weight:600;font-size:.95rem;">☕
-                Buy me a coffee</a>
-                    <!-- ✅ ADD YOUR CATBOX APK LINK HERE -->
-    <a href="https://files.catbox.moe/kmyg3m.apk"
-       target="_blank" rel="noopener"
-       style="display:inline-flex;align-items:center;gap:8px;background:#1b6b3f;color:white;padding:12px 24px;border-radius:40px;text-decoration:none;font-weight:700;font-size:.95rem;">
-       📱 Download the App (APK)
-    </a>
+            </div><!-- /.app-main -->
+        </div><!-- /.app-body -->
 
-    <!-- QR code that encodes the SAME Catbox link -->
-    <div style="text-align:center;margin-top:8px;">
-        <div id="apkQrBox" style="display:inline-block;padding:10px;background:#fff;border:2px dashed #1b6b3f;border-radius:12px;"></div>
-        <div style="font-size:.72rem;color:#5b7b96;margin-top:6px;">📷 Scan to download the CHUB Maint Fleet app</div>
-    </div>
-
-    <script>
-    /* Build the QR that contains your Catbox APK link */
-    (function () {
-        var APK_URL = 'https://files.catbox.moe/kmyg3m.apk';  /* ← same URL */
-        var box = document.getElementById('apkQrBox');
-        if (box && typeof QRCode !== 'undefined') {
-            new QRCode(box, {
-                text: APK_URL,
-                width: 180, height: 180,
-                colorDark: '#1b6b3f', colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.M
-            });
-        }
-    })();
-    </script>
+        <!-- ✅ NEW CLEAN FOOTER (Pushed to the bottom of the page) -->
+        <div style="margin-top: auto; padding: 30px 0 10px 0; text-align: center; width: 100%; border-top: 1px dashed #cfdfeb;">
+            <span class="footer-note" style="font-size:.85rem; color:#5b7b96;">
+                Records since 03 Jul 2026 · CHUB site · System © 2026 Hillaly KUBWIMANA — All rights reserved
+            </span>
         </div>
-    </div>
+
+    </div> <!-- /.app-container -->
     <!-- ============ 2FA SETUP MODAL ============ -->
     <div class="modal-overlay" id="twoFactorSetupModal">
         <div class="modal-box" style="max-width:480px;text-align:center;">
@@ -6056,6 +6664,8 @@ window.setupPushNotifications = async function(userName) {
                 <label for="curativeCategory">Category *</label>
                 <select id="curativeCategory">
                     <option value="Refrigeration">🧊 Refrigeration (fridge / freezer)</option>
+                    <option value="AirConditioner">❄️ Air Conditioner (AC)</option>
+                    <option value="Biomedical">🏥 Biomedical Equipment (BMET)</option>
                     <option value="Electrical">⚡ Electrical (lamp, switch, socket, panel)</option>
                     <option value="Other">📝 Other</option>
                 </select>
@@ -6429,7 +7039,112 @@ window.setupPushNotifications = async function(userName) {
             </div>
         </div>
     </div>
-
+    <!-- ============ ADD MONITORING UNIT MODAL ============ -->
+    <div class="modal-overlay" id="addMonitorUnitModal">
+        <div class="modal-box" style="max-width:560px;">
+            <h2>➕ Add New Monitoring Unit</h2>
+            <p>Add a new unit to the monitoring fleet.</p>
+                        <div class="grid-3-wide" style="grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="field-group">
+                    <label>Unit Name / Type *</label>
+                    <input type="text" id="newMonUnitName" class="form-control" placeholder="e.g. UPS Radiology">
+                </div>
+                <!-- NEW: Phase Type for UPS -->
+                <div class="field-group" id="newMonPhaseWrap" style="display:none;">
+                    <label>UPS Phase Type *</label>
+                    <select id="newMonPhaseType" class="form-control" style="font-weight:700;">
+                        <option value="single">⚡ Single Phase</option>
+                        <option value="three">⚡⚡⚡ Three Phase</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-3-wide" style="grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="field-group">
+                    <label>Tag Number (Optional)</label>
+                    <input type="text" id="newMonTag" class="form-control" placeholder="Leave blank to auto-generate">
+                </div>
+                <div class="field-group">
+                    <label>Serial Number</label>
+                    <input type="text" id="newMonSerial" class="form-control" placeholder="e.g. SN-123456">
+                </div>
+            </div>
+            <div class="grid-3-wide" style="grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="field-group">
+                    <label>Department (Location) *</label>
+                    <select id="newMonDept" class="form-control"></select>
+                </div>
+                <div class="field-group">
+                    <label>Specific Room / Location *</label>
+                    <input type="text" id="newMonLoc" class="form-control" placeholder="e.g. Server Room">
+                </div>
+            </div>
+            <div class="field-group" style="background:#f0fdf4;border:1.5px solid #b8dfc3;border-radius:16px;padding:14px 16px;">
+                <label>📋 Custom Monitoring Checklist (Optional)</label>
+                <div style="font-size:.8rem;color:#5b7b96;margin:4px 0 8px;">If left blank, the standard checks for this category will be used. Enter one item per line.</div>
+                <textarea id="newMonChecklist" class="remark-input" rows="4" placeholder="e.g. Check battery voltage&#10;Check load percentage&#10;Verify alarm silence test"></textarea>
+            </div>
+            <div id="addMonError" style="color:#b33a3a;font-size:.85rem;min-height:18px;"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="addMonCancel">Cancel</button>
+                <button class="btn-go" id="addMonSaveBtn" style="background:#1b6b3f;">💾 Save Unit</button>
+            </div>
+        </div>
+    </div>
+        <!-- ============ EDIT MONITORING UNIT MODAL ============ -->
+    <div class="modal-overlay" id="editMonitorUnitModal">
+        <div class="modal-box" style="max-width:560px;">
+            <h2>✏️ Edit Monitoring Unit</h2>
+            <p>Update the details for this unit.</p>
+                       <div class="grid-3-wide" style="grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="field-group">
+                    <label>Unit Name / Type *</label>
+                    <input type="text" id="editMonUnitName" class="form-control" placeholder="e.g. UPS Radiology">
+                </div>
+                <!-- NEW: Phase Type for UPS -->
+                <div class="field-group" id="editMonPhaseWrap" style="display:none;">
+                    <label>UPS Phase Type *</label>
+                    <select id="editMonPhaseType" class="form-control" style="font-weight:700;">
+                        <option value="single">⚡ Single Phase</option>
+                        <option value="three">⚡⚡⚡ Three Phase</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-3-wide" style="grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="field-group">
+                    <label>Tag Number</label>
+                    <input type="text" id="editMonTag" class="form-control">
+                </div>
+                <div class="field-group">
+                    <label>Serial Number</label>
+                    <input type="text" id="editMonSerial" class="form-control">
+                </div>
+            </div>
+            <div class="grid-3-wide" style="grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="field-group">
+                    <label>Department (Location) *</label>
+                    <select id="editMonDept" class="form-control"></select>
+                </div>
+                <div class="field-group">
+                    <label>Specific Room / Location *</label>
+                    <input type="text" id="editMonLoc" class="form-control" placeholder="e.g. Server Room">
+                </div>
+            </div>
+            <div class="field-group" id="editMonOwnerWrap" style="display:none;">
+                <label for="editMonOwner">Assign Owner / Technician *</label>
+                <select id="editMonOwner" class="form-control"></select>
+            </div>
+            <div class="field-group" style="background:#f0fdf4;border:1.5px solid #b8dfc3;border-radius:16px;padding:14px 16px;">
+                <label>📋 Custom Monitoring Checklist (Optional)</label>
+                <div style="font-size:.8rem;color:#5b7b96;margin:4px 0 8px;">If left blank, the standard checks for this category will be used.</div>
+                <textarea id="editMonChecklist" class="remark-input" rows="4"></textarea>
+            </div>
+            <div id="editMonError" style="color:#b33a3a;font-size:.85rem;min-height:18px;"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="editMonCancel">Cancel</button>
+                <button class="btn-go" id="editMonSaveBtn" style="background:#1b6b3f;">💾 Save Changes</button>
+            </div>
+        </div>
+    </div>
     <!-- ============ SMART CONFIRM DIALOG ============ -->
     <div class="modal-overlay" id="smartConfirmModal">
         <div class="modal-box" style="max-width:420px;text-align:center;">
@@ -6668,7 +7383,7 @@ const AC_PM_INTERVAL_MONTHS = 6;
                 const t = String(type || '').toLowerCase();
                 return t.includes('fridge-freezer') || t.includes('combo');
             }
-           async function populateTypeSelect(select, category) {
+          async function populateTypeSelect(select, category) {
     if (!select) return;
     const isNew = select.id === 'newRefType';
     const manualInput = document.getElementById(isNew ? 'newRefTypeManual' : 'editRefTypeManual');
@@ -6701,8 +7416,21 @@ const AC_PM_INTERVAL_MONTHS = 6;
         // ✅ FIX: Show the PREDEFINED types for this category
         //         PLUS any custom types already saved in the cloud.
         const predefined = TYPES_BY_CATEGORY[category] || [];
-        const existing   = await fetchExistingCustomTypes(category);
-        const merged     = Array.from(new Set([...predefined, ...existing])).sort();
+        let existing   = await fetchExistingCustomTypes(category);
+
+        // 🚨 NEW FIX: Filter out Biomedical types if we are NOT in the Biomedical category
+        if (category !== 'biomedical') {
+            const bioTypes = await fetchExistingBiomedicalTypes();
+            const bioSet = new Set(bioTypes.map(t => normalizeText(t)));
+
+            // Also block common hardcoded biomedical names just in case they are missing from the cache
+            const hardcodedBio = ['autoclave', 'defibrator', 'defibrillator'];
+            hardcodedBio.forEach(b => bioSet.add(normalizeText(b)));
+
+            existing = existing.filter(t => !bioSet.has(normalizeText(t)));
+        }
+
+        const merged = Array.from(new Set([...predefined, ...existing])).sort();
 
         select.innerHTML = '';
         merged.forEach(t => {
@@ -7700,6 +8428,7 @@ function escapeHtml(s) {
                     photo: data.photo || '',
                     equipCategory: cat,
                     status: data.status || 'active',
+                    phaseType: data.phaseType || '',
                     transferHistory: Array.isArray(data.transferHistory) ? data.transferHistory : [] // ✅ NEW
                 };
             }
@@ -7751,7 +8480,8 @@ function escapeHtml(s) {
                     owner: item.owner || tech || '',
                     lastPmDate: item.lastPmDate || '',
                     nextPmDate: item.nextPmDate || '',
-                    photo: item.photo || '',
+             photo: item.photo || '',
+                    phaseType: item.phaseType || '',
                     status: 'active',
                     createdAt: now, updatedAt: now
                 });
@@ -7782,6 +8512,7 @@ function escapeHtml(s) {
                     serial: updated.serial || 'N/A',
                     workingStatus: updated.workingStatus || 'Working',
                     lastPmDate: updated.lastPmDate || '',
+                    phaseType: updated.phaseType || original.phaseType || '',
                     nextPmDate: updated.nextPmDate || '',
                     owner: updated.owner || original.owner || tech || '',
                     updatedAt: window.FB.serverTimestamp()
@@ -8103,14 +8834,17 @@ bioSections: Array.isArray(data.bioSections) ? data.bioSections : [],
         const snapshot = await window.FB.getDocs(
             window.FB.query(
                 window.FB.collection(window.FB.db, 'pmLogs'),
-                window.FB.where('refTag', '==', rawTag)
+                window.FB.where('refTag', '==', rawTag.trim())
             )
         );
+        // Case-insensitive fallback because some tags have legacy casing
         let found = null;
         snapshot.forEach(recordDoc => {
             if (found) return;
             const record = mapFirestorePmLog(recordDoc.id, recordDoc.data());
             if (!record) return;
+            const recordTag = normalizeText(record.refTag || record['Ref Tag']);
+            if (recordTag !== normalizeText(rawTag)) return;
             const recordDate = normalizeDateForCompare(record.workDate || record['Work Date']);
             if (recordDate === targetDate) found = record;
         });
@@ -8193,6 +8927,7 @@ function invalidateCache(key) {
                         let refCategoryMode = 'all';
             let currentInchargeSignature = '';
             let currentRole = 'technician';
+            let CURRENT_DUAL_VIEW_MODE = sessionStorage.getItem('chub_dual_view') || 'incharge';
             let inchargeFilterScope = 'mine';
             let inventoryFilterStatus = 'all';
             let currentInchargeDept = '';
@@ -9785,6 +10520,13 @@ if (!workDateInput.checkValidity()) {
 }
 const iname = inchargeNameInput.value.trim();
                 if (!iname) { alert('⚠️ Please enter the department In-Charge name.'); return null; }
+                // Verify the typed in-charge is a real registered user; otherwise warn.
+const _known = Object.keys(LIVE_USERS).some(n => normalizeText(n) === normalizeText(iname));
+if (!_known) {
+    if (!confirm('⚠️ "' + iname + '" is not a registered In-Charge.\n\nYour PM may not be visible to anyone.\n\nSave anyway?')) {
+        return null;
+    }
+}
                 const now = new Date();
                 const ts = now.toLocaleString('en-GB', {
                     hour12: false, day: '2-digit', month: 'short', year: 'numeric',
@@ -10040,7 +10782,7 @@ window.__ckOwner = '';
             document.querySelectorAll('.check-ref, .check-ac, #remarkClean, #remarkTemp, #remarkDoor, #remarkAirflow, #remarkElectrical, #remarkDrainage, #workDate, #inchargeNameInput')
                 .forEach(el => el.addEventListener('input', scheduleDraftSave));
             document.querySelectorAll('input[name^="rating"]').forEach(el => el.addEventListener('change', scheduleDraftSave));
-            refSelect.addEventListener('change', scheduleDraftSave);
+            
                         // Category → Type cascade (Add + Edit modals)
             document.getElementById('newRefCategory')?.addEventListener('change', async function () {
                 await populateTypeSelect(document.getElementById('newRefType'), this.value);
@@ -10068,12 +10810,44 @@ window.__ckOwner = '';
                 }
             }
             function applyRoleVisibility() {
-                const isIC  = currentRole === 'incharge'        || userHasPermission('incharge');
-                const isSup = currentRole === 'supervisor'      || userHasPermission('supervisor');
-                const isAM  = currentRole === 'assetsmanager'   || userHasPermission('assetsmanager');
-                const isIM  = currentRole === 'infra_manager'   || userHasPermission('infra_manager');
-                const isBio = currentRole === 'head_biomedical' || userHasPermission('head_biomedical');
-                const isTech = currentRole === 'technician'     || userHasPermission('technician');
+                ensureViewWrappers();
+                
+                // ✅ NEW: Check for Dual Role and setup the switcher
+                // ✅ STRICT DUAL CHECK: Must have BOTH roles
+                const hasIncharge = userHasPermission('incharge');
+                const hasSupervisor = userHasPermission('supervisor');
+                const isDual = hasIncharge && hasSupervisor; 
+
+                const switcher = document.getElementById('dualRoleSwitcher');
+                const switchSelect = document.getElementById('viewModeSelect');
+                if (switcher && switchSelect) {
+                    if (isDual) {
+                        switcher.style.display = 'flex';
+                        switchSelect.value = CURRENT_DUAL_VIEW_MODE;
+                    } else {
+                        switcher.style.display = 'none';
+                    }
+                }
+
+                let isIC  = currentRole === 'incharge'        || hasIncharge;
+                let isSup = currentRole === 'supervisor'      || hasSupervisor;
+                let isAM  = currentRole === 'assetsmanager'   || userHasPermission('assetsmanager');
+                let isIM  = currentRole === 'infra_manager'   || userHasPermission('infra_manager');
+                let isBio = currentRole === 'head_biomedical' || userHasPermission('head_biomedical');
+                let isTech = currentRole === 'technician'     || userHasPermission('technician');
+
+                // Mask the views based on the switcher
+                if (isDual) {
+                    if (CURRENT_DUAL_VIEW_MODE === 'incharge') {
+                        isSup = false; // Hide Manager views
+                        if (!currentInchargeDept) currentInchargeDept = INFRA_DEPT_NAME; 
+                    } else if (CURRENT_DUAL_VIEW_MODE === 'supervisor') {
+                        isIC = false;  // Hide In-Charge views
+                    }
+                }
+
+                // ✅ NEW: Toggle the beautiful Manager Theme
+                document.body.classList.toggle('manager-theme', isSup && !isIC || (isDual && CURRENT_DUAL_VIEW_MODE === 'supervisor'));
 
                 document.getElementById('technicianSection').style.display = isTech ? 'block' : 'none';
                 document.getElementById('inchargeSection').style.display = (isIC || isBio) ? 'block' : 'none';
@@ -10081,6 +10855,33 @@ window.__ckOwner = '';
                 document.getElementById('assetsManagerSection').style.display = isAM ? 'block' : 'none';
                 document.getElementById('infraManagerSection').style.display = isIM ? 'block' : 'none';
                 document.getElementById('technicianActionButtons').style.display = isTech ? 'flex' : 'none';
+                
+                // ✅ EQUIPMENT MONITORING VISIBILITY LOGIC
+               // Navigation is fully handled by the sidebar (showView). No legacy view switcher.
+if (false) {
+                    // Hide completely for Biomedical and Assets Manager
+                    if (currentRole === 'head_biomedical' || currentRole === 'assetsmanager' || currentInchargeDept === BIOMEDICAL_DEPT_NAME) {
+                        viewSwitcher.style.display = 'none';
+                        document.getElementById('equipmentMonitoringSection').style.display = 'none';
+                        document.getElementById('monitoringActionButtons').style.display = 'none';
+                    } else {
+                        viewSwitcher.style.display = 'flex';
+                        
+                        // Default state when logging in: Show PM tab, hide Monitoring tab
+                        if (document.getElementById('equipmentMonitoringSection').style.display === 'none') {
+                            document.getElementById('monitoringActionButtons').style.display = 'none';
+                        }
+
+                        // If In-Charge or Manager, force History View inside Monitoring tab
+                        if (isIC || currentRole === 'supervisor' || currentRole === 'infra_manager') {
+                            document.getElementById('monitorFormWrap').style.display = 'none';
+                            document.getElementById('monitorHistoryWrap').style.display = 'block';
+                        } else if (currentRole === 'technician' && isInfrastructureUser()) {
+                            document.getElementById('monitorFormWrap').style.display = 'block';
+                            document.getElementById('monitorHistoryWrap').style.display = 'none';
+                        }
+                    }
+                }
                 document.getElementById('workdateTag').style.display = isTech ? 'flex' : 'none';
                 
                 // ✅ Show Monthly Report ONLY to Technicians and In-Charges (Infra & Bio), NEVER to the Manager
@@ -10109,7 +10910,15 @@ window.__ckOwner = '';
                 
                 const ic = document.getElementById('roleIcon');
                 const rl = document.getElementById('roleLabel');
-                if (isSup) { ic.textContent = '👑'; rl.textContent = 'Manager:'; }
+                
+                // ✅ NEW: Update label based on the active view mode
+                if (isDual) {
+                    if (CURRENT_DUAL_VIEW_MODE === 'incharge') {
+                        ic.textContent = '👔'; rl.textContent = 'In-Charge:';
+                    } else {
+                        ic.textContent = '👑'; rl.textContent = 'Manager:';
+                    }
+                } else if (isSup) { ic.textContent = '👑'; rl.textContent = 'Manager:'; }
                 else if (isBio) { ic.textContent = '🏥'; rl.textContent = 'Head of Biomedical:'; }
                 else if (isIC) { ic.textContent = '👔'; rl.textContent = 'In-Charge:'; }
                 else if (isAM) { ic.textContent = '🗑️'; rl.textContent = 'Assets Manager:'; }
@@ -10119,7 +10928,7 @@ window.__ckOwner = '';
                 closeNotifPanel();
                 
                 configureCategoryUI();
-document.querySelectorAll('#supervisorSection > .card').forEach(card => {
+document.querySelectorAll('#supervisorSection > .card, #supervisorSection .view-pane > .card').forEach(card => {
     const h = card.querySelector('.card-header')?.textContent || '';
     if (/Manage In-Charges|Manage Technicians|Broadcast Alert/.test(h)) card.style.display = isSup ? '' : 'none';
     if (card.id === 'supPerfCard') card.style.display = isIM ? 'none' : '';
@@ -10137,7 +10946,7 @@ document.querySelectorAll('#supervisorSection > .card').forEach(card => {
 });
 const icTaskCard = document.getElementById('icMyTasksCard');
                 if (icTaskCard) {
-                    if (isIC && normalizeText(currentLoggedInName) !== normalizeText(SUPERVISOR_NAME)) {
+                    if (!canSeeIcTasks()) {
                         icTaskCard.style.display = 'none';
                     } else {
                         icTaskCard.style.display = 'block';
@@ -10194,6 +11003,12 @@ const icTaskCard = document.getElementById('icMyTasksCard');
                 }
                 if (isIM) {
                     setTimeout(() => refreshInfraManagerTasks(), 400);
+                    populateCurativeDeptSelect(); populateCurativeTechSelect(); populateCurativeQuarterSelect();
+                    setTimeout(() => refreshSupervisorCurative(), 650);
+                    setTimeout(() => refreshEscalatedCurative(), 750);
+                    const _imDate = document.getElementById('supAvailDate');
+                    if (_imDate && !_imDate.value) _imDate.value = toIsoDate_(new Date());
+                    setTimeout(() => renderSupTeamAvailability(), 850);
                     setTimeout(() => renderTimetableTechList(), 500);
                     setTimeout(() => perfRenderLeaderboard('imPerfTableWrap', document.getElementById('imPerfPeriod')?.value || 'month'), 900);
                     setTimeout(() => perfRenderQuarterHistory('imQuarterRankHistory'), 1000);
@@ -10214,6 +11029,7 @@ const icTaskCard = document.getElementById('icMyTasksCard');
                 if (isSup) {
                     setTimeout(() => renderBroadcastHistory(), 1100);
                 }
+                renderSidebar();
             }
                         /* ============================================================
                📢 BROADCAST ALERT SYSTEM  (Manager → All users)
@@ -11026,12 +11842,15 @@ if (checklistType === 'biomedical') {
                             const rd = normalizeText(r['Department'] || r.refDept);
                             
                             // ✅ FIX: ONLY the specific person chosen during PM can see and sign it
-                            if (myName && ri === myName) return true;
+                          // 1) Exact match — the correct named in-charge sees it
+if (myName && ri === myName) return true;
+// 2) Fallback — anyone in the same department can claim it
+if (myDept && rd === normalizeText(myDept)) return true;
+// 3) Legacy — no name typed at all
+if (!ri && myDept && rd === normalizeText(myDept)) return true;
+return false;
                             
-                            // Fallback: If the PM didn't specify a name, any In-Charge in that department can sign
-                            if (!ri && myDept && rd === normalizeText(myDept)) return true;
                             
-                            return false;
                         }
                         return true;
                     }).sort((a, b) => recordTime(b) - recordTime(a));
@@ -11449,8 +12268,9 @@ const t = _pd ? _pd.getTime() : NaN;
             async function openTransferModal(item) {
                 if (!item) return;
                 
-                // 🔒 SECURITY CHECK: Only In-Charge can transfer, and only from their own department
-                if (currentRole !== 'incharge') {
+                // 🔒 SECURITY CHECK: Check if they have In-Charge permissions OR are currently in the In-Charge view
+                const isActingAsIncharge = (currentRole === 'incharge') || (CURRENT_DUAL_VIEW_MODE === 'incharge') || userHasPermission('incharge');
+                if (!isActingAsIncharge) {
                     toast('⛔ Only the Department In-Charge can transfer equipment.', 'error');
                     return;
                 }
@@ -11486,23 +12306,51 @@ const t = _pd ? _pd.getTime() : NaN;
                 document.getElementById('transferEquipmentModal').classList.add('show');
             }
 
-            async function populateTransferOwners() {
-                const dept = document.getElementById('transferNewDept').value;
+                       async function populateTransferOwners() {
                 const sel = document.getElementById('transferNewOwner');
                 sel.innerHTML = '<option value="">— Choose technician —</option>';
-                if (!dept) return;
                 
+                // Force a fresh fetch to ensure we have the latest list of users
+                USERS_CACHE = null;
                 const users = await loadUsersFromFirestore();
-                const techs = Object.keys(users).filter(n => {
+                
+                // Get the current In-Charge's department
+                const myDept = currentInchargeDept || INFRA_DEPT_NAME || '';
+                const isInfra = normalizeText(myDept) === normalizeText(INFRA_DEPT_NAME);
+                const isBio = normalizeText(myDept) === normalizeText(BIOMEDICAL_DEPT_NAME);
+                
+                let techs = Object.keys(users).filter(n => {
                     const u = users[n];
+                    // 1. Must be a technician or supervisor
                     if (!userRecHasPermission(u, 'technician') && !userRecHasPermission(u, 'supervisor')) return false;
+                    
                     const ds = Array.isArray(u.depts) && u.depts.length > 0 ? u.depts : (u.dept ? [u.dept] : []);
-                    return ds.some(d => normalizeText(d) === normalizeText(dept));
+                    
+                    // 2. 🔒 STRICT FILTER based on the In-Charge's department
+                    if (isInfra) {
+                        return ds.some(d => normalizeText(d) === normalizeText(INFRA_DEPT_NAME));
+                    }
+                    if (isBio) {
+                        return ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
+                    }
+                    
+                    // 3. Other In-Charges (Lab, Pharmacy, etc.) see ALL technicians
+                    return true;
                 }).sort();
                 
+                if (techs.length === 0) {
+                    sel.innerHTML = '<option value="">⚠️ No technicians found for your domain</option>';
+                    return;
+                }
+
                 techs.forEach(n => {
                     const o = document.createElement('option');
-                    o.value = n; o.textContent = n;
+                    o.value = n;
+                    const u = users[n];
+                    const ds = Array.isArray(u.depts) && u.depts.length > 0 ? u.depts : (u.dept ? [u.dept] : []);
+                    // Add their department in brackets so it's clear who they are picking
+                    const deptStr = ds.length > 0 ? ` (${ds.join(', ')})` : '';
+                    o.textContent = n + deptStr;
                     sel.appendChild(o);
                 });
             }
@@ -11524,11 +12372,13 @@ const t = _pd ? _pd.getTime() : NaN;
                 
                 // 🔒 SECURITY CHECK: Prevent DOM manipulation bypasses
                 const errEl = document.getElementById('transferEquipmentError');
-                if (currentRole !== 'incharge') {
+                const isActingAsIncharge = (currentRole === 'incharge') || (CURRENT_DUAL_VIEW_MODE === 'incharge') || userHasPermission('incharge');
+                if (!isActingAsIncharge) {
                     errEl.textContent = '⚠️ Only the Department In-Charge can transfer equipment.';
                     return;
                 }
-                if (normalizeText(item.dept) !== normalizeText(currentInchargeDept)) {
+                const myDept = currentInchargeDept || INFRA_DEPT_NAME || '';
+                if (normalizeText(item.dept) !== normalizeText(myDept)) {
                     errEl.textContent = '⚠️ You can only transfer equipment located in your own department.';
                     return;
                 }
@@ -11807,65 +12657,74 @@ Object.keys(DEPARTMENTS).forEach(d => {
     }
     sel.value = c;
 }
-              async function populateSupervisorOwnerFilter() {
-        const sel = document.getElementById('supervisorOwnerFilter');
-        if (!sel) return;
-        const c = sel.value || 'all';
-        sel.innerHTML = '<option value="all">👤 All Owners</option>';
-        const users = await loadUsersFromFirestore();
-        
-        Object.keys(users)
-            .filter(n => users[n].role === 'technician' || users[n].role === 'supervisor')
-            .filter(n => {
-                // 🔒 Apply department filter based on current role
-                if (currentRole === 'head_biomedical') {
+            async function populateSupervisorOwnerFilter() {
+                const sel = document.getElementById('supervisorOwnerFilter');
+                if (!sel) return;
+                const c = sel.value || 'all';
+                sel.innerHTML = '<option value="all">👤 All Owners</option>';
+                const users = await loadUsersFromFirestore();
+                
+                const ownerSet = new Set();
+                Object.keys(users).forEach(n => {
                     const u = users[n];
-                    const ds = Array.isArray(u.depts) ? u.depts : (u.dept ? [u.dept] : []);
-                    return ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
-                } else if (currentRole === 'supervisor') {
-                    const u = users[n];
-                    const ds = Array.isArray(u.depts) ? u.depts : (u.dept ? [u.dept] : []);
-                    return ds.some(d => normalizeText(d) === normalizeText(INFRA_DEPT_NAME));
-                }
-                return true;
-            })
-            .sort()
-            .forEach(n => {
-                const o = document.createElement('option'); o.value = n; o.textContent = n;
-                sel.appendChild(o);
-            });
-        sel.value = c;
-    }
+                    if (u.role !== 'technician' && u.role !== 'supervisor') return;
+                    
+                    let include = false;
+                    if (currentRole === 'head_biomedical') {
+                        const ds = Array.isArray(u.depts) ? u.depts : (u.dept ? [u.dept] : []);
+                        include = ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
+                    } else if (currentRole === 'supervisor') {
+                        const ds = Array.isArray(u.depts) ? u.depts : (u.dept ? [u.dept] : []);
+                        include = ds.some(d => normalizeText(d) === normalizeText(INFRA_DEPT_NAME));
+                    } else {
+                        include = true;
+                    }
+                    
+                    if (include) ownerSet.add(n.trim());
+                });
+                
+                // ✅ Using a Set guarantees NO duplicates
+                Array.from(ownerSet).sort().forEach(n => {
+                    const o = document.createElement('option'); 
+                    o.value = n; o.textContent = n;
+                    sel.appendChild(o);
+                });
+                
+                if (c !== 'all' && ownerSet.has(c)) sel.value = c;
+            }
 
-                async function populateCurativeTechSelect() {
-        const sel = document.getElementById('curativeTechFilter');
-        if (!sel) return;
-        const c = sel.value || 'all';
-        sel.innerHTML = '<option value="all">All Technicians</option>';
-        const users = await loadUsersFromFirestore();
-        
-        Object.keys(users)
-            .filter(n => users[n].role === 'technician')
-            .filter(n => {
-                // 🔒 Apply department filter based on current role
-                if (currentRole === 'head_biomedical') {
+            async function populateCurativeTechSelect() {
+                const sel = document.getElementById('curativeTechFilter');
+                if (!sel) return;
+                const c = sel.value || 'all';
+                sel.innerHTML = '<option value="all">All Technicians</option>';
+                const users = await loadUsersFromFirestore();
+                
+                const techSet = new Set();
+                Object.keys(users).forEach(n => {
                     const u = users[n];
-                    const ds = Array.isArray(u.depts) ? u.depts : (u.dept ? [u.dept] : []);
-                    return ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
-                } else if (currentRole === 'supervisor') {
-                    const u = users[n];
-                    const ds = Array.isArray(u.depts) ? u.depts : (u.dept ? [u.dept] : []);
-                    return ds.some(d => normalizeText(d) === normalizeText(INFRA_DEPT_NAME));
-                }
-                return true;
-            })
-            .sort()
-            .forEach(n => {
-                const o = document.createElement('option'); o.value = n; o.textContent = n;
-                sel.appendChild(o);
-            });
-        sel.value = c;
-    }
+                    if (u.role !== 'technician') return;
+                    
+                    let include = false;
+                    if (currentRole === 'head_biomedical') {
+                        const ds = Array.isArray(u.depts) ? u.depts : (u.dept ? [u.dept] : []);
+                        include = ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
+                    } else {
+                        include = true; // Supervisors and Infra Managers see everyone
+                    }
+                    
+                    if (include) techSet.add(n.trim());
+                });
+                
+                // ✅ Using a Set guarantees NO duplicates, even if names have trailing spaces
+                Array.from(techSet).sort().forEach(n => {
+                    const o = document.createElement('option'); 
+                    o.value = n; o.textContent = n;
+                    sel.appendChild(o);
+                });
+                
+                if (c !== 'all' && techSet.has(c)) sel.value = c;
+            }
             function populateCurativeQuarterSelect() {
                 const sel = document.getElementById('curativeQuarterFilter');
                 if (!sel) return;
@@ -12998,7 +13857,12 @@ if (n.type === 'pm_submitted') {
             }
             function scrollToId(id) {
                 const e = document.getElementById(id);
-                if (e) e.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (!e) return;
+                const pane = e.closest('.view-pane');
+                if (pane && !pane.classList.contains('active')) showView(pane.getAttribute('data-view'));
+                const card = e.closest('.collapsible-card');
+                if (card) card.classList.remove('collapsed');
+                setTimeout(() => e.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
             }
             function openNotifPanel() {
                 document.getElementById('notifPanel')?.classList.add('show');
@@ -13232,7 +14096,37 @@ if (n.type === 'pm_submitted') {
                 if (names.indexOf(SUPERVISOR_NAME) === -1) names.push(SUPERVISOR_NAME);
                 return names;
             }
+/* ============================================================
+   DEPARTMENT-SCOPED TECHNICIAN LOOKUP
+   Only the System Manager (supervisor) sees BOTH departments.
+   Everyone else sees only technicians from their own department.
+   ============================================================ */
+async function getEligibleTechniciansForUser(excludeSelf) {
+    const users = await loadUsersFromFirestore();
+    const me = users[currentLoggedInName] || {};
+    let myDepts = (Array.isArray(me.depts) && me.depts.length)
+        ? me.depts.slice()
+        : (me.dept ? [me.dept] : []);
+    if (!myDepts.length && currentInchargeDept) myDepts = [currentInchargeDept];
 
+    const isManager = currentRole === 'supervisor' || userHasPermission('supervisor');
+
+    return Object.keys(users).filter(n => {
+        const u = users[n];
+        if (!u || u.role !== 'technician') return false;
+        if (excludeSelf && normalizeText(n) === normalizeText(currentLoggedInName)) return false;
+
+        // 👑 System Manager → sees everyone
+        if (isManager) return true;
+
+        // 🏥 / 🏗️ Everyone else → only their own department
+        if (!myDepts.length) return false;
+        const ds = (Array.isArray(u.depts) && u.depts.length)
+            ? u.depts
+            : (u.dept ? [u.dept] : []);
+        return ds.some(d => myDepts.some(md => normalizeText(md) === normalizeText(d)));
+    }).sort();
+}
             async function openEscalateCurativeModal(c) {
                 if (!c) return;
                 const modal = document.getElementById('escalateCurativeModal');
@@ -13249,18 +14143,24 @@ if (n.type === 'pm_submitted') {
                 document.getElementById('escalateReason').value = '';
                 document.getElementById('escalateCurativeError').textContent = '';
                 const sel = document.getElementById('escalateSuggestTo');
-                sel.innerHTML = '<option value="">— No suggestion —</option>';
-                try {
-                    const users = await loadUsersFromFirestore();
-                    Object.keys(users)
-                        .filter(n => users[n].role === 'technician' && normalizeText(n) !== normalizeText(currentLoggedInName))
-                        .sort()
-                        .forEach(n => {
-                            const o = document.createElement('option');
-                            o.value = n; o.textContent = n;
-                            sel.appendChild(o);
-                        });
-                } catch (e) { }
+sel.innerHTML = '<option value="">— No suggestion —</option>';
+try {
+    // ✅ Only technicians from the SAME department as the current user.
+    //    The System Manager sees both departments.
+    const eligible = await getEligibleTechniciansForUser(true);   // true = exclude self
+    if (!eligible.length) {
+        const o = document.createElement('option');
+        o.value = ''; o.disabled = true;
+        o.textContent = '— No other technicians in your department —';
+        sel.appendChild(o);
+    } else {
+        eligible.forEach(n => {
+            const o = document.createElement('option');
+            o.value = n; o.textContent = n;
+            sel.appendChild(o);
+        });
+    }
+} catch (e) { }
                 modal._curative = c;
                 modal.classList.add('show');
             }
@@ -13399,9 +14299,12 @@ if (n.type === 'pm_submitted') {
                     const esc = all.filter(c => c.escalated === true && c.escalationResolved !== true)
                         .filter(c => {
                             // 🔒 Strict department separation
-                            if (currentRole === 'head_biomedical') return normalizeText(c.dept) === normalizeText(BIOMEDICAL_DEPT_NAME);
-                            if (currentRole === 'supervisor') return normalizeText(c.dept) === normalizeText(INFRA_DEPT_NAME);
-                            return true;
+                           if (currentRole === 'head_biomedical') return normalizeText(c.dept) === normalizeText(BIOMEDICAL_DEPT_NAME);
+// Infra Manager + Supervisor see *everything except* Biomedical.
+if (currentRole === 'supervisor' || currentRole === 'infra_manager') {
+    return normalizeText(c.dept) !== normalizeText(BIOMEDICAL_DEPT_NAME);
+}
+return true;
                         });
                     if (cnt) cnt.textContent = esc.length;
                     if (!esc.length) {
@@ -13409,7 +14312,28 @@ if (n.type === 'pm_submitted') {
                         return;
                     }
                     const users = await loadUsersFromFirestore();
-                    const techList = Object.keys(users).filter(n => users[n].role === 'technician').sort();
+                    const isManager = currentRole === 'supervisor' || userHasPermission('supervisor');
+                    const techSet = new Set();
+
+                    Object.keys(users).forEach(n => {
+                        const u = users[n];
+                        const isTech = u.role === 'technician' || (u.permissions && u.permissions.technician);
+                        if (!isTech) return;
+
+                        const ds = Array.isArray(u.depts) && u.depts.length ? u.depts : (u.dept ? [u.dept] : []);
+                        let include = false;
+
+                        if (isManager) include = true; // both
+                        else if (currentRole === 'head_biomedical') {
+                            include = ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
+                        } else {
+                            include = !ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
+                        }
+                        
+                        if (include) techSet.add(n.trim());
+                    });
+                    
+                    const techList = Array.from(techSet).sort();
                     wrap.innerHTML = '';
                     esc.forEach(c => wrap.appendChild(renderEscalatedCard(c, techList)));
 
@@ -13490,6 +14414,251 @@ if (n.type === 'pm_submitted') {
                 await refreshSupervisorCurative();
                 await renderNotificationBell();
             }
+            /* ============================================================
+               IN-CHARGE: DEPARTMENT PM STATUS
+               ============================================================ */
+            let INCHARGE_PM_STATUS_FILTER = 'all';
+            let INCHARGE_PM_STATUS_CATEGORY = 'all';
+            let INCHARGE_PM_STATUS_SEARCH = '';
+            let INCHARGE_PM_STATUS_ROWS = [];
+
+            async function renderInchargePmStatus() {
+                if (currentRole !== 'incharge' && currentRole !== 'head_biomedical') return;
+                const tbody = document.getElementById('inchargePmStatusBody');
+                const badge = document.getElementById('inchargePmStatusBadge');
+                const kpis  = document.getElementById('inchargePmStatusKpis');
+                if (!tbody) return;
+
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#5b7b96;padding:14px;">⏳ Loading…</td></tr>';
+
+                try {
+                    const isBioHead = currentRole === 'head_biomedical';
+                    const dept = currentInchargeDept || inferDepartmentFromIncharge(currentLoggedInName);
+
+                    const allInv = await fetchAllInventory();
+                    const records = await fetchAllLogs();
+
+                    let mine;
+                    if (isBioHead) {
+                        // Head of Biomedical sees every biomedical unit across all departments
+                        mine = allInv.filter(a =>
+                            (a.equipCategory || getCategoryForType(a.type)) === 'biomedical'
+                        );
+                    } else {
+                        if (!dept) {
+                            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#b33a3a;padding:14px;">⚠️ No department assigned.</td></tr>';
+                            return;
+                        }
+                        mine = allInv.filter(a =>
+                            normalizeText(a.dept) === normalizeText(dept) && equipVisibleToMe(a)
+                        );
+                    }
+
+                    const now = new Date();
+                    const rows = mine.map(a => {
+                        const st = computeRefStatus(a, records, now);
+                        let daysLeft = null;
+                        if (st.nextPm) {
+                            const _pd = parseToDate(st.nextPm);
+                            if (_pd) daysLeft = Math.round((_pd.getTime() - now.getTime()) / 86400000);
+                        }
+                        return { ref: a, ...st, daysLeft };
+                    });
+
+                    INCHARGE_PM_STATUS_ROWS = rows;
+
+                    const counts = {
+                        total:      rows.length,
+                        maintained: rows.filter(r => r.status === 'maintained').length,
+                        pending:    rows.filter(r => r.status === 'pending').length,
+                        overdue:    rows.filter(r => r.status === 'overdue').length,
+                        never:      rows.filter(r => r.status === 'never').length
+                    };
+                    if (badge) badge.textContent = counts.total + ' unit(s)';
+                    if (kpis) kpis.innerHTML = `
+                        <div class="kpi-card" style="background:#eef6fc;">
+                            <div class="kpi-label">TOTAL</div>
+                            <div class="kpi-value" style="color:#0b3d91;">${counts.total}</div>
+                        </div>
+                        <div class="kpi-card" style="background:#e2f0e6;">
+                            <div class="kpi-label">✅ MAINTAINED</div>
+                            <div class="kpi-value" style="color:#1b6b3f;">${counts.maintained}</div>
+                        </div>
+                        <div class="kpi-card" style="background:#fff3cd;">
+                            <div class="kpi-label">⏳ DUE SOON</div>
+                            <div class="kpi-value" style="color:#7a5300;">${counts.pending}</div>
+                        </div>
+                        <div class="kpi-card" style="background:#ffe6e6;">
+                            <div class="kpi-label">🚨 OVERDUE</div>
+                            <div class="kpi-value" style="color:#b33a3a;">${counts.overdue}</div>
+                        </div>
+                        <div class="kpi-card" style="background:#e7f0f8;">
+                            <div class="kpi-label">⚪ NEVER</div>
+                            <div class="kpi-value" style="color:#5b7b96;">${counts.never}</div>
+                        </div>`;
+
+                    const order = { overdue: 0, pending: 1, never: 2, maintained: 3 };
+                    rows.sort((a, b) => {
+                        if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
+                        return (a.daysLeft || 0) - (b.daysLeft || 0);
+                    });
+
+                    // ✅ APPLY SEARCH, CATEGORY, AND STATUS FILTERS
+                    let filtered = rows;
+                    
+                    if (INCHARGE_PM_STATUS_FILTER !== 'all') {
+                        filtered = filtered.filter(r => r.status === INCHARGE_PM_STATUS_FILTER);
+                    }
+                    
+                    if (INCHARGE_PM_STATUS_CATEGORY !== 'all') {
+                        filtered = filtered.filter(r => (r.ref.equipCategory || getCategoryForType(r.ref.type)) === INCHARGE_PM_STATUS_CATEGORY);
+                    }
+                    
+                    if (INCHARGE_PM_STATUS_SEARCH) {
+                        const q = INCHARGE_PM_STATUS_SEARCH.toLowerCase();
+                        filtered = filtered.filter(r => {
+                            const tag = (r.ref.tag || '').toLowerCase();
+                            const serial = (r.ref.serial || '').toLowerCase();
+                            const model = (r.ref.model || '').toLowerCase();
+                            const name = (r.ref.equipName || '').toLowerCase();
+                            return tag.includes(q) || serial.includes(q) || model.includes(q) || name.includes(q);
+                        });
+                    }
+
+                    if (!filtered.length) {
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#5b7b96;padding:14px;">📭 No equipment matches your filters.</td></tr>';
+                        return;
+                    }
+
+                    const labels = {
+                        maintained: '✅ Maintained',
+                        pending: '⏳ Due soon',
+                        overdue: '🚨 Overdue',
+                        never: '⚪ Never serviced'
+                    };
+
+                    tbody.innerHTML = filtered.map((r, i) => {
+                        const ref = r.ref;
+                        const ws = ref.workingStatus || 'Working';
+                        const wb = ws === 'Not Working' ? '⛔' : '✅';
+                        const techName = getInventoryOwner(ref) || 'Unassigned';
+                        
+                        let daysHtml = '—';
+                        if (r.daysLeft !== null) {
+                            if (r.daysLeft < 0) daysHtml = `<strong style="color:#b33a3a;">${Math.abs(r.daysLeft)}d overdue</strong>`;
+                            else if (r.daysLeft <= 30) daysHtml = `<strong style="color:#7a5300;">${r.daysLeft}d left</strong>`;
+                            else daysHtml = `${r.daysLeft}d`;
+                        }
+                        return `<tr>
+                            <td>${wb} <strong>${escapeHtml(ref.equipName || '—')}</strong></td>
+                            <td>${escapeHtml(ref.tag)}</td>
+                            <td>${escapeHtml(ref.loc)}</td>
+                            <td>${r.lastPm ? formatDateOnly(r.lastPm) : '—'}</td>
+                            <td>${r.nextPm ? formatDateOnly(r.nextPm) : '—'}</td>
+                            <td style="text-align:center;">${daysHtml}</td>
+                            <td>
+                                <span class="status-badge ${r.status}">${labels[r.status]}</span>
+                                <div style="font-size:.72rem; color:#5b7b96; margin-top:4px; font-weight:600;">👤 ${escapeHtml(techName)}</div>
+                            </td>
+                            <td><button class="btn-dl-row" data-pm-status-download="${i}" style="padding:4px 10px;font-size:.75rem;">📥 PM History</button></td>
+                        </tr>`;
+                    }).join('');
+
+                    tbody.querySelectorAll('[data-pm-status-download]').forEach(b => b.addEventListener('click', function () {
+                        const row = filtered[parseInt(this.getAttribute('data-pm-status-download'), 10)];
+                        if (row) openEqPmHistory(row.ref);
+                    }));
+
+                } catch (e) {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#b33a3a;padding:14px;">⚠️ ${escapeHtml(e.message)}</td></tr>`;
+                }
+            }
+
+            document.querySelectorAll('#inchargePmStatusFilterBar .filter-chip').forEach(c => c.addEventListener('click', function () {
+                document.querySelectorAll('#inchargePmStatusFilterBar .filter-chip').forEach(x => x.classList.remove('active'));
+                this.classList.add('active');
+                INCHARGE_PM_STATUS_FILTER = this.dataset.status;
+                renderInchargePmStatus();
+            }));
+
+            // ✅ NEW: Event listeners for the Search Bar and Category Filter
+            document.getElementById('inchargePmStatusCategory')?.addEventListener('change', function () {
+                INCHARGE_PM_STATUS_CATEGORY = this.value;
+                renderInchargePmStatus();
+            });
+
+            document.getElementById('inchargePmStatusSearch')?.addEventListener('input', function () {
+                INCHARGE_PM_STATUS_SEARCH = this.value.trim();
+                renderInchargePmStatus();
+            });
+            document.getElementById('inchargePmStatusRefreshBtn')?.addEventListener('click', renderInchargePmStatus);
+
+            document.getElementById('inchargePmStatusDownloadBtn')?.addEventListener('click', async function () {
+                const btn = this;
+                const orig = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Generating…';
+                try {
+                    const rows = INCHARGE_PM_STATUS_ROWS;
+                    if (!rows.length) {
+                        showStatus('📭 Nothing to download.', false);
+                        btn.disabled = false; btn.innerHTML = orig;
+                        return;
+                    }
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                    const pW = 297, m = 14, cW = pW - m * 2;
+                    const deptLabel = currentRole === 'head_biomedical' ? BIOMEDICAL_DEPT_NAME : (currentInchargeDept || 'Department');
+                    let y = drawChubHeader(doc, {
+                        title: 'DEPARTMENT PM STATUS REPORT',
+                        subtitle: 'Department: ' + deptLabel + ' · ' + rows.length + ' unit(s)',
+                        ref: 'CHUB/PMSTAT/' + new Date().toISOString().slice(0, 10).replace(/-/g, ''),
+                        date: new Date().toLocaleDateString('en-GB')
+                    });
+
+                    doc.autoTable({
+                        startY: y,
+                        margin: { left: m, right: m },
+                        head: [['Equipment', 'Tag', 'Location', 'Last PM', 'Next PM', 'Days Left', 'Status']],
+                        body: rows.map(r => {
+                            const techName = getInventoryOwner(r.ref) || 'Unassigned';
+                            return [
+                                pdfSanitize(r.ref.equipName || '—'),
+                                pdfSanitize(r.ref.tag || '—'),
+                                pdfSanitize(r.ref.loc || '—'),
+                                r.lastPm ? formatDateOnly(r.lastPm) : '—',
+                                r.nextPm ? formatDateOnly(r.nextPm) : '—',
+                                r.daysLeft === null ? '—' : (r.daysLeft < 0 ? Math.abs(r.daysLeft) + 'd overdue' : r.daysLeft + 'd'),
+                                (r.status || '').toUpperCase() + ' (by ' + pdfSanitize(techName) + ')'
+                            ];
+                        }),
+                        theme: 'striped',
+                        styles: { fontSize: 8, cellPadding: 1.8 },
+                        headStyles: { fillColor: [11, 61, 145], textColor: 255, fontSize: 8.5 },
+                        columnStyles: {
+                            0: { cellWidth: 70 },
+                            1: { cellWidth: 45 },
+                            2: { cellWidth: 55 },
+                            3: { cellWidth: 28, halign: 'center' },
+                            4: { cellWidth: 28, halign: 'center' },
+                            5: { cellWidth: 28, halign: 'center' },
+                            6: { cellWidth: 'auto', halign: 'center', fontStyle: 'bold' }
+                        }
+                    });
+
+                    const totalPages = doc.internal.getNumberOfPages();
+                    for (let p = 1; p <= totalPages; p++) {
+                        doc.setPage(p);
+                        drawChubFooter(doc, p, totalPages);
+                    }
+                    doc.save('CHUB_Dept_PM_Status_' + deptLabel.replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0, 10) + '.pdf');
+                    showStatus('📄 PM Status PDF downloaded.', true);
+                } catch (e) {
+                    showStatus('⚠️ ' + e.message, false);
+                }
+                btn.disabled = false;
+                btn.innerHTML = orig;
+            });
 
             async function refreshInchargeCurative() {
                 const wrap = document.getElementById('inchargeCurativeList');
@@ -13502,7 +14671,13 @@ if (n.type === 'pm_submitted') {
                         wrap.innerHTML = '<div style="text-align:center;padding:18px;color:#b33a3a;font-weight:600;">⚠️ No department assigned to your account.<br><span style="font-size:.8rem;color:#5b7b96;">Ask the Manager to set your department.</span></div>';
                         return;
                     }
-                    const all = await fetchCurativeRequests({ dept: dept });
+                    const allDept = await fetchCurativeRequests({});
+                    // Show every curative in my department, PLUS any curative I personally raised
+                    // (e.g. a BMET fault in another department that I reported)
+                    const all = allDept.filter(c =>
+                        normalizeText(c.dept) === normalizeText(dept) ||
+                        normalizeText(c.reportedBy) === normalizeText(currentLoggedInName)
+                    );
                     const f = INCHARGE_CURATIVE_STATUS_FILTER === 'all'
                         ? all
                         : all.filter(c => c.status === INCHARGE_CURATIVE_STATUS_FILTER);
@@ -13535,7 +14710,7 @@ if (n.type === 'pm_submitted') {
                         }
                         return false;
                     });
-                              card.style.display = mine.length > 0 ? 'block' : 'none';
+                              card.style.display = 'block';
             let f = mine;
             if (TECH_CURATIVE_FILTER === 'open') f = mine.filter(c => (c.status === 'pending' || c.status === 'in_progress' || c.status === 'paused') && !c.escalated);
             else if (TECH_CURATIVE_FILTER === 'paused') f = mine.filter(c => c.status === 'paused');
@@ -13589,6 +14764,7 @@ if (n.type === 'pm_submitted') {
                     if (currentRole === 'supervisor') {
                         all = all.filter(c => normalizeText(c.dept) !== normalizeText(BIOMEDICAL_DEPT_NAME));
                     }
+                    if (currentRole === 'infra_manager') all = all.filter(c => normalizeText(c.dept) !== normalizeText(BIOMEDICAL_DEPT_NAME));
                     CURRENT_SUPERVISOR_CURATIVE = all;
                     const total = all.length;
                     const p = all.filter(c => c.status === 'pending').length;
@@ -13609,8 +14785,10 @@ if (n.type === 'pm_submitted') {
                         wrap.innerHTML = '<div style="text-align:center;padding:18px;color:#9cb9d0;font-style:italic;">📭 No curative requests.</div>';
                         return;
                     }
-                    wrap.innerHTML = all.slice(0, 60).map(c => renderCurativeCard(c, {})).join('');
-                    bindCurativeButtons(wrap, all, {});
+                    const _canVerify = (currentRole === 'head_biomedical')
+    || userHasPermission('incharge');
+wrap.innerHTML = all.slice(0, 60).map(c => renderCurativeCard(c, { canVerify: _canVerify })).join('');
+bindCurativeButtons(wrap, all, { canVerify: _canVerify });
                 } catch (e) {
                     wrap.innerHTML = '<div class="info-error">⚠️ ' + escapeHtml(e.message) + '</div>';
                 }
@@ -13689,16 +14867,8 @@ if (n.type === 'pm_submitted') {
                 assignSel.innerHTML = '<option value="">— Auto-assign —</option>';
                 try {
                     const dept = currentInchargeDept || inferDepartmentFromIncharge(currentLoggedInName);
-                    const all = await fetchAllInventory();
-                    const mine = all.filter(a => (!dept || normalizeText(a.dept) === normalizeText(dept)) && equipVisibleToMe(a));
-                    select.innerHTML = '<option value="">— Choose equipment —</option>';
-                    mine.forEach((ref, i) => {
-                        const o = document.createElement('option');
-                        o.value = i;
-                        o.textContent = `${ref.equipName ? ref.equipName + ' — ' : ''}${ref.tag} | ${ref.loc} | ${ref.brand}`;
-                        select.appendChild(o);
-                    });
-                    select._list = mine;
+                    // Load equipment for whichever category is currently selected
+                    await reloadCurativeEquipmentList();
                     const users = await loadUsersFromFirestore();
                     const allTechs = Object.keys(users).filter(n => users[n].role === 'technician').sort();
                     let deptTechs = allTechs.filter(n => {
@@ -13737,7 +14907,9 @@ if (n.type === 'pm_submitted') {
 
                 let tag = '', dept = '', loc = '', brand = '', model = '', serial = '', equipType = 'Other', equipName = '';
 
-                if (category === 'Refrigeration') {
+                const isEquipCategory = ['Refrigeration', 'AirConditioner', 'Biomedical'].includes(category);
+
+                if (isEquipCategory) {
                     if (idx === '' || !select._list || !select._list[idx]) {
                         errorEl.textContent = '⚠️ Pick equipment.';
                         return;
@@ -13751,6 +14923,11 @@ if (n.type === 'pm_submitted') {
                     serial = ref.serial;
                     equipType = ref.type || ref.equipType || 'Fridge';
                     equipName = ref.equipName || '';
+                    // Route biomedical equipment to the Biomedical department
+                    // so BMET technicians are notified even when the unit lives elsewhere
+                    if ((ref.equipCategory || getCategoryForType(ref.type)) === 'biomedical') {
+                        dept = BIOMEDICAL_DEPT_NAME;
+                    }
                 } else {
                     const manualLoc = (document.getElementById('curativeLocationInput').value || '').trim();
                     if (!manualLoc) {
@@ -13779,7 +14956,30 @@ if (n.type === 'pm_submitted') {
                         issue, priority: prio,
                         category, reportedBy: currentLoggedInName, assignedTo: assignTo
                     });
-                    const recs = assignTo ? [assignTo] : await findTechniciansForDepartment(dept);
+                    // Route to the correct department's technicians
+                    // (biomedical always → Biomedical dept technicians, even from another location)
+                    const routingDept = dept;
+                    let recs = assignTo ? [assignTo] : await findTechniciansForDepartment(routingDept);
+// FALLBACK: no dedicated technicians in that department → route to equipment owner,
+// or to the Infrastructure In-Charge (who can dispatch to a real tech).
+if (!recs.length) {
+    try {
+        const inv = await fetchAllInventory();
+        const unit = inv.find(i => normalizeText(i.tag) === normalizeText(tag));
+        if (unit && unit.owner && LIVE_USERS[unit.owner]) {
+            recs = [unit.owner];
+        }
+    } catch (e) {}
+}
+if (!recs.length) {
+    // Last resort: any Infrastructure supervisor / incharge
+    const sup = Object.values(LIVE_USERS).find(u =>
+        (u.role === 'supervisor' || u.role === 'infra_manager') &&
+        normalizeText(u.dept) === normalizeText(INFRA_DEPT_NAME)
+    );
+    if (sup) recs = [sup.name || Object.keys(LIVE_USERS).find(k => LIVE_USERS[k] === sup)];
+}
+if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for this department. Ask the Manager to assign one manually.'; btn.disabled = false; btn.innerHTML = o; return; }
                     for (const r of recs) {
                         await createNotification({
                             recipient: r,
@@ -14304,9 +15504,11 @@ if (n.type === 'pm_submitted') {
                 return ref.id;
             }
             async function updateDisposalRequest(id, u) {
-                const f = Object.assign({}, u);
-                if (u.inchargeApprovedAt === 'NOW') f.inchargeApprovedAt = window.FB.serverTimestamp();
-                if (u.amApprovedAt === 'NOW') f.amApprovedAt = window.FB.serverTimestamp();
+    const f = Object.assign({}, u);
+    if (u.inchargeApprovedAt === 'NOW')         f.inchargeApprovedAt         = window.FB.serverTimestamp();
+    if (u.locationInchargeApprovedAt === 'NOW') f.locationInchargeApprovedAt = window.FB.serverTimestamp();
+    if (u.techInchargeApprovedAt === 'NOW')     f.techInchargeApprovedAt     = window.FB.serverTimestamp();
+    if (u.amApprovedAt === 'NOW')               f.amApprovedAt               = window.FB.serverTimestamp();
                 try {
                     await window.FB.updateDoc(window.FB.doc(window.FB.db, 'disposalRequests', id), f);
                     return true;
@@ -17839,23 +19041,55 @@ if (!afO) {
                 }
 
                 const users = await loadUsersFromFirestore();
-                const techs = Object.keys(users).filter(n => users[n].role === 'technician').sort();
+                const techSet = new Set();
+                const icSet = new Set();
                 
-                // ✅ FIXED: Allow assigning to ALL In-Charges & Managers in Infrastructure and Biomedical
-                const incharges = Object.keys(users)
-                    .filter(n => {
-                        const u = users[n];
-                        // Must have incharge or supervisor permissions
-                        if (!userRecHasPermission(u, 'incharge') && !userRecHasPermission(u, 'supervisor')) return false;
-                        
-                        // Check if they belong to Infrastructure or Biomedical
-                        const ds = Array.isArray(u.depts) && u.depts.length > 0 ? u.depts : (u.dept ? [u.dept] : []);
-                        return ds.some(d => 
+                // Check if the current user is the Infra Manager or Supervisor
+                const isInfraManager = currentRole === 'infra_manager' || currentRole === 'supervisor' || userHasPermission('infra_manager');
+
+                Object.keys(users).forEach(n => {
+                    const u = users[n];
+                    const isTech = u.role === 'technician' || (u.permissions && u.permissions.technician);
+                    const isIC = userRecHasPermission(u, 'incharge') || userRecHasPermission(u, 'supervisor');
+                    const ds = Array.isArray(u.depts) && u.depts.length ? u.depts : (u.dept ? [u.dept] : []);
+
+                    if (isTech) {
+                        const inInfra = ds.length === 0 || ds.some(d => normalizeText(d) === normalizeText(INFRA_DEPT_NAME));
+                        const inBio = ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
+
+                        // 👑 INFRA MANAGER: Can assign to BOTH Infra & BMET Technicians
+                        if (isInfraManager) {
+                            if (inInfra || inBio) techSet.add(n.trim());
+                        } 
+                        // 👔 REGULAR INFRAS In-Charge: Can only assign to Infra Technicians
+                        else {
+                            if (inInfra) techSet.add(n.trim());
+                        }
+                    }
+                    
+                    // Keep In-Charges as they are (Infra and Bio in-charges are visible)
+                    if (isIC) {
+                        const isInScope = ds.some(d => 
                             normalizeText(d) === normalizeText(INFRA_DEPT_NAME) || 
                             normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME)
                         );
-                    })
-                    .sort();
+                        if (isInScope) icSet.add(n.trim());
+                    }
+                });
+
+                const techs = Array.from(techSet).sort();
+                const incharges = Object.keys(users).filter(n => {
+                    const u = users[n];
+                    // Must have incharge or supervisor permissions
+                    if (!userRecHasPermission(u, 'incharge') && !userRecHasPermission(u, 'supervisor')) return false;
+
+                    // Must belong to Infrastructure or Biomedical
+                    const ds = Array.isArray(u.depts) && u.depts.length > 0 ? u.depts : (u.dept ? [u.dept] : []);
+                    return ds.some(d =>
+                        normalizeText(d) === normalizeText(INFRA_DEPT_NAME) ||
+                        normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME)
+                    );
+                }).sort();
 
                 if (techs.length) {
                     const g1 = document.createElement('optgroup');
@@ -18113,14 +19347,18 @@ if (!afO) {
                 sel.innerHTML = '<option value="">— Choose technician —</option>';
                 try {
                     const users = await loadUsersFromFirestore();
-                    Object.keys(users)
-                        .filter(n => users[n].role === 'technician')
-                        .sort()
-                        .forEach(n => {
-                            const o = document.createElement('option');
-                            o.value = n; o.textContent = n;
-                            sel.appendChild(o);
-                        });
+                    const techSet = new Set();
+                    Object.keys(users).forEach(n => {
+                        const u = users[n];
+                        if (u.role === 'technician' || (u.permissions && u.permissions.technician)) {
+                            techSet.add(n.trim());
+                        }
+                    });
+                    Array.from(techSet).sort().forEach(n => {
+                        const o = document.createElement('option');
+                        o.value = n; o.textContent = n;
+                        sel.appendChild(o);
+                    });
                 } catch (e) { }
 
                 const targetDate = t.plannedDate || toIsoDate_(new Date());
@@ -18176,7 +19414,7 @@ if (!afO) {
                     const ok = await updateTaskDoc(t._docId, {
                         assignedTo: newTech,
                         targetRole: 'technician',
-                        originalAssignee: t.originalAssignee || t.assignedTo || currentLoggedInName,
+                        originalAssignee: t.originalAssignee || t.assignedTo || t.escalatedBy || currentLoggedInName,
                         delegatedBy: currentLoggedInName,
                         escalated: false,
                         delegatedAt: 'NOW',
@@ -18260,8 +19498,21 @@ if (!afO) {
                 renderSkeletons(wrap, 3, 'card');
 
                 try {
-                    const all = await fetchAllTasks({ dept: INFRA_DEPT_NAME });
-                    const mine = all.filter(t => normalizeText(t.assignedTo) === normalizeText(currentLoggedInName));
+                   const all = await fetchAllTasks({});
+    const myDepts = (() => {
+        const u = LIVE_USERS[currentLoggedInName];
+        if (!u) return [];
+        return Array.isArray(u.depts) && u.depts.length ? u.depts : (u.dept ? [u.dept] : []);
+    })();
+    const mine = all.filter(t => {
+        const ownsNow = normalizeText(t.assignedTo) === normalizeText(currentLoggedInName);
+        const ownsDelegated = (role === 'incharge' || role === 'supervisor')
+            && normalizeText(t.delegatedBy) === normalizeText(currentLoggedInName);
+        if (!ownsNow && !ownsDelegated) return false;
+        if (!myDepts.length) return true;
+        if (t.dept && !myDepts.some(d => normalizeText(d) === normalizeText(t.dept))) return false;
+        return true;
+    });
                     CURRENT_TASKS_CACHE = mine;
 
                     const filter = role === 'technician' ? TECH_TASK_FILTER
@@ -18279,7 +19530,7 @@ if (!afO) {
                         const cnt = document.getElementById('techTaskCount');
                         if (cnt) cnt.textContent = openCount;
                         const card = document.getElementById('technicianTasksCard');
-                        if (card) card.style.display = mine.length > 0 ? 'block' : 'none';
+                        if (card) card.style.display = 'block';
                     } else if (role === 'supervisor') {
                         const cnt = document.getElementById('supTaskCount');
                         if (cnt) cnt.textContent = openCount;
@@ -18518,6 +19769,13 @@ function perfFormatHours(h) {
             async function perfFetchAll() {
                 const users = await loadUsersFromFirestore();
                 let techs = Object.keys(users).filter(n => users[n].role === 'technician').sort();
+                if (currentRole === 'infra_manager') {
+                    techs = techs.filter(n => {
+                        const u = users[n];
+                        const ds = Array.isArray(u.depts) ? u.depts : (u.dept ? [u.dept] : []);
+                        return ds.length === 0 || ds.some(d => normalizeText(d) === normalizeText(INFRA_DEPT_NAME));
+                    });
+                }
                 
                 // 🔒 Restrict techs to their own department
                 if (currentRole === 'supervisor') {
@@ -19812,6 +21070,15 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                 if (cc) cc.style.display = 'none';
                 const _ugBtn = document.getElementById('userGuideBtn');
 if (_ugBtn) _ugBtn.style.display = 'none';
+                document.getElementById('sidebarToggle')?.classList.remove('show');
+                const _sm = document.getElementById('sidebarMenu'); if (_sm) _sm.innerHTML = '';
+                document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+                ['technicianSection','inchargeSection','supervisorSection','assetsManagerSection','infraManagerSection',
+                 'monthlyReportCard','technicianActionButtons'].forEach(id => {
+                    const s = document.getElementById(id); if (s) s.style.display = 'none';
+                });
+                document.getElementById('mainSidebar')?.classList.remove('open');
+                document.getElementById('sidebarOverlay')?.classList.remove('show');
             }
             loginBtn.addEventListener('click', async function () {
                 const role = loginRoleSelect.value;
@@ -20484,20 +21751,76 @@ const t = _pd ? _pd.getTime() : NaN;
                 const eqW = document.getElementById('curativeEquipWrap');
                 const locW = document.getElementById('curativeLocationWrap');
                 const ftW = document.getElementById('curativeFreeTextWrap');
-                const isFridge = (this.value === 'Refrigeration');
-                if (eqW) eqW.style.display = isFridge ? 'block' : 'none';
-                if (locW) locW.style.display = isFridge ? 'none' : 'block';
-                if (ftW) ftW.style.display = isFridge ? 'none' : 'block';
-                if (isFridge) {
+                const isEquip = ['Refrigeration', 'AirConditioner', 'Biomedical'].includes(this.value);
+                if (eqW) eqW.style.display = isEquip ? 'block' : 'none';
+                if (locW) locW.style.display = isEquip ? 'none' : 'block';
+                if (ftW) ftW.style.display = isEquip ? 'none' : 'block';
+                if (isEquip) {
+                    // Reload equipment list for the newly selected category
+                    reloadCurativeEquipmentList();
                     const li = document.getElementById('curativeLocationInput');
                     const ft = document.getElementById('curativeFreeText');
                     if (li) li.value = '';
                     if (ft) ft.value = '';
                 } else {
                     const es = document.getElementById('curativeEquipSelect');
-                    if (es) es.value = '';
+                    if (es) { es.value = ''; es._list = []; }
                 }
             });
+
+            /* Reload the equipment dropdown for the currently-selected curative category */
+            async function reloadCurativeEquipmentList() {
+                const select = document.getElementById('curativeEquipSelect');
+                if (!select) return;
+                const catVal = document.getElementById('curativeCategory').value;
+                if (!['Refrigeration', 'AirConditioner', 'Biomedical'].includes(catVal)) return;
+
+                select.innerHTML = '<option value="">Loading…</option>';
+                select._list = [];
+
+                try {
+                    const all = await fetchAllInventory();
+                    let mine;
+
+                    if (catVal === 'Biomedical') {
+                        // Show ALL biomedical equipment across every department
+                        // so any In-Charge can report a BMET fault
+                        mine = all.filter(a =>
+                            (a.equipCategory || getCategoryForType(a.type)) === 'biomedical'
+                        );
+                    } else {
+                        const dept = currentInchargeDept || inferDepartmentFromIncharge(currentLoggedInName);
+                        const targetCat = catVal === 'Refrigeration' ? 'fridge' : 'ac';
+                        mine = all.filter(a => {
+                            if (dept && normalizeText(a.dept) !== normalizeText(dept)) return false;
+                            if (!equipVisibleToMe(a)) return false;
+                            if ((a.equipCategory || getCategoryForType(a.type)) !== targetCat) return false;
+                            return true;
+                        });
+                    }
+
+                    const catLabel = catVal === 'Refrigeration' ? 'fridge / freezer'
+                                   : catVal === 'AirConditioner' ? 'air conditioner'
+                                   : 'biomedical equipment';
+
+                    if (!mine.length) {
+                        select.innerHTML = '<option value="">— No ' + catLabel + ' found —</option>';
+                        return;
+                    }
+
+                    select.innerHTML = '<option value="">— Choose equipment —</option>';
+                    mine.forEach((ref, i) => {
+                        const o = document.createElement('option');
+                        o.value = i;
+                        o.textContent = (ref.equipName ? ref.equipName + ' — ' : '')
+                                      + ref.tag + ' | ' + ref.loc + ' | ' + ref.brand;
+                        select.appendChild(o);
+                    });
+                    select._list = mine;
+                } catch (e) {
+                    select.innerHTML = '<option value="">⚠️ ' + e.message + '</option>';
+                }
+            }
 
             async function fetchTechnicianAssetsFromCloud(techName) {
                 try {
@@ -20602,7 +21925,856 @@ const t = _pd ? _pd.getTime() : NaN;
                     alert('❌ Could not load certificate: ' + (e.message || 'wrong password'));
                     return false;
                 }
+            }            // ===== EQUIPMENT MONITORING LOGIC =====
+            const GENERATOR_UNITS = [
+                'Ritewat 500KVA G1', 'Ritewat 500KVA G2', '400KVA perkins', 
+                'CUMMINS 70KVA', '300KVA perkins', 'DAF 80 KVA'
+            ];
+
+           
+
+            // ✅ UPS Checklist Templates
+            const UPS_SINGLE_PHASE_CHECKLIST = `# Visual & Physical Inspection
+- Inspect UPS casing and clean dust from vents
+- Verify cooling fans are spinning normally
+- Check display panel for any active alarms/errors
+- Inspect batteries for swelling, leaks, or corrosion
+
+# Electrical Measurements (enter the reading beside each item)
+- Check Input Voltage (Target: ~230V)
+- Check Output Voltage (Target: ~230V)
+- Check Frequency (Target: 50 Hz)
+
+# Battery & Load
+- Verify Battery Voltage level
+- Check Load Percentage (%) on the display
+- Perform battery runtime / backup test (if applicable)`;
+
+            const UPS_THREE_PHASE_CHECKLIST = `# Visual & Physical Inspection
+- Inspect UPS casing and clean dust from vents
+- Verify cooling fans are spinning normally
+- Check display panel for any active alarms/errors
+- Inspect batteries for swelling, leaks, or corrosion
+
+# Electrical Measurements (Write exact readings in Remarks)
+- Check Input Voltage L1
+- Check Input Voltage L2
+- Check Input Voltage L3
+- Check Output Voltage L1
+- Check Output Voltage L2
+- Check Output Voltage L3
+- Check Phase Balance
+- Check Frequency (Target: 50 Hz)
+
+# Battery & Load
+- Verify Battery Voltage level
+- Check Load Percentage (%) on the display
+- Perform battery runtime / backup test (if applicable)`;
+
+            // Auto-fill checklist when phase type changes
+            document.getElementById('newMonPhaseType')?.addEventListener('change', function() {
+                const ta = document.getElementById('newMonChecklist');
+                if (!ta.value.trim() || ta.value.trim() === UPS_SINGLE_PHASE_CHECKLIST || ta.value.trim() === UPS_THREE_PHASE_CHECKLIST) {
+                    ta.value = this.value === 'three' ? UPS_THREE_PHASE_CHECKLIST : UPS_SINGLE_PHASE_CHECKLIST;
+                }
+            });
+
+            document.getElementById('editMonPhaseType')?.addEventListener('change', function() {
+                const ta = document.getElementById('editMonChecklist');
+                if (!ta.value.trim() || ta.value.trim() === UPS_SINGLE_PHASE_CHECKLIST || ta.value.trim() === UPS_THREE_PHASE_CHECKLIST) {
+                    ta.value = this.value === 'three' ? UPS_THREE_PHASE_CHECKLIST : UPS_SINGLE_PHASE_CHECKLIST;
+                }
+            });
+
+            /* ============ UPS DYNAMIC CHECKLIST (single / three phase) ============ */
+const UPS_READING_RE = /(voltage|frequency|load|balance|current|temperature|runtime)/i;
+window.__upsTok = window.__upsTok || 0;
+window.__upsCurrent = null;
+
+function getUpsDefaultChecklist(phase) {
+    return parseStructuredChecklist(phase === 'three' ? UPS_THREE_PHASE_CHECKLIST : UPS_SINGLE_PHASE_CHECKLIST);
+}
+function checklistToText(cl) {
+    if (!cl) return '';
+    const lines = [];
+    (cl.sections && cl.sections.length ? cl.sections : [{ title: '', items: cl.items || [] }]).forEach(s => {
+        if (s.title) { if (lines.length) lines.push(''); lines.push('# ' + s.title); }
+        (s.items || []).forEach(i => lines.push('- ' + i));
+    });
+    return lines.join('\n');
+}
+/* Repairs checklists saved the old way, where "# Header" and "- item" were stored as items */
+function normalizeLegacyChecklist(cl) {
+    if (!cl || !Array.isArray(cl.items) || !cl.items.length) return null;
+    if (cl.items.some(t => /^\s*[#\-*•]/.test(t))) {
+        const p = parseStructuredChecklist(cl.items.join('\n'));
+        if (p.flatItems.length) return { sections: p.sections, items: p.flatItems };
+    }
+    return {
+        sections: (cl.sections && cl.sections.length) ? cl.sections : [{ title: '', items: cl.items }],
+        items: cl.items
+    };
+}
+async function resolveUpsChecklist(unitName, phase) {
+    let cl = null;
+    try { cl = normalizeLegacyChecklist(await fetchBioChecklist(unitName)); } catch (e) {}
+    if (cl && cl.items.length) return { ...cl, source: 'custom' };
+    const d = getUpsDefaultChecklist(phase);
+    return { sections: d.sections, items: d.flatItems, source: 'default' };
+}
+
+async function renderMonitorUnitChecklist() {
+    const cat = document.getElementById('monitorCategory')?.value;
+    if (cat !== 'ups') return;
+    const unit = document.getElementById('monitorUnitSelect').value;
+    const box = document.getElementById('upsChecklistBox');
+    const badge = document.getElementById('upsPhaseBadge');
+    if (!box) return;
+    window.__upsCurrent = null;
+    if (!unit || unit === '__ADD_NEW__') {
+        box.innerHTML = '<div class="info-loading">Select a UPS unit…</div>';
+        if (badge) { badge.textContent = '—'; badge.style.background = '#9cb9d0'; }
+        return;
+    }
+    const token = ++window.__upsTok;
+    box.innerHTML = '<div class="info-loading">⏳ Loading checklist…</div>';
+
+    let rec = null;
+    try {
+        const inv = await fetchAllInventory();
+        rec = inv.find(i => (i.equipName === unit || i.tag === unit) && i.equipCategory === 'ups');
+    } catch (e) {}
+    const phase = (rec && rec.phaseType) || 'single';
+    const cl = await resolveUpsChecklist(unit, phase);
+    if (token !== window.__upsTok) return;   // user switched unit meanwhile
+
+    window.__upsCurrent = { unit, phase, items: cl.items, sections: cl.sections };
+    if (badge) {
+        badge.textContent = (phase === 'three' ? '⚡⚡⚡ Three Phase' : '⚡ Single Phase') + (cl.source === 'custom' ? ' · custom' : '');
+        badge.style.background = phase === 'three' ? '#7a4c9c' : '#1b6b3f';
+    }
+    let idx = 0;
+    box.innerHTML = cl.sections.map(sec => {
+        const head = sec.title
+            ? `<div style="font-weight:800;color:#12405e;font-size:.95rem;margin:16px 0 10px;padding:8px 12px;background:linear-gradient(90deg,#eef6fc,#f0fdf4);border-left:4px solid #1b6b3f;border-radius:8px;">📋 ${escapeHtml(sec.title)}</div>`
+            : '';
+        const rows = (sec.items || []).map(item => {
+            idx++;
+            const rd = UPS_READING_RE.test(item)
+                ? `<input type="text" id="ups_rd${idx}" class="remark-input" placeholder="Reading" style="margin-top:6px;max-width:220px;padding:6px 10px;">`
+                : '';
+            return `<div class="check-item"><input type="checkbox" id="ups_chk${idx}" class="check-ups"><div style="flex:1;"><label for="ups_chk${idx}">${escapeHtml(item)}</label>${rd}</div></div>`;
+        }).join('');
+        return head + `<div class="bio-checklist-grid">${rows}</div>`;
+    }).join('');
+}
+document.getElementById('monitorUnitSelect')?.addEventListener('change', renderMonitorUnitChecklist);
+
+function collectUpsMonitoring() {
+    const cur = window.__upsCurrent;
+    if (!cur) throw new Error('Select a UPS unit and wait for its checklist to load.');
+    const ticked = [], readings = {};
+    cur.items.forEach((t, i) => {
+        const n = i + 1;
+        if (document.getElementById('ups_chk' + n)?.checked) ticked.push(n);
+        const r = (document.getElementById('ups_rd' + n)?.value || '').trim();
+        if (r) readings[n] = r;
+    });
+    return {
+        phaseType: cur.phase,
+        upsItems: ticked.join('|'),
+        upsItemTexts: cur.items.slice(),
+        upsSections: cur.sections.map(s => ({ title: s.title || '', items: (s.items || []).slice() })),
+        upsReadings: readings
+    };
+}
+function upsSummary(l) {
+    if (!l || !Array.isArray(l.upsItemTexts)) return '—';
+    const done = String(l.upsItems || '').split('|').filter(Boolean).length;
+    return done + '/' + l.upsItemTexts.length + ' checked · ' + (l.phaseType === 'three' ? '3-phase' : '1-phase');
+}
+function upsDetailsText(l) {
+    const set = new Set(String(l.upsItems || '').split('|').filter(Boolean));
+    const rd = (l.upsReadings && typeof l.upsReadings === 'object') ? l.upsReadings : {};
+    const lines = l.upsItemTexts.map((t, i) =>
+        (set.has(String(i + 1)) ? '✅ ' : '❌ ') + t + (rd[i + 1] ? '  →  ' + rd[i + 1] : ''));
+    return '📋 UPS MONITORING LOG\n\nUnit: ' + l.unit + ' (' + (l.phaseType === 'three' ? 'Three phase' : 'Single phase') + ')\nDate: ' +
+        formatDateOnly(l.date) + '\nTech: ' + l.technician + '\n\n' + lines.join('\n') + '\n\nRemarks: ' + (l.remarks || '—');
+}
+
+/* When phase changes, swap the checklist text only if it is still an untouched default */
+function bindUpsPhaseSync(selId, taId) {
+    document.getElementById(selId)?.addEventListener('change', function () {
+        const ta = document.getElementById(taId);
+        if (!ta) return;
+        const f = parseStructuredChecklist(ta.value).flatItems.join('|');
+        const isDefault = !ta.value.trim()
+            || f === getUpsDefaultChecklist('single').flatItems.join('|')
+            || f === getUpsDefaultChecklist('three').flatItems.join('|');
+        if (isDefault) ta.value = this.value === 'three' ? UPS_THREE_PHASE_CHECKLIST : UPS_SINGLE_PHASE_CHECKLIST;
+    });
+}
+bindUpsPhaseSync('newMonPhaseType', 'newMonChecklist');
+bindUpsPhaseSync('editMonPhaseType', 'editMonChecklist');
+
+// Populate Departments & Units
+                      async function populateMonitorDropdowns() {
+                // 1. Units
+                const sel = document.getElementById('monitorUnitSelect');
+                const cat = document.getElementById('monitorCategory').value;
+                sel.innerHTML = '';
+                
+                let units = [];
+                if (cat === 'generator') units = GENERATOR_UNITS;
+                else if (cat === 'ups') units = ['UPS Main Server', 'UPS Theatre', 'UPS Lab'];
+                else if (cat === 'wastewater') units = ['Waste Water Pump 1', 'Treatment Plant'];
+                else if (cat === 'compressor') units = ['Air Compressor 1', 'Air Compressor 2'];
+
+                units.forEach(u => {
+                    const o = document.createElement('option');
+                    o.value = u; o.textContent = u;
+                    sel.appendChild(o);
+                });
+
+                // Add dynamic units from DB for this category
+                try {
+                    const inv = await fetchAllInventory();
+                    const dbUnits = inv.filter(i => {
+                        if (i.equipCategory !== cat) return false;
+                        // ✅ Filter by owner if technician (so they only see their PM equipment)
+                        if (currentRole === 'technician') {
+                            return normalizeText(i.owner) === normalizeText(currentLoggedInName);
+                        }
+                        return true;
+                    }).map(i => i.equipName || i.tag);
+                    dbUnits.forEach(u => {
+                        if (!units.includes(u)) {
+                            const o = document.createElement('option');
+                            o.value = u; o.textContent = u;
+                            sel.appendChild(o);
+                        }
+                    });
+                } catch(e) {}
+
+                // Add option for adding a new unit
+                const addNewOpt = document.createElement('option');
+                addNewOpt.value = '__ADD_NEW__';
+                addNewOpt.textContent = '➕ Add New Unit...';
+                addNewOpt.style.fontWeight = 'bold';
+                addNewOpt.style.color = '#1b6b3f';
+                sel.appendChild(addNewOpt);
+
+                // 2. Departments (for the form) - REMOVED as requested
+                
+                // 3. Setup New Unit Modal Dept
+                const newMonDept = document.getElementById('newMonDept');
+                if (newMonDept.options.length === 0) {
+                    Object.keys(DEPARTMENTS).forEach(d => {
+                        const o = document.createElement('option');
+                        o.value = d; o.textContent = d;
+                        newMonDept.appendChild(o);
+                    });
+                }
+
+                // 4. Setup Edit Unit Modal Dept
+                const editMonDept = document.getElementById('editMonDept');
+                if (editMonDept.options.length === 0) {
+                    Object.keys(DEPARTMENTS).forEach(d => {
+                        const o = document.createElement('option');
+                        o.value = d; o.textContent = d;
+                        editMonDept.appendChild(o);
+                    });
+                }
+
+                // ✅ NEW: Trigger the change event so the Edit button shows up immediately
+                sel.dispatchEvent(new Event('change'));
             }
+
+            document.getElementById('monitorCategory')?.addEventListener('change', () => {
+                populateMonitorDropdowns();
+                toggleMonitorChecklists();
+            });
+
+            // Function to switch the visible checklist based on category
+            function toggleMonitorChecklists() {
+                const cat = document.getElementById('monitorCategory').value;
+                document.querySelectorAll('.monitor-checklist-group').forEach(el => el.style.display = 'none');
+                const target = document.getElementById('monitor-cat-' + cat);
+                if (target) target.style.display = 'block';
+            }
+            
+            // Handle Custom Level Buttons (MIN / MED / MAX)
+            document.querySelectorAll('.level-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const val = this.getAttribute('data-val');
+                    
+                    const container = this.parentElement;
+                    container.querySelectorAll('.level-btn').forEach(b => {
+                        b.style.background = '#fff';
+                        b.style.color = '#1e4a6d';
+                        b.style.borderColor = '#cfdfeb';
+                    });
+                    
+                    this.style.background = '#e2f0e6';
+                    this.style.color = '#1b6b3f';
+                    this.style.borderColor = '#1b6b3f';
+                    
+                    document.getElementById(targetId).value = val;
+                });
+            });
+            // Handle Unit Selection (Show/Hide Edit & Delete buttons)
+            document.getElementById('monitorUnitSelect')?.addEventListener('change', async function() {
+                const editBtn = document.getElementById('editMonitorUnitBtn');
+                const delBtn = document.getElementById('deleteMonitorUnitBtn');
+                
+                if (this.value === '__ADD_NEW__' || !this.value) {
+                    if (editBtn) editBtn.style.display = 'none';
+                    if (delBtn) delBtn.style.display = 'none';
+                } else {
+                    // Always show Edit button for valid units so they can be edited/added to DB
+                    if (editBtn) editBtn.style.display = 'block';
+                    
+                    // Check if the selected unit actually exists in our database to show Delete button
+                    const cat = document.getElementById('monitorCategory').value;
+                    try {
+                        const inv = await fetchAllInventory();
+                        const exists = inv.find(i => (i.equipName === this.value || i.tag === this.value) && i.equipCategory === cat);
+                        if (exists) {
+                            if (delBtn) delBtn.style.display = 'block';
+                        } else {
+                            if (delBtn) delBtn.style.display = 'none'; 
+                        }
+                    } catch (e) {
+                        if (delBtn) delBtn.style.display = 'none';
+                    }
+                }
+            });
+
+            // Open Edit Modal
+            document.getElementById('editMonitorUnitBtn')?.addEventListener('click', async function() {
+                const unitVal = document.getElementById('monitorUnitSelect').value;
+                if (!unitVal || unitVal === '__ADD_NEW__') return;
+                
+                const cat = document.getElementById('monitorCategory').value;
+                const inv = await fetchAllInventory();
+                let unit = inv.find(i => (i.equipName === unitVal || i.tag === unitVal) && i.equipCategory === cat);
+                
+                if (!unit) { 
+                    // Create dummy object for hardcoded units so they can be edited (and then added to DB)
+                    unit = { 
+                        equipName: unitVal, 
+                        tag: '', 
+                        serial: 'N/A', 
+                        dept: '', 
+                        loc: '' 
+                    };
+                }
+                
+                document.getElementById('editMonitorUnitModal').dataset.category = cat;
+                document.getElementById('editMonUnitName').value = unit.equipName || '';
+                
+                // ✅ Show/Hide Phase Type for UPS
+                const phaseWrap = document.getElementById('editMonPhaseWrap');
+                if (cat === 'ups') {
+                    phaseWrap.style.display = 'block';
+                    document.getElementById('editMonPhaseType').value = unit.phaseType || 'single';
+                } else {
+                    phaseWrap.style.display = 'none';
+                }
+                document.getElementById('editMonTag').value = unit.tag || '';
+                document.getElementById('editMonSerial').value = unit.serial || '';
+                document.getElementById('editMonDept').value = unit.dept || '';
+                document.getElementById('editMonLoc').value = unit.loc || '';
+                document.getElementById('editMonChecklist').value = '';
+
+                // ✅ NEW: Handle Owner selection (only for In-Charges)
+                const ownerWrap = document.getElementById('editMonOwnerWrap');
+                const ownerSel = document.getElementById('editMonOwner');
+                if (currentRole === 'incharge') {
+                    ownerWrap.style.display = 'block';
+                    ownerSel.innerHTML = '';
+                    const users = await loadUsersFromFirestore();
+                    Object.keys(users).filter(n => users[n].role === 'technician').forEach(n => {
+                        const o = document.createElement('option');
+                        o.value = n; o.textContent = n;
+                        ownerSel.appendChild(o);
+                    });
+                    if (unit.owner) ownerSel.value = unit.owner;
+                } else {
+                    ownerWrap.style.display = 'none';
+                }
+                
+                // Load existing checklist if any
+                try {
+                    const cl = await fetchBioChecklist(unit.equipName);
+                    if (cl && cl.items) {
+                        document.getElementById('editMonChecklist').value = checklistToText(normalizeLegacyChecklist(cl));
+                    }
+                } catch(e) {}
+                
+                document.getElementById('editMonError').textContent = '';
+                if (cat === 'ups' && !document.getElementById('editMonChecklist').value.trim()) {
+                    document.getElementById('editMonChecklist').value =
+                        document.getElementById('editMonPhaseType').value === 'three' ? UPS_THREE_PHASE_CHECKLIST : UPS_SINGLE_PHASE_CHECKLIST;
+                }
+                document.getElementById('editMonitorUnitModal').classList.add('show');
+            });
+            
+            // Save Edited Unit
+            document.getElementById('editMonSaveBtn')?.addEventListener('click', async function() {
+                const btn = this;
+                const orig = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Saving...';
+                
+                try {
+                    const unitVal = document.getElementById('monitorUnitSelect').value;
+                    const cat = document.getElementById('editMonitorUnitModal').dataset.category;
+                    const name = document.getElementById('editMonUnitName').value.trim();
+                    const tag = document.getElementById('editMonTag').value.trim();
+                    const serial = document.getElementById('editMonSerial').value.trim();
+                    const dept = document.getElementById('editMonDept').value;
+                    const loc = document.getElementById('editMonLoc').value.trim();
+                    const customChecklist = document.getElementById('editMonChecklist').value.trim();
+                    
+                    if (!name || !dept || !loc) throw new Error('Name, Department, and Location are required.');
+                    
+                    const inv = await fetchAllInventory();
+                    const original = inv.find(i => (i.equipName === unitVal || i.tag === unitVal) && i.equipCategory === cat);
+                    
+                    // ✅ NEW: Determine the owner
+                    const ownerVal = (currentRole === 'incharge' && document.getElementById('editMonOwner').value) 
+                                     ? document.getElementById('editMonOwner').value 
+                                     : (original?.owner || currentLoggedInName);
+                    
+                    if (original) {
+                        const updated = {
+                            ...original,
+                            equipName: name,
+                            tag: tag || original.tag,
+                            serial: serial || 'N/A',
+                            dept: dept,
+                            loc: loc,
+                            owner: ownerVal,
+                            phaseType: cat === 'ups' ? document.getElementById('editMonPhaseType').value : '',
+                            phaseType: cat === 'ups' ? document.getElementById('editMonPhaseType').value : ''
+                        };
+                        await editInventoryItemInCloud(original, updated, currentLoggedInName);
+                    } else {
+                        // If it was a hardcoded unit, add it to the database now!
+                        const newRef = {
+                            tag: tag || 'AUTO-' + Math.random().toString(36).substring(2, 7).toUpperCase(),
+                            dept: dept,
+                            loc: loc,
+                            equipName: name,
+                            brand: '(unspecified)',
+                            model: '',
+                            type: name,
+                            equipCategory: cat,
+                            serial: serial || 'N/A',
+                            workingStatus: 'Working',
+                            lastPmDate: '',
+                            nextPmDate: '',
+                            owner: ownerVal,
+                            phaseType: cat === 'ups' ? document.getElementById('editMonPhaseType').value : '',
+                            photo: ''
+                        };
+                        await addInventoryItemToCloud(newRef, currentLoggedInName);
+                    }
+                    
+                    if (customChecklist) {
+                        await saveBioChecklist(name, parseStructuredChecklist(customChecklist), cat);
+                    }
+                    
+                    showStatus('✅ Unit updated successfully.', true);
+                    document.getElementById('editMonitorUnitModal').classList.remove('show');
+                    await populateMonitorDropdowns();
+                    
+                    // Re-select the updated unit
+                    const sel = document.getElementById('monitorUnitSelect');
+                    for(let i=0; i<sel.options.length; i++) {
+                        if (sel.options[i].value === name) { sel.selectedIndex = i; sel.dispatchEvent(new Event('change')); break; }
+                    }
+                    
+                } catch(e) {
+                    document.getElementById('editMonError').textContent = '⚠️ ' + e.message;
+                }
+                
+                btn.disabled = false;
+                btn.innerHTML = orig;
+            });
+
+            document.getElementById('editMonCancel')?.addEventListener('click', () => {
+                document.getElementById('editMonitorUnitModal').classList.remove('show');
+            });
+
+            // Delete Unit
+            document.getElementById('deleteMonitorUnitBtn')?.addEventListener('click', async function() {
+                const unitVal = document.getElementById('monitorUnitSelect').value;
+                if (!unitVal || unitVal === '__ADD_NEW__') return;
+                
+                const cat = document.getElementById('monitorCategory').value;
+                const inv = await fetchAllInventory();
+                const unit = inv.find(i => (i.equipName === unitVal || i.tag === unitVal) && i.equipCategory === cat);
+                
+                if (!unit) return;
+                
+                if (!await smartConfirm(`Delete unit "${unit.equipName || unit.tag}" permanently?`, {
+                    title: '🗑️ Delete Unit', icon: '🗑️', okText: 'Delete', danger: true
+                })) return;
+                
+                try {
+                    await removeInventoryItemInCloud(unit, currentLoggedInName);
+                    showStatus('🗑️ Unit deleted.', true);
+                    await populateMonitorDropdowns();
+                } catch(e) {
+                    showStatus('⚠️ ' + e.message, false);
+                }
+            });
+            // Handle Add New Unit
+            document.getElementById('monitorUnitSelect')?.addEventListener('change', function() {
+                if (this.value === '__ADD_NEW__') {
+                    const cat = document.getElementById('monitorCategory');
+                    document.getElementById('addMonitorUnitModal').dataset.category = cat.value;
+                    document.getElementById('newMonUnitName').value = '';
+                    
+                    // ✅ Show/Hide Phase Type for UPS
+                    const phaseWrap = document.getElementById('newMonPhaseWrap');
+                    if (cat.value === 'ups') {
+                        phaseWrap.style.display = 'block';
+                        document.getElementById('newMonPhaseType').value = 'single';
+                        document.getElementById('newMonChecklist').value = UPS_SINGLE_PHASE_CHECKLIST;
+                    } else {
+                        phaseWrap.style.display = 'none';
+                        document.getElementById('newMonChecklist').value = '';
+                    }
+                    document.getElementById('newMonTag').value = '';
+                    document.getElementById('newMonSerial').value = '';
+                    document.getElementById('newMonLoc').value = '';
+                    document.getElementById('newMonChecklist').value = '';
+                    document.getElementById('addMonError').textContent = '';
+                    if (cat.value === 'ups') document.getElementById('newMonChecklist').value = UPS_SINGLE_PHASE_CHECKLIST;
+                    
+                    // Pre-select current monitor dept
+                    const d = document.getElementById('monitorDept')?.value;
+                    if (d) document.getElementById('newMonDept').value = d;
+                    
+                    document.getElementById('addMonitorUnitModal').classList.add('show');
+                    setTimeout(() => document.getElementById('newMonUnitName').focus(), 100);
+                }
+            });
+
+                        document.getElementById('addMonCancel')?.addEventListener('click', () => {
+                document.getElementById('addMonitorUnitModal').classList.remove('show');
+                document.getElementById('monitorUnitSelect').value = document.getElementById('monitorUnitSelect').options[0].value;
+                // ✅ NEW: Trigger the change event to bring the Edit button back
+                document.getElementById('monitorUnitSelect').dispatchEvent(new Event('change'));
+            });
+
+            // Save New Unit
+            document.getElementById('addMonSaveBtn')?.addEventListener('click', async function() {
+                const btn = this;
+                const o = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Saving...';
+
+                try {
+                    const cat = document.getElementById('addMonitorUnitModal').dataset.category;
+                    const name = document.getElementById('newMonUnitName').value.trim();;
+                    const tag = document.getElementById('newMonTag').value.trim() || 'AUTO-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+                    const serial = document.getElementById('newMonSerial').value.trim() || 'N/A';
+                    const dept = document.getElementById('newMonDept').value;
+                    const loc = document.getElementById('newMonLoc').value.trim();
+                    const customChecklist = document.getElementById('newMonChecklist').value.trim();
+
+                    if (!name) throw new Error('Unit Name is required.');
+                    if (!dept) throw new Error('Department is required.');
+                    if (!loc) throw new Error('Location is required.');
+
+                    // Save to equipment table
+                    const newRef = {
+                        tag: tag,
+                        dept: dept,
+                        loc: loc,
+                        equipName: name,
+                        brand: '(unspecified)',
+                        model: '',
+                        type: name, // Using Name as Type
+                        equipCategory: cat,
+                        serial: serial,
+                        workingStatus: 'Working',
+                        lastPmDate: '',
+                        nextPmDate: '',
+                        owner: currentLoggedInName,
+                        photo: '',
+                        phaseType: cat === 'ups' ? document.getElementById('newMonPhaseType').value : ''
+                    };
+                    
+                    await addInventoryItemToCloud(newRef, currentLoggedInName);
+                    
+                    // Save custom checklist if provided
+                    if (customChecklist) {
+                        await saveBioChecklist(name, parseStructuredChecklist(customChecklist), cat);
+                    }
+
+                    showStatus('✅ New unit added successfully.', true);
+                    document.getElementById('addMonitorUnitModal').classList.remove('show');
+                    
+                    // Refresh dropdown and select the new unit
+                    await populateMonitorDropdowns();
+                    const sel = document.getElementById('monitorUnitSelect');
+                    for (let i = 0; i < sel.options.length; i++) {
+                        if (sel.options[i].value === name) {
+                            sel.selectedIndex = i;
+                            break;
+                        }
+                    }
+
+                } catch (e) {
+                    document.getElementById('addMonError').textContent = '⚠️ ' + e.message;
+                }
+                btn.disabled = false;
+                btn.innerHTML = o;
+            });
+
+            // Save Monitoring Data (Technician)
+                        // ✅ NEW: Wire up the new Monitoring action buttons
+            document.getElementById('monSyncBtn')?.addEventListener('click', () => {
+                document.getElementById('syncBtn')?.click();
+            });
+            document.getElementById('monDownloadAnalysisBtn')?.addEventListener('click', () => {
+                // Reuses the Export All function for now
+                document.getElementById('exportMonitorPdfBtn')?.click();
+            });
+
+            document.getElementById('saveMonitoringBtn')?.addEventListener('click', async function() {
+                const btn = this;
+                const o = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Saving...';
+
+                try {
+                    const cat = document.getElementById('monitorCategory').value;
+                    const unit = document.getElementById('monitorUnitSelect').value;
+                    let dept = '';
+                    try {
+                        const inv = await fetchAllInventory();
+                        const unitRec = inv.find(i => (i.equipName === unit || i.tag === unit) && i.equipCategory === cat);
+                        if (unitRec) dept = unitRec.dept;
+                    } catch(e) {}
+                    const date = document.getElementById('monitorDate').value;
+
+                    if (unit === '__ADD_NEW__') throw new Error('Please select a valid unit.');
+                    if (!unit || !date || !dept) throw new Error('Please fill all required fields.');
+
+                    const getChecked = (prefix, count) => {
+                        let arr = [];
+                        for(let i=1; i<=count; i++) {
+                            if(document.getElementById(prefix + i)?.checked) arr.push(i);
+                        }
+                        return arr.join('|');
+                    };
+
+                    const payload = {
+                        category: cat,
+                        unit: unit,
+                        dept: dept,
+                        date: date,
+                        technician: currentLoggedInName,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    // ✅ Add UPS Phase info if it's a UPS
+                    if (cat === 'ups') {
+                        let unitRec = null;
+                        try {
+                            const inv = await fetchAllInventory();
+                            unitRec = inv.find(i => (i.equipName === unit || i.tag === unit) && i.equipCategory === cat);
+                        } catch(e) {}
+                        payload.phaseType = unitRec ? (unitRec.phaseType || 'single') : 'single';
+                    }
+
+                    // Dynamically grab data based on the selected category
+                    if (cat === 'generator') {
+                        Object.assign(payload, {
+                            fuelLevel: document.getElementById('gen_fuelLevel')?.value || '',
+                            coolantLevel: document.getElementById('gen_coolant')?.value || '',
+                            oilLevel: document.getElementById('gen_oil')?.value || '',
+                            dieselRefilled: document.getElementById('gen_dieselRefilled')?.value || '',
+                            dieselBought: document.getElementById('gen_dieselBought')?.value || '',
+                            runHours: document.getElementById('gen_runHours')?.value || '',
+                            runMins: document.getElementById('gen_runMins')?.value || '',
+                            visualItems: getChecked('gen_v', 6),
+                            visualRemarks: document.getElementById('gen_remVisual')?.value || '',
+                            visualRating: document.querySelector('input[name="gen_ratingVisual"]:checked')?.value || 'Good',
+                            protectItems: getChecked('gen_p', 6),
+                            protectRemarks: document.getElementById('gen_remProtect')?.value || '',
+                            protectRating: document.querySelector('input[name="gen_ratingProtect"]:checked')?.value || 'All functional',
+                            atsItems: getChecked('gen_a', 6),
+                            atsRemarks: document.getElementById('gen_remAts')?.value || '',
+                            atsRating: document.querySelector('input[name="gen_ratingAts"]:checked')?.value || 'Smooth'
+                        });
+                    } else if (cat === 'ups') {
+                        Object.assign(payload, {
+                            ...collectUpsMonitoring(),
+                            batteryVoltage: '',
+                            load: '',
+                            remarks: document.getElementById('ups_remarks')?.value || ''
+                        });
+                    } else if (cat === 'wastewater') {
+                        Object.assign(payload, {
+                            pressure: document.getElementById('ww_pressure')?.value || '',
+                            remarks: document.getElementById('ww_remarks')?.value || ''
+                        });
+                    } else if (cat === 'compressor') {
+                        Object.assign(payload, {
+                            pressure: document.getElementById('comp_pressure')?.value || '',
+                            remarks: document.getElementById('comp_remarks')?.value || ''
+                        });
+                    }
+
+                    if (!window.FB || !window.FB.ready) throw new Error('Database offline.');
+                    
+                    await window.FB.addDoc(window.FB.collection(window.FB.db, 'equipmentMonitoring'), payload);
+                    invalidateCache('equipmentMonitoring');
+                    
+                    showStatus('✅ Monitoring log saved successfully.', true);
+                    
+                    // Clear checklist
+                    document.querySelectorAll('#monitorFormWrap input[type="checkbox"]').forEach(c => c.checked = false);
+                    document.getElementById('gen_fuelLevel').value = '';
+                    document.getElementById('gen_remVisual').value = '';
+                    document.getElementById('gen_remProtect').value = '';
+                    document.getElementById('gen_remAts').value = '';
+                    renderMonitorUnitChecklist();
+                    
+                } catch (e) {
+                    showStatus('⚠️ ' + e.message, false);
+                }
+                
+                btn.disabled = false;
+                btn.innerHTML = o;
+            });
+
+            // View History (In-Charge)
+            async function renderMonitoringHistory() {
+                const tbody = document.getElementById('monitorHistoryBody');
+                if (!tbody) return;
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#9cb9d0;">⏳ Loading logs...</td></tr>';
+
+                try {
+                    const snap = await window.FB.getDocs(window.FB.collection(window.FB.db, 'equipmentMonitoring'));
+                    const logs = [];
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        if (currentRole === 'incharge' && normalizeText(d.dept) !== normalizeText(currentInchargeDept)) {
+                            return;
+                        }
+                        logs.push(d);
+                    });
+
+                    logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                    if (!logs.length) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#9cb9d0;">📭 No monitoring logs found for your department.</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = logs.map(l => {
+                        const condColor = l.visualRating === 'Needs attention' || l.protectRating === 'Fault found' ? '#b33a3a' : '#1b6b3f';
+                        return `<tr>
+                            <td>${formatDateOnly(l.date)}</td>
+                            <td><strong>${escapeHtml(l.unit)}</strong><br><span style="font-size:.72rem;color:#5b7b96;">${escapeHtml(l.category)}</span></td>
+                            <td>${escapeHtml(l.dept)}</td>
+                            <td>${escapeHtml(l.technician)}</td>
+                            <td><span style="color:${condColor}; font-weight:700;">${escapeHtml(l.visualRating || upsSummary(l))}</span></td>
+                            <td><button class="btn-secondary" style="padding:4px 10px; font-size:.75rem;" onclick="viewMonitorLogDetails('${l.timestamp}')">👁️ View</button></td>
+                        </tr>`;
+                    }).join('');
+                    
+                    window.__cachedMonitorLogs = logs;
+
+                } catch (e) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#b33a3a;padding:20px;">⚠️ ${e.message}</td></tr>`;
+                }
+            }
+
+            document.getElementById('refreshMonitorHistoryBtn')?.addEventListener('click', renderMonitoringHistory);
+
+            window.viewMonitorLogDetails = function(timestamp) {
+                const log = window.__cachedMonitorLogs.find(x => x.timestamp === timestamp);
+                if (log && Array.isArray(log.upsItemTexts)) { alert(upsDetailsText(log)); return; }
+                if (!log) return;
+                alert(`📋 MONITORING LOG DETAILS\n\nUnit: ${log.unit}\nDate: ${formatDateOnly(log.date)}\nTech: ${log.technician}\n\nFuel Level: ${log.fuelLevel || '—'}%\nCoolant: ${log.coolantLevel}\nOil: ${log.oilLevel}\n\nVisual Rating: ${log.visualRating}\nRemarks: ${log.visualRemarks || '—'}\n\nProtection Rating: ${log.protectRating}\nRemarks: ${log.protectRemarks || '—'}\n\nATS Rating: ${log.atsRating}\nRemarks: ${log.atsRemarks || '—'}`);
+            };
+
+            // Monitoring Action Buttons
+            document.getElementById('resetMonitorFormBtn')?.addEventListener('click', () => {
+                document.querySelectorAll('#monitorFormWrap input[type="checkbox"]').forEach(c => c.checked = false);
+                document.querySelectorAll('#monitorFormWrap input[type="number"], #monitorFormWrap input[type="text"]').forEach(i => i.value = '');
+                document.querySelectorAll('.monitor-checklist-group').forEach(el => {
+                    el.querySelectorAll('input').forEach(i => i.value = '');
+                });
+                document.querySelectorAll('#monitorFormWrap input[type="radio"][value="Good"], #monitorFormWrap input[type="radio"][value="All functional"], #monitorFormWrap input[type="radio"][value="Smooth"]').forEach(r => r.checked = true);
+                showStatus('Form reset.', true);
+            });
+
+            document.getElementById('exportMonitorPdfBtn')?.addEventListener('click', async function() {
+                const btn = this;
+                const o = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Generating...';
+                try {
+                    const snap = await window.FB.getDocs(window.FB.collection(window.FB.db, 'equipmentMonitoring'));
+                    const logs = [];
+                    snap.forEach(doc => logs.push(doc.data()));
+                    
+                    if (!logs.length) throw new Error('No logs to export.');
+                    
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                    let y = drawChubHeader(doc, { title: 'EQUIPMENT MONITORING LOG', subtitle: 'Export Date: ' + new Date().toLocaleDateString() });
+                    
+                    doc.autoTable({
+                        startY: y,
+                        margin: { left: 14, right: 14 },
+                        head: [['Date', 'Unit', 'Dept', 'Technician', 'Condition']],
+                        body: logs.map(l => [
+                            formatDateOnly(l.date),
+                            pdfSanitize(l.unit),
+                            pdfSanitize(l.dept),
+                            pdfSanitize(l.technician),
+                            pdfSanitize(l.visualRating || upsSummary(l))
+                        ]),
+                        theme: 'striped',
+                        styles: { fontSize: 8 },
+                        headStyles: { fillColor: [30, 74, 109] }
+                    });
+                    
+                    const totalPages = doc.internal.getNumberOfPages();
+                    for (let p = 1; p <= totalPages; p++) {
+                        doc.setPage(p);
+                        drawChubFooter(doc, p, totalPages);
+                    }
+                    
+                    doc.save('CHUB_Monitoring_Log.pdf');
+                    showStatus('📄 PDF Downloaded.', true);
+                } catch(e) {
+                    showStatus('⚠️ ' + e.message, false);
+                }
+                btn.disabled = false;
+                btn.innerHTML = o;
+            });
+
+            // Initialize on load
+            setTimeout(() => {
+                populateMonitorDropdowns();
+                const today = new Date().toISOString().split('T')[0];
+                if(document.getElementById('monitorDate')) document.getElementById('monitorDate').value = today;
+            }, 500);
+
+            
 
             /* ============================================================
                INIT
@@ -21493,6 +23665,418 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
         window.__ckOwner = (REF_FILTERED[refSelect.value] || {}).tag || '';
     }
 });
+
+        /* ============================================================
+           SIDEBAR NAVIGATION ENGINE
+           ============================================================ */
+        const MON_ITEM = { view: 'tech-monitoring', icon: '📊', label: 'Equipment Monitoring' };
+
+        function canSeeIcTasks() {
+            return normalizeText(currentLoggedInName) === normalizeText(SUPERVISOR_NAME) ||
+                (currentRole === 'incharge' && (isInfrastructureUser() || isBiomedicalUser()));
+        }
+
+        const SIDEBAR_MENUS = {
+            technician: () => [
+                { group: 'Maintenance', items: [
+                    { view: 'tech-pm', icon: '🔧', label: 'PM Inspection' },
+                    ...(isInfrastructureUser() ? [MON_ITEM] : [])
+                ]},
+                { group: 'My Work', items: [
+                    { view: 'tech-tasks',    icon: '📋', label: 'My Tasks',      badge: 'techTaskCount' },
+                    { view: 'tech-curative', icon: '🚨', label: 'Curative Jobs', badge: 'techCurativeCount' },
+                    { view: 'tech-progress', icon: '📈', label: 'PM Progress' }
+                ]}
+            ],
+            incharge: () => [
+                { group: 'Approvals', items: [
+                    { view: 'ic-approvals', icon: '✅', label: 'Pending Co-Signs', badge: 'pendingApprovalsCount' }
+                ]},
+                { group: 'Field Work', items: [
+                    ...(canSeeIcTasks() ? [{ view: 'ic-tasks', icon: '📋', label: 'My Tasks (In-Charge)', badge: 'icTaskCount' }] : []),
+                    { view: 'ic-curative', icon: '🚨', label: 'Curative Requests', badge: 'curativeRaisedCount' },
+                    { view: 'ic-disposal', icon: '🗑️', label: 'Disposal Requests', badge: 'inchargeDisposalCount' }
+                ]},
+                { group: 'Equipment', items: [
+                    { view: 'ic-pm-status', icon: '📅', label: 'Department PM Status' },
+                    { view: 'ic-inventory', icon: '📦', label: 'Department Inventory' },
+                    ...(isInfrastructureUser() ? [MON_ITEM] : [])
+                ]},
+                { group: 'Reports', items: [
+                    { view: 'ic-downloads', icon: '📥', label: 'Downloads & Analysis' }
+                ]}
+            ],
+            supervisor: () => [
+                { group: 'Overview', items: [
+                    { view: 'sup-analytics',   icon: '📊', label: 'Fleet Analytics' },
+                    { view: 'sup-performance', icon: '🏆', label: 'Technician Rankings' }
+                ]},
+                { group: 'Operations', items: [
+                    { view: 'sup-escalated',    icon: '⚠️', label: 'Escalated Jobs', badge: 'escalatedCount' },
+                    { view: 'sup-availability', icon: '👥', label: 'Team Availability' }
+                ]},
+                { group: 'Fleet', items: [
+                    { view: 'sup-fleet',     icon: '🏢', label: 'Fleet Overview' },
+                    { view: 'sup-inventory', icon: '📦', label: 'All Equipment' },
+                    MON_ITEM
+                ]},
+                { group: 'Reports', items: [
+                    { view: 'sup-reports', icon: '📥', label: 'Download Reports' }
+                ]},
+                { group: 'Manage', items: [
+                    { view: 'sup-manage-ic',    icon: '👔', label: 'Manage In-Charges' },
+                    { view: 'sup-manage-techs', icon: '👨‍🔧', label: 'Manage Technicians' },
+                    { view: 'sup-departments',  icon: '🏢', label: 'Manage Departments' }
+                ]},
+                { group: 'Communications', items: [
+                    { view: 'sup-broadcast', icon: '📢', label: 'Broadcast Alert' },
+                    { view: 'sup-feedback',  icon: '📬', label: 'User Messages', badge: 'userFeedbackCount' }
+                ]}
+            ],
+            infra_manager: () => [
+                { group: 'Planning', items: [
+                    { view: 'im-timetable',   icon: '📅', label: 'Technician Timetables' },
+                    { view: 'im-dashboard',   icon: '🏗️', label: 'Task Dashboard' },
+                    { view: 'im-performance', icon: '🏆', label: 'Technician Rankings' }
+                ]},
+                { group: 'Operations', items: [
+                    { view: 'sup-curative',     icon: '🚨', label: 'Curative Jobs' },
+                    { view: 'sup-escalated',    icon: '⚠️', label: 'Escalated Jobs', badge: 'escalatedCount' },
+                    { view: 'sup-availability', icon: '👥', label: 'Team Availability' }
+                ]},
+                { group: 'Fleet', items: [
+                    { view: 'sup-fleet',     icon: '🏢', label: 'Fleet Overview' },
+                    { view: 'sup-inventory', icon: '📦', label: 'All Equipment' },
+                    MON_ITEM
+                ]},
+                { group: 'Reports', items: [
+                    { view: 'sup-reports', icon: '📥', label: 'Download Reports' }
+                ]}
+            ],
+            head_biomedical: () => [
+                { group: 'Approvals', items: [
+                    { view: 'ic-approvals', icon: '✅', label: 'Pending Co-Signs', badge: 'pendingApprovalsCount' }
+                ]},
+                { group: 'Overview', items: [
+                    { view: 'sup-analytics',   icon: '📊', label: 'Fleet Analytics' },
+                    { view: 'sup-performance', icon: '🏆', label: 'Technician Rankings' }
+                ]},
+                { group: 'Operations', items: [
+                    { view: 'ic-curative',      icon: '🚨', label: 'Curative Requests', badge: 'curativeRaisedCount' },
+                    { view: 'sup-curative',     icon: '📋', label: 'Curative (Fleet)' },
+                    { view: 'sup-escalated',    icon: '⚠️', label: 'Escalated Jobs', badge: 'escalatedCount' },
+                    { view: 'ic-disposal',      icon: '🗑️', label: 'Disposal Requests', badge: 'inchargeDisposalCount' },
+                    { view: 'sup-availability', icon: '👥', label: 'Team Availability' }
+                ]},
+                { group: 'Equipment', items: [
+                    { view: 'ic-pm-status', icon: '📅', label: 'Department PM Status' },
+                    { view: 'ic-inventory',  icon: '📦', label: 'Department Inventory' },
+                    { view: 'sup-fleet',     icon: '🏢', label: 'Fleet Overview' },
+                    { view: 'sup-inventory', icon: '📋', label: 'All Equipment' }
+                ]},
+                { group: 'Reports', items: [
+                    { view: 'ic-downloads', icon: '📥', label: 'Downloads & Analysis' },
+                    { view: 'sup-reports',  icon: '📊', label: 'Download Reports' }
+                ]}
+            ],
+            assetsmanager: () => [
+                { group: 'Operations', items: [
+                    { view: 'am-disposals', icon: '🗑️', label: 'Disposal Approvals', badge: 'amDisposalCount' },
+                    { view: 'am-inventory', icon: '🏢', label: 'All Equipment' }
+                ]}
+            ]
+        };
+
+        /* Union of all the user's permissions (not only the primary role) */
+        const ROLE_ORDER = ['supervisor', 'infra_manager', 'head_biomedical', 'incharge', 'assetsmanager', 'technician'];
+               function buildMenuGroups() {
+            // ✅ STRICT DUAL CHECK
+            const hasIncharge = userHasPermission('incharge');
+            const hasSupervisor = userHasPermission('supervisor');
+            const isDual = hasIncharge && hasSupervisor;
+            
+            if (!CURRENT_DUAL_VIEW_MODE) CURRENT_DUAL_VIEW_MODE = 'incharge';
+            
+            let roles = [];
+            // If the user is a TRUE DUAL USER (like GATANGANWA), strictly use the active view
+            if (isDual) {
+                roles = [CURRENT_DUAL_VIEW_MODE];
+            } else {
+                // Otherwise, just load their normal role
+                roles = ROLE_ORDER.filter(r => r === currentRole || userHasPermission(r));
+            }
+    
+    const out = [], seen = new Set();
+    roles.forEach(r => {
+        const b = SIDEBAR_MENUS[r];
+        if (!b) return;
+        b().forEach(g => {
+            let tgt = out.find(x => x.group === g.group);
+            if (!tgt) { tgt = { group: g.group, items: [] }; out.push(tgt); }
+            g.items.forEach(it => {
+                if (!seen.has(it.view)) { 
+                    seen.add(it.view); 
+                    // We no longer add roleBadges because the menus will never mix now
+                    tgt.items.push(it); 
+                }
+            });
+        });
+    });
+    return out.filter(g => g.items.length);
+}
+
+        /* ---------- Wrap existing cards into view-panes ---------- */
+        function wrapStandalone(elId, view) {
+            const el = document.getElementById(elId);
+            if (!el || el.closest('.view-pane')) return;
+            const pane = document.createElement('div');
+            pane.className = 'view-pane';
+            pane.setAttribute('data-view', view);
+            el.parentNode.insertBefore(pane, el);
+            pane.appendChild(el);
+        }
+
+        function ensureViewWrappers() {
+            function wrapGroup(sectionId, groups) {
+                const section = document.getElementById(sectionId);
+                if (!section) return;
+                groups.forEach(({ view, selectors }) => {
+                    const targets = new Set();
+                    selectors.forEach(sel => {
+                        const el = document.querySelector(sel);
+                        if (!el || !section.contains(el)) return;
+                        let top = el;
+                        while (top && top.parentNode !== section) top = top.parentNode;
+                        if (top && !top.closest('.view-pane')) targets.add(top);
+                    });
+                    if (!targets.size) return;
+                    const sorted = Array.from(targets).sort((a, b) => {
+                        const pos = a.compareDocumentPosition(b);
+                        if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+                        if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+                        return 0;
+                    });
+                    const pane = document.createElement('div');
+                    pane.className = 'view-pane';
+                    pane.setAttribute('data-view', view);
+                    section.insertBefore(pane, sorted[0]);
+                    sorted.forEach(el => pane.appendChild(el));
+                });
+            }
+
+            wrapGroup('technicianSection', [
+                { view: 'tech-pm', selectors: [
+                    '#technicianSection .generator-selector',
+                    '#technicianSection #refBanner',
+                    '#technicianSection .incharge-picker',
+                    '#technicianSection #inspectionChecklistCard',
+                    '#technicianSection .signoff-section'
+                ]},
+                { view: 'tech-tasks',    selectors: ['#technicianTasksCard'] },
+                { view: 'tech-curative', selectors: ['#technicianCurativeCard'] },
+                { view: 'tech-progress', selectors: ['#technicianPmProgressCard'] }
+            ]);
+
+            wrapStandalone('equipmentMonitoringSection', 'tech-monitoring');
+            const monSec = document.getElementById('equipmentMonitoringSection');
+            if (monSec && monSec.style.display === 'none') monSec.style.display = '';
+
+            wrapGroup('inchargeSection', [
+                { view: 'ic-approvals', selectors: ['#pendingApprovalsCard'] },
+                { view: 'ic-tasks',     selectors: ['#icMyTasksCard'] },
+                { view: 'ic-curative',  selectors: ['#curativeRaisedCount'] },
+                { view: 'ic-pm-status', selectors: ['#inchargePmStatusCard'] },
+                { view: 'ic-inventory', selectors: ['#invDeptIcon'] },
+                { view: 'ic-disposal',  selectors: ['#inchargeDisposalCard'] },
+                { view: 'ic-downloads', selectors: ['#inchargeDownloadAllBtn'] }
+            ]);
+
+            wrapGroup('assetsManagerSection', [
+                { view: 'am-disposals', selectors: ['#amDisposalCount'] },
+                { view: 'am-inventory', selectors: ['#amInvCount'] }
+            ]);
+
+            wrapGroup('infraManagerSection', [
+                { view: 'im-timetable',   selectors: ['#ttTechCount'] },
+                { view: 'im-dashboard',   selectors: ['#createTaskBtn'] },
+                { view: 'im-performance', selectors: ['#imPerfCard'] }
+            ]);
+
+            wrapGroup('supervisorSection', [
+                { view: 'sup-broadcast',    selectors: ['#openBroadcastBtn'] },
+                { view: 'sup-feedback',     selectors: ['#supervisorFeedbackCard'] },
+                { view: 'sup-availability', selectors: ['#supAvailDate'] },
+                { view: 'sup-analytics',    selectors: ['#dashPeriodSelect'] },
+                { view: 'sup-performance',  selectors: ['#supPerfCard'] },
+                { view: 'sup-tasks',        selectors: ['#supTaskCount'] },
+                { view: 'sup-curative',     selectors: ['#curativeDeptFilter'] },
+                { view: 'sup-escalated',    selectors: ['#escalatedCount'] },
+                { view: 'sup-fleet',        selectors: ['#supFleetOverviewDept'] },
+                { view: 'sup-inventory',    selectors: ['#supervisorInvCount'] },
+                { view: 'sup-reports',      selectors: ['#supervisorAnalysisDept'] },
+                { view: 'sup-manage-ic',    selectors: ['#inchargeEditorList'] },
+                { view: 'sup-manage-techs', selectors: ['#technicianEditorList'] }
+            ]);
+
+            // This card lives OUTSIDE #supervisorSection in your HTML
+            wrapStandalone('manageDepartmentsCard', 'sup-departments');
+        }
+
+        /* ---------- Render sidebar ---------- */
+        function renderSidebar() {
+            ensureViewWrappers();
+            const menu = document.getElementById('sidebarMenu');
+            if (!menu) return;
+
+            const groups = buildMenuGroups();
+            let html = '';
+            groups.forEach(g => {
+                html += `<span class="sidebar-section-label">${escapeHtml(g.group)}</span>`;
+                g.items.forEach(item => {
+                   html += `<button class="sidebar-item" data-view="${item.view}" type="button">
+    <span class="si-icon">${item.icon}</span>
+    <span class="si-label">${escapeHtml(item.label)}</span>
+    ${item.badge ? `<span class="si-badge" id="sbBadge_${item.badge}">0</span>` : ''}
+</button>`;
+                });
+            });
+            html += `<div class="sidebar-footer">
+                <button class="sidebar-item" data-view="__logout" type="button">
+                    <span class="si-icon">🚪</span><span class="si-label">Logout</span>
+                </button></div>`;
+            menu.innerHTML = html;
+
+            menu.querySelectorAll('.sidebar-item').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const target = btn.getAttribute('data-view');
+                    if (target === '__logout') { document.getElementById('logoutBtn')?.click(); return; }
+                    showView(target);
+                });
+            });
+            document.getElementById('sidebarToggle')?.classList.add('show');
+
+            const allowed = groups.flatMap(g => g.items.map(i => i.view));
+            const defaults = {
+                technician: 'tech-pm', incharge: 'ic-approvals', supervisor: 'sup-analytics',
+                head_biomedical: 'ic-approvals', assetsmanager: 'am-disposals', infra_manager: 'im-dashboard'
+            };
+            let initial = allowed.includes(defaults[currentRole]) ? defaults[currentRole] : allowed[0];
+            try {
+                const saved = sessionStorage.getItem('chub_last_view_' + currentRole);
+                if (saved && allowed.includes(saved)) initial = saved;   // only if it is in THIS user's menu
+            } catch (e) {}
+            if (initial) showView(initial);
+            syncSidebarBadges();
+        }
+
+        // ✅ NEW: Listen for the View Switcher change
+        document.getElementById('viewModeSelect')?.addEventListener('change', function() {
+            CURRENT_DUAL_VIEW_MODE = this.value;
+            sessionStorage.setItem('chub_dual_view', CURRENT_DUAL_VIEW_MODE); // Save the choice
+            
+            applyRoleVisibility();
+            renderSidebar();
+            
+            if (CURRENT_DUAL_VIEW_MODE === 'incharge') {
+                showView('ic-approvals');
+            } else {
+                showView('sup-analytics');
+            }
+        });
+
+        /* ---------- Switch view ---------- */
+        function showView(viewId) {
+            const target = document.querySelector(`.view-pane[data-view="${viewId}"]`);
+            if (!target) { toast('This page is not available for your account.', 'warn'); return; }
+
+            document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+            target.classList.add('active');
+            if (target.style.display === 'none') target.style.display = '';
+
+            // Open the page's cards the first time (otherwise each page is one closed bar)
+            if (!target.dataset.opened) {
+                target.dataset.opened = '1';
+                target.querySelectorAll(':scope > .collapsible-card').forEach(c => c.classList.remove('collapsed'));
+            }
+            // Technician cards start hidden in the HTML; never leave the pane blank
+            ['technicianTasksCard', 'technicianCurativeCard', 'technicianPmProgressCard'].forEach(id => {
+                const c = document.getElementById(id);
+                if (c && target.contains(c)) c.style.display = 'block';
+            });
+
+            // Standalone cards that live outside the sections
+            const canMonthly = ['technician', 'incharge', 'head_biomedical'].some(r => currentRole === r || userHasPermission(r));
+            const monthlyCard = document.getElementById('monthlyReportCard');
+            if (monthlyCard) monthlyCard.style.display =
+                (canMonthly && (viewId === 'tech-pm' || viewId === 'ic-downloads')) ? 'block' : 'none';
+            const actionBtns = document.getElementById('technicianActionButtons');
+            if (actionBtns) actionBtns.style.display = (viewId === 'tech-pm') ? 'flex' : 'none';
+            // In-Charge PM Status: refresh live when the view is opened
+            if (viewId === 'ic-pm-status' && typeof renderInchargePmStatus === 'function') {
+                renderInchargePmStatus();
+            }
+
+            // Equipment monitoring: technicians get the form, everyone else gets history
+            const monBtns = document.getElementById('monitoringActionButtons');
+            if (viewId === 'tech-monitoring') {
+                const isFormUser = currentRole === 'technician' && isInfrastructureUser();
+                document.getElementById('monitorFormWrap').style.display = isFormUser ? 'block' : 'none';
+                document.getElementById('monitorHistoryWrap').style.display = isFormUser ? 'none' : 'block';
+                if (monBtns) monBtns.style.display = isFormUser ? 'flex' : 'none';
+                if (isFormUser) {
+                    document.getElementById('monitorTechName').textContent = currentLoggedInName || '—';
+                    const md = document.getElementById('monitorDate');
+                    if (md && !md.value) md.value = new Date().toISOString().split('T')[0];
+                } else if (typeof renderMonitoringHistory === 'function') renderMonitoringHistory();
+                if (typeof populateMonitorDropdowns === 'function') populateMonitorDropdowns();
+                if (typeof toggleMonitorChecklists === 'function') toggleMonitorChecklists();
+            } else if (monBtns) monBtns.style.display = 'none';
+
+            document.querySelectorAll('#sidebarMenu .sidebar-item').forEach(el => {
+                el.classList.toggle('active', el.getAttribute('data-view') === viewId);
+            });
+            document.getElementById('mainSidebar')?.classList.remove('open');
+            document.getElementById('sidebarOverlay')?.classList.remove('show');
+            try { sessionStorage.setItem('chub_last_view_' + currentRole, viewId); } catch (e) {}
+
+            // Charts drawn while hidden need a resize
+            setTimeout(() => Object.values(dashCharts).forEach(c => { try { c && c.resize(); } catch (e) {} }), 200);
+        }
+
+        /* ---------- Keep the sidebar badge counts live ---------- */
+        function syncSidebarBadges() {
+            const pairs = [
+                ['techTaskCount','techTaskCount'],
+                ['techCurativeCount','techCurativeCount'],
+                ['pendingApprovalsCount','pendingApprovalsCount'],
+                ['icTaskCount','icTaskCount'],
+                ['curativeRaisedCount','curativeRaisedCount'],
+                ['inchargeDisposalCount','inchargeDisposalCount'],
+                ['supTaskCount','supTaskCount'],
+                ['escalatedCount','escalatedCount'],
+                ['amDisposalCount','amDisposalCount'],
+                ['userFeedbackCount','userFeedbackCount']
+            ];
+            pairs.forEach(([sidebarId, srcId]) => {
+                const badge = document.getElementById('sbBadge_' + sidebarId);
+                const src = document.getElementById(srcId);
+                if (!badge || !src) return;
+                const val = parseInt(src.textContent, 10) || 0;
+                badge.textContent = val;
+                badge.classList.toggle('show', val > 0);
+            });
+        }
+        setInterval(syncSidebarBadges, 4000);
+
+        /* ---------- Mobile drawer wiring ---------- */
+        document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+            document.getElementById('mainSidebar')?.classList.toggle('open');
+            document.getElementById('sidebarOverlay')?.classList.toggle('show');
+        });
+        document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
+            document.getElementById('mainSidebar')?.classList.remove('open');
+            document.getElementById('sidebarOverlay')?.classList.remove('show');
+        });
 
         })();
     </script>
