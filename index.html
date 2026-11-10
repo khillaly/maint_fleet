@@ -262,10 +262,11 @@
                     if (e1) throw e1;
                     if (upd && upd.length) return true;
                     
-                    // 🔥 FIX: If it's the 'users' table and the row doesn't exist anymore, 
-                    // DO NOT upsert (recreate). Throw an error instead.
-                    if (d.table === 'users') {
-                        throw new Error('User no longer exists in the database.');
+                    // 🛡️ Only refuse to re-create a user document when the caller
+                    //     explicitly asks to protect a self-update (opts.protectSelf).
+                    //     Admin/Manager flows that ADD a new user fall through to upsert().
+                    if (d.table === 'users' && opts.protectSelf === true) {
+                        throw new Error('Your user account is no longer registered. Please contact the Manager.');
                     }
                 }
                 const { error } = await supabase.from(d.table).upsert({ ...payload, id: d.id });
@@ -3597,6 +3598,85 @@ window.setupPushNotifications = async function(userName) {
         body.dark .notif-panel, body.dark .notif-item { background: #1e293b; color: #e2e8f0; }
         body.dark .btn-secondary { background: #1e293b; color: #cbd5e1; border-color: #475569; }
         body.dark .kpi-card, body.dark .kpi-mini, body.dark .tas-card, body.dark .cs-card { background: #0f172a; }
+
+        /* ===== DYNAMIC KPI COLORS FOR LIGHT & DARK MODE ===== */
+        .kpi-card, .kpi-mini, .cs-card, .tas-card { transition: background 0.2s, color 0.2s; }
+
+        /* Light Mode Utility Classes */
+        .kpi-blue { background: #eef6fc !important; }
+        .kpi-blue .kpi-value, .kpi-blue .val, .kpi-blue .cs-val, .kpi-blue .tas-val { color: #0b3d91 !important; }
+        .kpi-blue .kpi-label, .kpi-blue .lbl, .kpi-blue .cs-lbl, .kpi-blue .tas-lbl { color: #5b7b96 !important; }
+
+        .kpi-green { background: #e2f0e6 !important; }
+        .kpi-green .kpi-value, .kpi-green .val, .kpi-green .cs-val, .kpi-green .tas-val { color: #1b6b3f !important; }
+        .kpi-green .kpi-label, .kpi-green .lbl, .kpi-green .cs-lbl, .kpi-green .tas-lbl { color: #5b7b96 !important; }
+
+        .kpi-yellow { background: #fff3cd !important; }
+        .kpi-yellow .kpi-value, .kpi-yellow .val, .kpi-yellow .cs-val, .kpi-yellow .tas-val { color: #7a5300 !important; }
+        .kpi-yellow .kpi-label, .kpi-yellow .lbl, .kpi-yellow .cs-lbl, .kpi-yellow .tas-lbl { color: #7a5300 !important; }
+
+        .kpi-red { background: #ffe6e6 !important; }
+        .kpi-red .kpi-value, .kpi-red .val, .kpi-red .cs-val, .kpi-red .tas-val { color: #b33a3a !important; }
+        .kpi-red .kpi-label, .kpi-red .lbl, .kpi-red .cs-lbl, .kpi-red .tas-lbl { color: #b33a3a !important; }
+
+        .kpi-gray { background: #e7f0f8 !important; }
+        .kpi-gray .kpi-value, .kpi-gray .val, .kpi-gray .cs-val, .kpi-gray .tas-val { color: #5b7b96 !important; }
+
+        .kpi-purple { background: #f3e8ff !important; }
+        .kpi-purple .kpi-value, .kpi-purple .val, .kpi-purple .cs-val, .kpi-purple .tas-val { color: #5d3578 !important; }
+        .kpi-purple .kpi-label, .kpi-purple .lbl, .kpi-purple .cs-lbl, .kpi-purple .tas-lbl { color: #5d3578 !important; }
+
+        /* Dark Mode Overrides for Utility Classes */
+        body.dark .kpi-blue { background: rgba(30, 74, 109, 0.4) !important; }
+        body.dark .kpi-blue .kpi-value, body.dark .kpi-blue .val, body.dark .kpi-blue .cs-val, body.dark .kpi-blue .tas-val { color: #7fc8ff !important; }
+        body.dark .kpi-blue .kpi-label, body.dark .kpi-blue .lbl, body.dark .kpi-blue .cs-lbl, body.dark .kpi-blue .tas-lbl { color: #b3e0ff !important; }
+
+        body.dark .kpi-green { background: rgba(27, 107, 63, 0.4) !important; }
+        body.dark .kpi-green .kpi-value, body.dark .kpi-green .val, body.dark .kpi-green .cs-val, body.dark .kpi-green .tas-val { color: #7fffb2 !important; }
+        body.dark .kpi-green .kpi-label, body.dark .kpi-green .lbl, body.dark .kpi-green .cs-lbl, body.dark .kpi-green .tas-lbl { color: #c8ffd8 !important; }
+
+        body.dark .kpi-yellow { background: rgba(122, 83, 0, 0.4) !important; }
+        body.dark .kpi-yellow .kpi-value, body.dark .kpi-yellow .val, body.dark .kpi-yellow .cs-val, body.dark .kpi-yellow .tas-val { color: #ffe8a8 !important; }
+        body.dark .kpi-yellow .kpi-label, body.dark .kpi-yellow .lbl, body.dark .kpi-yellow .cs-lbl, body.dark .kpi-yellow .tas-lbl { color: #fff3cd !important; }
+
+        body.dark .kpi-red { background: rgba(179, 58, 58, 0.4) !important; }
+        body.dark .kpi-red .kpi-value, body.dark .kpi-red .val, body.dark .kpi-red .cs-val, body.dark .kpi-red .tas-val { color: #ffb3b3 !important; }
+        body.dark .kpi-red .kpi-label, body.dark .kpi-red .lbl, body.dark .kpi-red .cs-lbl, body.dark .kpi-red .tas-lbl { color: #ffd0d0 !important; }
+
+        body.dark .kpi-gray { background: rgba(91, 123, 150, 0.4) !important; }
+        body.dark .kpi-gray .kpi-value, body.dark .kpi-gray .val, body.dark .kpi-gray .cs-val, body.dark .kpi-gray .tas-val { color: #cfdfeb !important; }
+        body.dark .kpi-gray .kpi-label, body.dark .kpi-gray .lbl, body.dark .kpi-gray .cs-lbl, body.dark .kpi-gray .tas-lbl { color: #e2e8f0 !important; }
+
+        body.dark .kpi-purple { background: rgba(93, 53, 120, 0.4) !important; }
+        body.dark .kpi-purple .kpi-value, body.dark .kpi-purple .val, body.dark .kpi-purple .cs-val, body.dark .kpi-purple .tas-val { color: #d8b4fe !important; }
+        body.dark .kpi-purple .kpi-label, body.dark .kpi-purple .lbl, body.dark .kpi-purple .cs-lbl, body.dark .kpi-purple .tas-lbl { color: #e8def8 !important; }
+
+        /* Dark Mode Overrides for Semantic Classes (good, warn, bad, info) */
+        body.dark .kpi-mini.good { background: rgba(27, 107, 63, 0.4) !important; }
+        body.dark .kpi-mini.good .val { color: #7fffb2 !important; }
+        body.dark .kpi-mini.warn { background: rgba(122, 83, 0, 0.4) !important; }
+        body.dark .kpi-mini.warn .val { color: #ffe8a8 !important; }
+        body.dark .kpi-mini.bad { background: rgba(179, 58, 58, 0.4) !important; }
+        body.dark .kpi-mini.bad .val { color: #ffb3b3 !important; }
+
+        body.dark .cs-card.good { background: rgba(27, 107, 63, 0.4) !important; }
+        body.dark .cs-card.good .cs-val { color: #7fffb2 !important; }
+        body.dark .cs-card.warn { background: rgba(122, 83, 0, 0.4) !important; }
+        body.dark .cs-card.warn .cs-val { color: #ffe8a8 !important; }
+        body.dark .cs-card.bad { background: rgba(179, 58, 58, 0.4) !important; }
+        body.dark .cs-card.bad .cs-val { color: #ffb3b3 !important; }
+
+        body.dark .tas-card.good { background: rgba(27, 107, 63, 0.4) !important; }
+        body.dark .tas-card.good .tas-val { color: #7fffb2 !important; }
+        body.dark .tas-card.warn { background: rgba(122, 83, 0, 0.4) !important; }
+        body.dark .tas-card.warn .tas-val { color: #ffe8a8 !important; }
+        body.dark .tas-card.bad { background: rgba(179, 58, 58, 0.4) !important; }
+        body.dark .tas-card.bad .tas-val { color: #ffb3b3 !important; }
+        body.dark .tas-card.info { background: rgba(30, 74, 109, 0.4) !important; }
+        body.dark .tas-card.info .tas-val { color: #7fc8ff !important; }
+
+        /* Global fallback for labels in dark mode */
+        body.dark .kpi-label, body.dark .lbl, body.dark .cs-lbl, body.dark .tas-lbl { color: #cbd5e1 !important; }
         body.dark::before { color: rgba(203, 228, 247, .05); }
         body.dark .toast { background: #1e293b; color: #e2e8f0; }
         body.dark .skeleton { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; }
@@ -4941,6 +5021,9 @@ window.setupPushNotifications = async function(userName) {
                     
                     <!-- ⬇️ NEW SEARCH & CATEGORY FILTERS ⬇️ -->
                     <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center; background:#f9fcff; padding:12px 16px; border-radius:14px; border:1px solid #e2eaf1;">
+                        <select id="icPmDeptFilter" style="display:none; min-width:180px; padding:10px 16px; border-radius:30px; border:1.5px solid #cfdfeb; font-family:inherit; font-weight:600; color:#12405e; cursor:pointer; font-size:.9rem;">
+                            <option value="">— Select Department —</option>
+                        </select>
                         <input type="text" id="inchargePmStatusSearch" placeholder="🔍 Search Tag, SN, or Model..." 
                                style="flex:1; min-width:220px; padding:10px 16px; border-radius:30px; border:1.5px solid #cfdfeb; font-family:inherit; font-size:.9rem;">
                         
@@ -5020,11 +5103,56 @@ window.setupPushNotifications = async function(userName) {
                         <div class="filter-chip" data-time="3">📅 Last 3 Months</div>
                         <div class="filter-chip" data-time="6">📅 Last 6 Months</div>
                     </div>
-                    <div id="inchargeDisposalList"></div>
+                                          <div id="inchargeDisposalList"></div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="action-buttons" style="margin-bottom:20px;">
+                <!-- Team Tracking & Global Analysis -->
+                <div class="card collapsible-card collapsed" id="icTeamTrackingCard" style="margin-bottom:28px;border:2px solid #2a6b96; display:none;">
+                    <div class="card-header" style="background:#e6f0fa;color:#1e4a6d;">
+                        <span>👨‍🔧</span> Team Activities Tracker
+                        <span class="collapse-caret">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <div style="margin-bottom: 15px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                            <label style="font-weight:700; font-size:0.9rem; color:#12405e;">Filter by Technician:</label>
+                            <select id="icTeamTechFilter" style="padding:8px 16px; border-radius:20px; border:1px solid #cfdfeb; font-family:inherit; font-weight:600; min-width:200px;">
+                                <option value="all">All Technicians</option>
+                            </select>
+                        </div>
+                        <div class="filter-selector" id="icTeamStatusFilterBar" style="margin-bottom:15px;">
+                            <div class="filter-chip active" data-status="all">📋 All</div>
+                            <div class="filter-chip" data-status="open">🔧 Open (Pending + In Progress + Paused)</div>
+                            <div class="filter-chip" data-status="pending">⏳ Pending</div>
+                            <div class="filter-chip" data-status="in_progress">🔧 In Progress</div>
+                            <div class="filter-chip" data-status="paused">⏸️ Paused</div>
+                            <div class="filter-chip" data-status="completed">📸 Awaiting Verification</div>
+                            <div class="filter-chip" data-status="verified">✅ Verified</div>
+                            <div class="filter-chip" data-status="rejected">❌ Rejected</div>
+                        </div>
+                        <div id="icTeamTasksList"></div>
+                        <div id="icTeamCurativesList" style="margin-top:20px;"></div>
+                    </div>
+                </div>
+
+                <div class="card collapsible-card collapsed" id="icGlobalAnalysisCard" style="margin-bottom:28px;border:2px solid #0b3d91; display:none;">
+                    <div class="card-header" style="background:#e8f1fb;color:#0b3d91;">
+                        <span>🌍</span> Cross-Department Analysis &amp; Status
+                        <span class="collapse-caret">▼</span>
+                    </div>
+                    <div class="card-body">
+                        <p style="font-size:.88rem;color:#3a6583;margin-bottom:14px;">View equipment maintenance status and generate analysis reports for any department.</p>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                            <select id="icAnalysisDept" style="padding:10px 16px;border-radius:40px;border:1.5px solid #cfdfeb;font-weight:600;min-width:220px; font-family:inherit;">
+                                <option value="">— Pick a department —</option>
+                            </select>
+                            <button class="btn-pdf" id="icDownloadAnalysisBtn"><span>📊</span> Download Dept Analysis</button>
+                            <button class="btn-secondary" id="icViewDeptInventoryBtn" style="background:#eef6fc; border-color:#bdd3e6;">📅 View Dept PM Status</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons" style="margin-bottom:20px;">
                 <button class="btn-pdf-all" id="inchargeDownloadAllBtn"><span>📚</span> Download All My Department
                     PMs</button>
                 <button class="btn-pdf" id="inchargeDownloadAnalysisBtn"><span>📊</span> Download My Department
@@ -5324,13 +5452,13 @@ window.setupPushNotifications = async function(userName) {
                             <div class="lbl">TOTAL PMs</div>
                             <div class="val" id="dashKpiTotal">—</div>
                         </div>
-                        <div class="kpi-mini" style="background:#e8f1fb;">
+                        <div class="kpi-mini kpi-blue">
                             <div class="lbl">🧊 FRIDGE PMs</div>
-                            <div class="val" id="dashKpiFridgePms" style="color:#1e4a6d;">—</div>
+                            <div class="val" id="dashKpiFridgePms">—</div>
                         </div>
-                        <div class="kpi-mini" style="background:#eef6fc;">
+                        <div class="kpi-mini kpi-blue">
                             <div class="lbl">❄️ AC PMs</div>
-                            <div class="val" id="dashKpiAcPms" style="color:#0b3d91;">—</div>
+                            <div class="val" id="dashKpiAcPms">—</div>
                         </div>
                         <div class="kpi-mini good">
                             <div class="lbl">CO-SIGNED</div>
@@ -5384,6 +5512,82 @@ window.setupPushNotifications = async function(userName) {
                     </div>
                 </div>
             </div>
+<!-- ============ 👁️ USER ACTIVITY & USAGE ANALYTICS (Admin Only) ============ -->
+<div class="card collapsible-card collapsed" id="supUserActivityCard" style="margin-bottom:24px;border:2px solid #7a4c9c;">
+    <div class="card-header" style="background:#f3e8ff;color:#5d3578;">
+        <span>👁️</span> User Activity &amp; Usage Analytics
+        <span id="uaCount" style="margin-left:auto;background:#7a4c9c;color:white;padding:3px 12px;border-radius:20px;font-size:.8rem;font-weight:700;">—</span>
+        <span class="collapse-caret">▼</span>
+    </div>
+    <div class="card-body">
+        <p style="font-size:.88rem;color:#5d3578;margin-bottom:14px;">
+            Live view of how every user is interacting with the system — logins, last activity, feature usage, and 2FA adoption.
+        </p>
+
+        <!-- KPI Strip -->
+        <div class="kpi-strip" id="uaKpiStrip" style="margin-bottom:16px;"></div>
+
+        <!-- Toolbar -->
+        <div class="dash-toolbar">
+            <label for="uaRoleFilter">👤 Role:</label>
+            <select id="uaRoleFilter">
+                <option value="all">All Roles</option>
+                <option value="technician">👨‍🔧 Technicians</option>
+                <option value="incharge">👔 In-Charges</option>
+                <option value="supervisor">👑 Supervisor</option>
+                <option value="infra_manager">🏗️ Infra Manager</option>
+                <option value="head_biomedical">🏥 Head Biomedical</option>
+                <option value="assetsmanager">🗑️ Assets Manager</option>
+            </select>
+            <label for="uaStatusFilter" style="margin-left:8px;">📊 Status:</label>
+            <select id="uaStatusFilter">
+                <option value="all">All Users</option>
+                <option value="active-today">🟢 Active Today</option>
+                <option value="active-week">🟡 Active This Week</option>
+                <option value="active-month">🟠 Active This Month</option>
+                <option value="dormant">🔴 Dormant (&gt; 30 days)</option>
+                <option value="never">⚪ Never Active</option>
+            </select>
+            <input type="text" id="uaSearch" placeholder="🔍 Search by name..."
+                   style="flex:1;min-width:180px;padding:10px 16px;border-radius:30px;border:1.5px solid #cfdfeb;font-family:inherit;">
+            <button class="btn-secondary" id="uaRefreshBtn" style="padding:8px 18px;font-size:.85rem;">🔄 Refresh</button>
+            <button class="btn-pdf" id="uaExportBtn" style="padding:8px 18px;font-size:.85rem;margin-left:auto;">📄 Export PDF</button>
+        </div>
+
+        <!-- Main Table -->
+        <div style="overflow-x:auto;margin-top:14px;">
+            <table class="inv-table" id="uaTable">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                        <th style="text-align:center;">Logins</th>
+                        <th style="text-align:center;">PMs</th>
+                        <th style="text-align:center;">Tasks</th>
+                        <th style="text-align:center;">Curatives</th>
+                        <th style="text-align:center;">Total Actions</th>
+                        <th style="text-align:center;">2FA</th>
+                    </tr>
+                </thead>
+                <tbody id="uaTableBody">
+                    <tr><td colspan="11" style="text-align:center;padding:20px;color:#9cb9d0;">⏳ Loading…</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Recent Activity Feed -->
+        <div style="margin-top:20px;border-top:2px dashed #e2eaf1;padding-top:14px;">
+            <h3 style="font-size:1rem;color:#5d3578;margin-bottom:10px;">🕒 Recent Activity (Last 50 Events)</h3>
+            <div id="uaRecentFeed" style="max-height:360px;overflow-y:auto;">
+                <div style="text-align:center;padding:20px;color:#9cb9d0;font-style:italic;">⏳ Loading…</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ============ SUPERVISOR: TECHNICIAN PERFORMANCE & RANKINGS ============ -->
 <div class="card collapsible-card collapsed" id="supPerfCard" style="margin-bottom:24px;border:2px solid #f4a300;">
     <div class="card-header" style="background:#fff9ec;color:#7a5300;">
@@ -7241,26 +7445,24 @@ const AC_PM_INTERVAL_MONTHS = 6;
 
             /* Fetch the System Manager's phone + email so the login lockout
                message can show "call GATANGANWA Raissa · phone · email" */
-            async function fetchManagerContact() {
-                let phone = '', email = '';
-                try {
-                    const rec = LIVE_USERS[SUPERVISOR_NAME];
-                    if (rec && (rec.phone || rec.email)) {
-                        phone = rec.phone || '';
-                        email = rec.email || '';
-                    } else if (window.FB && window.FB.ready) {
-                        const snap = await window.FB.getDoc(
-                            window.FB.doc(window.FB.db, 'users', userDocId(SUPERVISOR_NAME))
-                        );
-                        if (snap.exists()) {
-                            const d = snap.data() || {};
-                            phone = d.phone || '';
-                            email = d.email || '';
-                        }
-                    }
-                } catch (e) { /* offline — fall through */ }
-                return { phone, email };
-            }
+           async function fetchManagerContact() {
+    let phone = '', email = '', name = 'System Administrator';
+    try {
+        const users = (LIVE_USERS && Object.keys(LIVE_USERS).length)
+            ? LIVE_USERS
+            : await loadUsersFromFirestore();
+        const supervisors = Object.keys(users).filter(n =>
+            users[n].role === 'supervisor' ||
+            (users[n].permissions && users[n].permissions.supervisor === true)
+        );
+        if (supervisors.length > 0) {
+            name  = supervisors[0];
+            phone = users[name].phone || '';
+            email = users[name].email || '';
+        }
+    } catch (e) { /* offline — fall through */ }
+    return { phone, email, name };
+}
 
             async function buildManagerContactErrorHtml(attemptCount) {
                 const c = await fetchManagerContact();
@@ -7273,7 +7475,7 @@ const AC_PM_INTERVAL_MONTHS = 6;
                 return `<div style="background:#fff3cd;border:2px solid #f4d97a;border-radius:12px;padding:12px 14px;text-align:left;margin-top:8px;">
                     <div style="font-weight:800;color:#7a5300;font-size:.95rem;margin-bottom:6px;">🔒 ${attemptCount} wrong attempts</div>
                     <div style="color:#7a5300;font-size:.88rem;margin-bottom:8px;">Please contact the System Manager:</div>
-                    <div style="color:#7a5300;font-size:.95rem;font-weight:800;margin-bottom:6px;">👤 GATANGANWA Raissa</div>
+                   <div style="color:#7a5300;font-size:.95rem;font-weight:800;margin-bottom:6px;">👤 ${escapeHtml(c.name || 'System Administrator')}</div>
                     <div style="font-size:.88rem;line-height:1.9;">${phoneLine}<br>${emailLine}</div>
                 </div>`;
             }
@@ -7877,91 +8079,120 @@ function escapeHtml(s) {
             function drawChubHeader(doc, opts) {
                 opts = opts || {};
                 const pW = doc.internal.pageSize.getWidth();
-                const mL = 14, mR = 14;
-                const cW = pW - mL - mR;
+                const margin = 14;
+                const cW = pW - (margin * 2);
+                
+                // 1. Top accent line (edge-to-edge)
                 doc.setFillColor(0, 108, 60);
                 doc.rect(0, 0, pW / 3, 2, 'F');
                 doc.setFillColor(252, 209, 22);
                 doc.rect(pW / 3, 0, pW / 3, 2, 'F');
                 doc.setFillColor(0, 108, 60);
                 doc.rect(2 * pW / 3, 0, pW / 3, 2, 'F');
-                doc.setFillColor(11, 59, 92);
-                doc.rect(0, 2, pW, 26, 'F');
+
+                // 2. CENTER LOGO
                 let logoDrawn = false;
                 try {
-                    doc.addImage('chub-logo.png', 'PNG', mL, 5, 24, 20);
+                    // Logo is exactly in the middle of the page
+                    doc.addImage('chub-logo.png', 'PNG', (pW / 2) - 22.5, 4, 45, 24);
                     logoDrawn = true;
                 } catch (e) { logoDrawn = false; }
                 if (!logoDrawn) {
-                    doc.setFillColor(255, 255, 255);
-                    doc.circle(mL + 12, 15, 10, 'F');
                     doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(10);
+                    doc.setFontSize(16);
                     doc.setTextColor(11, 59, 92);
-                    doc.text('CHUB', mL + 12, 16.5, { align: 'center' });
+                    doc.text('CHUB', pW / 2, 16, { align: 'center' });
                 }
-                const textX = mL + 30;
+
+                // 3. LEFT SIDE TEXT (Far Left)
+                const lX = margin;
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(13);
-                doc.setTextColor(255, 255, 255);
-                doc.text('CHUB - BUTARE', textX, 11);
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text('CHUB - BUTARE', lX, 10);
+                
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(7.5);
-                doc.setTextColor(203, 228, 247);
-                doc.text('University Teaching Hospital of Butare', textX, 15.5);
-                doc.text('P.O. Box 254 Butare  |  Email: info@chub.rw  |  Hotline: 2030', textX, 19);
-                doc.text('Refrigerator & Cold-Chain Fleet — Preventive & Curative Maintenance', textX, 22.5);
-                const rX = pW - mR;
+                doc.setTextColor(50, 50, 50);
+                doc.text('University Teaching Hospital of Butare', lX, 15);
+                doc.text('P.O. Box 254 Butare  |  Email: info@chub.rw', lX, 19.5);
+                doc.text('Hotline: 2030', lX, 24);
+
+                // 4. RIGHT SIDE TEXT (Far Right)
+                const rX = pW - margin;
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(7.5);
-                doc.setTextColor(255, 255, 255);
-                if (opts.ref) doc.text('Ref: ' + opts.ref, rX, 8, { align: 'right' });
+                doc.setFontSize(8.5);
+                doc.setTextColor(0, 0, 0);
+                if (opts.ref) doc.text('Ref: ' + opts.ref, rX, 10, { align: 'right' });
+                
                 doc.setFont('helvetica', 'normal');
-                doc.setTextColor(203, 228, 247);
-                if (opts.date) doc.text('Issued: ' + opts.date, rX, 12.5, { align: 'right' });
-                doc.text('Page 1', rX, 17, { align: 'right' });
-                let y = 32;
-                doc.setFillColor(240, 246, 252);
+                doc.setTextColor(50, 50, 50);
+                if (opts.date) doc.text('Issued: ' + opts.date, rX, 15, { align: 'right' });
+                doc.text('Page 1', rX, 20, { align: 'right' });
+
+                // 5. Dividing Line (edge-to-edge)
                 doc.setDrawColor(11, 59, 92);
+                doc.setLineWidth(0.6);
+                doc.line(0, 32, pW, 32);
+
+                // 6. Title Box
+                let y = 36;
+                doc.setFillColor(240, 246, 252);
+                doc.setDrawColor(11, 59, 92); 
                 doc.setLineWidth(0.5);
-                doc.roundedRect(mL, y, cW, 16, 2, 2, 'FD');
-                doc.setTextColor(11, 59, 92);
+                doc.roundedRect(margin, y, cW, 16, 2, 2, 'FD');
+                
+                doc.setTextColor(0, 0, 0);
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(14);
                 doc.text(opts.title || 'Report', pW / 2, y + 7, { align: 'center' });
+                
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(8.5);
-                doc.setTextColor(58, 101, 131);
+                doc.setTextColor(50, 50, 50);
                 doc.text(opts.subtitle || '', pW / 2, y + 12.5, { align: 'center' });
+                
                 return y + 22;
             }
 
             function drawChubSlimHeader(doc, opts) {
                 opts = opts || {};
                 const pW = doc.internal.pageSize.getWidth();
-                const mL = 14, mR = 14;
+                const margin = 14;
+                
+                // 1. Top accent line (edge-to-edge)
                 doc.setFillColor(0, 108, 60);
                 doc.rect(0, 0, pW / 3, 1.5, 'F');
                 doc.setFillColor(252, 209, 22);
                 doc.rect(pW / 3, 0, pW / 3, 1.5, 'F');
                 doc.setFillColor(0, 108, 60);
                 doc.rect(2 * pW / 3, 0, pW / 3, 1.5, 'F');
-                doc.setFillColor(11, 59, 92);
-                doc.rect(0, 1.5, pW, 11, 'F');
+                
+                // 2. Dividing line (edge-to-edge)
+                doc.setDrawColor(11, 59, 92);
+                doc.setLineWidth(0.5);
+                doc.line(0, 13.5, pW, 13.5);
+
+                // 3. Left Text
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(9.5);
-                doc.setTextColor(255, 255, 255);
-                doc.text('CHUB - BUTARE', mL, 9);
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text('CHUB - BUTARE', margin, 9);
+                
+                // 4. Center Text
                 doc.setFont('helvetica', 'normal');
-                doc.setFontSize(7.5);
-                doc.setTextColor(203, 228, 247);
+                doc.setFontSize(8.5);
+                doc.setTextColor(50, 50, 50);
                 doc.text(opts.title || 'Report (continued)', pW / 2, 9, { align: 'center' });
+                
+                // 5. Right Text
                 if (opts.ref) {
                     doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(255, 255, 255);
-                    doc.text(opts.ref, pW - mR, 9, { align: 'right' });
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(opts.ref, pW - margin, 9, { align: 'right' });
                 }
-                return 16;
+                
+                return 18;
             }
 
             function drawChubFooter(doc, pageNum, totalPages) {
@@ -10809,6 +11040,264 @@ window.__ckOwner = '';
                     pad.textContent = name ? initialsOf(name) + '.' : '—';
                 }
             }
+            /* ============================================================
+               👁️ USER ACTIVITY TRACKING & DASHBOARD
+               ============================================================ */
+            async function recordLoginActivity(name) {
+                if (!name || !window.FB || !window.FB.ready) return;
+                try {
+                    const docId = userDocId(name);
+                    const snap = await window.FB.getDoc(window.FB.doc(window.FB.db, 'users', docId));
+                    if (!snap.exists()) return;
+                    const u = snap.data() || {};
+                    const now = new Date().toISOString();
+                    await window.FB.setDoc(
+                        window.FB.doc(window.FB.db, 'users', docId),
+                        {
+                            lastLoginAt: now,
+                            lastActiveAt: now,
+                            loginCount: (u.loginCount || 0) + 1
+                        },
+                        { merge: true }
+                    );
+                    USERS_CACHE = null;   // ensure dashboard shows the fresh count
+                } catch (e) { console.warn('[recordLoginActivity]', e); }
+            }
+
+            let UA_ALL_ROWS = [];
+
+            function uaStatusOf(lastIso) {
+                if (!lastIso) return { key: 'never', label: '⚪ Never Active', cls: 'never' };
+                const t = new Date(lastIso).getTime();
+                if (isNaN(t)) return { key: 'never', label: '⚪ Never Active', cls: 'never' };
+                const days = (Date.now() - t) / 86400000;
+                if (days <= 1) return { key: 'active-today', label: '🟢 Active Today', cls: 'maintained' };
+                if (days <= 7) return { key: 'active-week', label: '🟡 Active This Week', cls: 'pending' };
+                if (days <= 30) return { key: 'active-month', label: '🟠 Active This Month', cls: 'pending' };
+                return { key: 'dormant', label: '🔴 Dormant', cls: 'overdue' };
+            }
+
+            async function renderUserActivityDashboard() {
+                const tbody = document.getElementById('uaTableBody');
+                const kpi   = document.getElementById('uaKpiStrip');
+                const feed  = document.getElementById('uaRecentFeed');
+                const cnt   = document.getElementById('uaCount');
+                if (!tbody) return;
+
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:20px;color:#9cb9d0;">⏳ Loading…</td></tr>';
+                if (feed) feed.innerHTML = '<div style="text-align:center;padding:20px;color:#9cb9d0;font-style:italic;">⏳ Loading…</div>';
+
+                try {
+                    USERS_CACHE = null;
+                    const [users, pmLogs, tasks, curatives, feedback] = await Promise.all([
+                        loadUsersFromFirestore(),
+                        fetchAllLogs(),
+                        fetchAllTasks({ forceRefresh: true }),
+                        fetchCurativeRequests({ forceRefresh: true }),
+                        fetchAllFeedback()
+                    ]);
+
+                    const stats = {};
+                    Object.keys(users).forEach(name => {
+                        const u = users[name] || {};
+                        const depts = (Array.isArray(u.depts) && u.depts.length) ? u.depts : (u.dept ? [u.dept] : []);
+                        stats[name] = {
+                            name, role: u.role || 'technician',
+                            dept: depts.join(', ') || '—',
+                            loginCount: u.loginCount || 0,
+                            lastLoginAt: u.lastLoginAt || '',
+                            lastPm: '', lastTask: '', lastCurative: '', lastFeedback: '',
+                            pmCount: 0, taskCount: 0, curativeCount: 0, feedbackCount: 0,
+                            totpEnabled: !!u.totpEnabled
+                        };
+                    });
+
+                    pmLogs.forEach(r => {
+                        const t = r.technician || '';
+                        if (!stats[t]) return;
+                        stats[t].pmCount++;
+                        const w = r.workDate || r.timestamp || r.Timestamp;
+                        if (w && (!stats[t].lastPm || w > stats[t].lastPm)) stats[t].lastPm = w;
+                    });
+                    tasks.forEach(t => {
+                        const who = t.assignedTo || '';
+                        if (!stats[who]) return;
+                        if (t.status === 'verified' || t.status === 'completed') {
+                            stats[who].taskCount++;
+                            const w = t.completedAt || t.verifiedAt;
+                            if (w && (!stats[who].lastTask || w > stats[who].lastTask)) stats[who].lastTask = w;
+                        }
+                    });
+                    curatives.forEach(c => {
+                        const who = c.assignedTo || '';
+                        if (!stats[who]) return;
+                        stats[who].curativeCount++;
+                        const w = c.completedAt || c.verifiedAt || c.reportedAt;
+                        if (w && (!stats[who].lastCurative || w > stats[who].lastCurative)) stats[who].lastCurative = w;
+                    });
+                    feedback.forEach(f => {
+                        const who = f.from || '';
+                        if (!stats[who]) return;
+                        stats[who].feedbackCount++;
+                        const w = f.createdAt;
+                        if (w && (!stats[who].lastFeedback || w > stats[who].lastFeedback)) stats[who].lastFeedback = w;
+                    });
+
+                    Object.values(stats).forEach(s => {
+                        const arr = [s.lastPm, s.lastTask, s.lastCurative, s.lastFeedback, s.lastLoginAt].filter(Boolean);
+                        s.lastActivity = arr.length ? arr.sort().slice(-1)[0] : '';
+                        s.totalActions = s.pmCount + s.taskCount + s.curativeCount + s.feedbackCount;
+                        s.status = uaStatusOf(s.lastActivity);
+                    });
+
+                    UA_ALL_ROWS = Object.values(stats).sort((a, b) => {
+                        const ta = a.lastActivity ? new Date(a.lastActivity).getTime() : 0;
+                        const tb = b.lastActivity ? new Date(b.lastActivity).getTime() : 0;
+                        return tb - ta;
+                    });
+
+                    const total = UA_ALL_ROWS.length;
+                    const activeToday = UA_ALL_ROWS.filter(s => s.status.key === 'active-today').length;
+                    const activeWeek  = UA_ALL_ROWS.filter(s => s.status.key === 'active-today' || s.status.key === 'active-week').length;
+                    const dormant     = UA_ALL_ROWS.filter(s => s.status.key === 'dormant' || s.status.key === 'never').length;
+                    const twoFA       = UA_ALL_ROWS.filter(s => s.totpEnabled).length;
+                    const twoFAPct    = total > 0 ? Math.round((twoFA / total) * 100) : 0;
+                    const totalActions = UA_ALL_ROWS.reduce((n, s) => n + s.totalActions, 0);
+
+                    if (cnt) cnt.textContent = total + ' user(s)';
+                    if (kpi) kpi.innerHTML = `
+                        <div class="kpi-mini kpi-blue"><div class="lbl">TOTAL USERS</div><div class="val">${total}</div></div>
+                        <div class="kpi-mini good"><div class="lbl">ACTIVE TODAY</div><div class="val">${activeToday}</div></div>
+                        <div class="kpi-mini warn"><div class="lbl">ACTIVE THIS WEEK</div><div class="val">${activeWeek}</div></div>
+                        <div class="kpi-mini bad"><div class="lbl">DORMANT / NEVER</div><div class="val">${dormant}</div></div>
+                        <div class="kpi-mini kpi-purple"><div class="lbl">2FA ADOPTION</div><div class="val">${twoFAPct}%</div></div>
+                        <div class="kpi-mini kpi-blue"><div class="lbl">TOTAL ACTIONS</div><div class="val">${totalActions}</div></div>`;
+
+                    applyUserActivityFilters();
+                    renderUserActivityFeed(pmLogs, tasks, curatives, feedback, users);
+                } catch (e) {
+                    console.error('[renderUserActivityDashboard]', e);
+                    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:20px;color:#b33a3a;">⚠️ ' + escapeHtml(e.message) + '</td></tr>';
+                    if (feed) feed.innerHTML = '<div class="info-error">⚠️ ' + escapeHtml(e.message) + '</div>';
+                }
+            }
+
+            function applyUserActivityFilters() {
+                const tbody = document.getElementById('uaTableBody');
+                if (!tbody) return;
+                const roleF   = document.getElementById('uaRoleFilter')?.value || 'all';
+                const statusF = document.getElementById('uaStatusFilter')?.value || 'all';
+                const search  = (document.getElementById('uaSearch')?.value || '').toLowerCase().trim();
+
+                let rows = UA_ALL_ROWS;
+                if (roleF !== 'all') rows = rows.filter(r => r.role === roleF);
+                if (statusF !== 'all') rows = rows.filter(r => r.status.key === statusF);
+                if (search) rows = rows.filter(r => r.name.toLowerCase().includes(search));
+
+                if (!rows.length) {
+                    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:20px;color:#9cb9d0;font-style:italic;">📭 No users match these filters.</td></tr>';
+                    return;
+                }
+
+                const roleIcons = { technician:'👨‍🔧', incharge:'👔', supervisor:'👑', infra_manager:'🏗️', head_biomedical:'🏥', assetsmanager:'🗑️' };
+                tbody.innerHTML = rows.map(r => `
+                    <tr>
+                        <td><strong>${escapeHtml(r.name)}</strong></td>
+                        <td>${roleIcons[r.role] || ''} ${escapeHtml(r.role)}</td>
+                        <td>${escapeHtml(r.dept)}</td>
+                        <td><span class="status-badge ${r.status.cls}">${r.status.label}</span></td>
+                        <td>${r.lastLoginAt ? escapeHtml(timeAgo(r.lastLoginAt)) : '—'}</td>
+                        <td style="text-align:center;font-weight:700;">${r.loginCount}</td>
+                        <td style="text-align:center;font-weight:700;color:#0b3d91;">${r.pmCount}</td>
+                        <td style="text-align:center;font-weight:700;color:#7a4c9c;">${r.taskCount}</td>
+                        <td style="text-align:center;font-weight:700;color:#b33a3a;">${r.curativeCount}</td>
+                        <td style="text-align:center;font-weight:700;color:#1b6b3f;">${r.totalActions}</td>
+                        <td style="text-align:center;">${r.totpEnabled ? '✅' : '—'}</td>
+                    </tr>`).join('');
+            }
+
+            function renderUserActivityFeed(pmLogs, tasks, curatives, feedback, users) {
+                const feed = document.getElementById('uaRecentFeed');
+                if (!feed) return;
+                const events = [];
+
+                Object.keys(users).forEach(name => {
+                    const u = users[name];
+                    if (u.lastLoginAt) events.push({ at: u.lastLoginAt, icon: '🔓', user: name, text: 'logged in' });
+                });
+                pmLogs.forEach(r => {
+                    const w = r.timestamp || r.Timestamp;
+                    if (w) events.push({ at: w, icon: '📝', user: r.technician || '—', text: 'signed off a PM on ' + (r.refTag || '—') });
+                    if (r.inchargeSignedAt) events.push({ at: r.inchargeSignedAt, icon: '✅', user: r.inchargeSigner || r.inchargeName || '—', text: 'co-signed PM on ' + (r.refTag || '—') });
+                });
+                tasks.forEach(t => {
+                    if (t.createdAt)   events.push({ at: t.createdAt,   icon: '📋', user: t.assignedBy || '—', text: 'created task "' + (t.title || '') + '"' });
+                    if (t.completedAt) events.push({ at: t.completedAt, icon: '🏁', user: t.assignedTo || '—', text: 'completed task "' + (t.title || '') + '"' });
+                    if (t.verifiedAt)  events.push({ at: t.verifiedAt,  icon: '✅', user: t.verifiedBy || '—', text: 'verified task "' + (t.title || '') + '"' });
+                });
+                curatives.forEach(c => {
+                    if (c.reportedAt)  events.push({ at: c.reportedAt,  icon: '🚨', user: c.reportedBy || '—', text: 'raised curative for ' + (c.tag || '—') });
+                    if (c.completedAt) events.push({ at: c.completedAt, icon: '🔧', user: c.assignedTo || '—', text: 'completed curative on ' + (c.tag || '—') });
+                    if (c.verifiedAt)  events.push({ at: c.verifiedAt,  icon: '✅', user: c.verifiedBy || '—', text: 'verified curative on ' + (c.tag || '—') });
+                });
+                feedback.forEach(f => {
+                    if (f.createdAt) events.push({ at: f.createdAt, icon: '💬', user: f.from || '—', text: 'sent message: "' + (f.subject || '') + '"' });
+                });
+
+                events.sort((a, b) => new Date(b.at) - new Date(a.at));
+                const recent = events.slice(0, 50);
+
+                if (!recent.length) {
+                    feed.innerHTML = '<div style="text-align:center;padding:20px;color:#9cb9d0;font-style:italic;">📭 No activity yet.</div>';
+                    return;
+                }
+                feed.innerHTML = recent.map(e => `
+                    <div style="display:flex;gap:12px;padding:10px 14px;background:#fbfdff;border-radius:10px;margin-bottom:6px;border-left:3px solid #7a4c9c;align-items:flex-start;">
+                        <div style="font-size:1.3rem;flex-shrink:0;">${e.icon}</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:.88rem;color:#0a2a3f;"><strong>${escapeHtml(e.user)}</strong> ${escapeHtml(e.text)}</div>
+                            <div style="font-size:.72rem;color:#9cb9d0;margin-top:2px;">${escapeHtml(timeAgo(e.at))}</div>
+                        </div>
+                    </div>`).join('');
+            }
+
+            function exportUserActivityPDF() {
+                if (!UA_ALL_ROWS.length) { showStatus('📭 No user data to export.', false); return; }
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                const m = 14;
+                let y = drawChubHeader(doc, {
+                    title: 'USER ACTIVITY & USAGE REPORT',
+                    subtitle: UA_ALL_ROWS.length + ' user(s) · Generated ' + new Date().toLocaleString('en-GB'),
+                    ref: 'CHUB/ACT/' + new Date().toISOString().slice(0,10).replace(/-/g,''),
+                    date: new Date().toLocaleDateString('en-GB')
+                });
+                doc.autoTable({
+                    startY: y,
+                    margin: { left: m, right: m },
+                    head: [['User', 'Role', 'Department', 'Status', 'Last Login', 'Logins', 'PMs', 'Tasks', 'Curatives', 'Total', '2FA']],
+                    body: UA_ALL_ROWS.map(r => [
+                        pdfSanitize(r.name), pdfSanitize(r.role), pdfSanitize(r.dept), pdfSanitize(r.status.label),
+                        r.lastLoginAt ? pdfSanitize(timeAgo(r.lastLoginAt)) : '—',
+                        String(r.loginCount), String(r.pmCount), String(r.taskCount), String(r.curativeCount),
+                        String(r.totalActions), r.totpEnabled ? 'Yes' : 'No'
+                    ]),
+                    theme: 'striped',
+                    styles: { fontSize: 7.5, cellPadding: 1.5 },
+                    headStyles: { fillColor: [122, 76, 156], textColor: 255, fontSize: 8 }
+                });
+                const tp = doc.internal.getNumberOfPages();
+                for (let p = 1; p <= tp; p++) { doc.setPage(p); drawChubFooter(doc, p, tp); }
+                doc.save('CHUB_User_Activity_' + new Date().toISOString().slice(0,10) + '.pdf');
+            }
+
+            // Wire up the dashboard controls
+            document.getElementById('uaRefreshBtn')?.addEventListener('click', renderUserActivityDashboard);
+            document.getElementById('uaRoleFilter')?.addEventListener('change', applyUserActivityFilters);
+            document.getElementById('uaStatusFilter')?.addEventListener('change', applyUserActivityFilters);
+            document.getElementById('uaSearch')?.addEventListener('input', applyUserActivityFilters);
+            document.getElementById('uaExportBtn')?.addEventListener('click', exportUserActivityPDF);
+
             function applyRoleVisibility() {
                 ensureViewWrappers();
                 
@@ -10954,10 +11443,25 @@ const icTaskCard = document.getElementById('icMyTasksCard');
                 }
 
                 if (isIC || isBio) {
+                    const isInfraIC = (currentRole === 'incharge' || hasIncharge) && isInfrastructureUser();
+                    const teamCard = document.getElementById('icTeamTrackingCard');
+                    if (teamCard) teamCard.style.display = isInfraIC ? 'block' : 'none';
+                    const globalCard = document.getElementById('icGlobalAnalysisCard');
+                    if (globalCard) globalCard.style.display = isInfraIC ? 'block' : 'none';
+
                     refreshPendingApprovals();
                     loadDepartmentInventory();
                     setTimeout(() => refreshInchargeCurative(), 600);
                     setTimeout(() => refreshInchargeDisposals(), 700);
+                    
+                    if (isInfrastructureUser()) {
+                        setTimeout(() => {
+                            populateIcPmDeptFilter();
+                            populateIcTeamTechFilter();
+                            populateIcAnalysisDept();
+                            refreshIcTeamTracking();
+                        }, 800);
+                    }
                 }
                 if (isSup) {
                     populateSupervisorDeptFilter();
@@ -11028,6 +11532,7 @@ const icTaskCard = document.getElementById('icMyTasksCard');
                 }
                 if (isSup) {
                     setTimeout(() => renderBroadcastHistory(), 1100);
+                    setTimeout(() => renderUserActivityDashboard(), 1200);
                 }
                 renderSidebar();
             }
@@ -11756,6 +12261,11 @@ if (checklistType === 'biomedical') {
                         u.inchargeSigner = '';
                         u.technicianAcknowledgedRejection = false;
                     }
+                    if (status === 'approved') {
+                        const _sr = await sealApproval_('pm', rec._docId, 'incharge', 'approved',
+                            { hash: rec.reportHash || '', tag: tag, wd: rec.workDate || '', tech: tech });
+                        if (!_sr.ok) { btn.disabled = false; btn.innerHTML = orig; return; }
+                    }
                     await window.FB.updateDoc(window.FB.doc(window.FB.db, 'pmLogs', rec._docId), u);
                     Object.assign(rec, u);
                     if (tech) {
@@ -11954,6 +12464,9 @@ return false;
                             u.inchargeSignatureFingerprint = certSig.fingerprint;
                             u.inchargeSignatureValidTo = certSig.validTo;
                         }
+                        const _sr = await sealApproval_('pm', d.id, 'incharge', 'approved',
+                            { hash: dd.reportHash || reportHash, tag: dd.refTag || '', wd: dd.workDate || '', tech: dd.technician || '' });
+                        if (!_sr.ok) return false;
                         await window.FB.updateDoc(window.FB.doc(window.FB.db, 'pmLogs', d.id), u);
                     }
                     if (tech) {
@@ -12844,12 +13357,22 @@ Object.keys(DEPARTMENTS).forEach(d => {
                 if (!t) return;
                 const users = await loadUsersFromFirestore();
                 if (users[t]) { showStatus('This name already exists.', false); return; }
-                await window.FB.setDoc(
-                    window.FB.doc(window.FB.db, 'users', userDocId(t)),
-                    { name: t, role: 'incharge', pin: '', dept: '', updatedAt: window.FB.serverTimestamp() },
-                    { merge: true }
-                );
-                renderInchargeEditor();
+                try {
+                    await window.FB.setDoc(
+                        window.FB.doc(window.FB.db, 'users', userDocId(t)),
+                        { name: t, role: 'incharge', pin: '', dept: '', updatedAt: window.FB.serverTimestamp() },
+                        { merge: true }
+                    );
+                    USERS_CACHE = null;
+                    LIVE_USERS  = await loadUsersFromFirestore();
+                    await renderInchargeEditor();
+                    await populateInchargeSuggestions();
+                    await populateInchargeLoginList();
+                    showStatus('✅ In-Charge "' + t + '" added.', true);
+                } catch (e) {
+                    console.error('[addIncharge]', e);
+                    showStatus('⚠️ Could not add: ' + e.message, false);
+                }
             });
             document.getElementById('saveInchargesBtn')?.addEventListener('click', async function () {
                 const rows = document.querySelectorAll('#inchargeEditorList .dept-editor-row');
@@ -12874,9 +13397,10 @@ Object.keys(DEPARTMENTS).forEach(d => {
                 const o = this.innerHTML;
                 this.innerHTML = '⏳ …';
                 try {
+                    // ✅ Clear cache FIRST + take one snapshot for the whole loop
+                    USERS_CACHE = null;
+                    const prevUsers = await loadUsersFromFirestore();
                     for (const [n, r] of Object.entries(next)) {
-                        // Only stamp pinChangedAt if the PIN actually changed
-                        const prevUsers = await loadUsersFromFirestore();
                         const prevPin = (prevUsers[n] && prevUsers[n].pin) || '';
                         const newPin = String(r.pin || '');
                         const pinChanged = prevPin !== newPin;
@@ -12898,6 +13422,8 @@ Object.keys(DEPARTMENTS).forEach(d => {
                             { merge: true }
                         );
                     }
+                    USERS_CACHE = null; // ✅ FIX: Clear cache so new data appears
+                    LIVE_USERS = await loadUsersFromFirestore();
                     showStatus('✅ Saved.', true);
                 } catch (e) { showStatus('⚠️ ' + e.message, false); }
                 await renderInchargeEditor();
@@ -13010,7 +13536,7 @@ techs[n] = {
 
                 wrap.querySelectorAll('[data-del-tech]').forEach(b => b.addEventListener('click', async function () {
                     const n = this.getAttribute('data-del-tech');
-                    if (n === SUPERVISOR_NAME) { alert('⚠️ Manager cannot be deleted.'); return; }
+                    if (n === SUPERVISOR_NAME) { alert('⚠️ This account (Infrastructure In-Charge) cannot be deleted.'); return; }
                     if (n === ASSETS_MANAGER_NAME) { alert('⚠️ Assets Manager cannot be deleted.'); return; }
                     if (n === INFRA_MANAGER_NAME) { alert('⚠️ Infra Manager cannot be deleted.'); return; }  /* FIX: added */
                     if (!confirm('Delete "' + n + '"?')) return;
@@ -13029,7 +13555,7 @@ techs[n] = {
                 if (!t) return;
                 const users = await loadUsersFromFirestore();
                 if (users[t]) { showStatus('This name already exists.', false); return; }
-                
+
                 const deptInput = prompt('Department (Type exactly "Infrastructure" or "Biomedical"):', 'Infrastructure');
                 if (!deptInput) return;
                 const dept = deptInput.trim();
@@ -13037,22 +13563,30 @@ techs[n] = {
                     alert('Invalid department. Please type exactly "Infrastructure" or "Biomedical".');
                     return;
                 }
-
                 const phone = prompt('Phone (optional):') || '';
                 const email = prompt('Email (optional):') || '';
-                await window.FB.setDoc(
-                    window.FB.doc(window.FB.db, 'users', userDocId(t)),
-                    {
-                        name: t, role: 'technician', pin: '',
-                        dept: dept, depts: dept ? [dept] : [],
-                        phone: String(phone).trim(), email: String(email).trim(),
-                        updatedAt: window.FB.serverTimestamp()
-                    },
-                    { merge: true }
-                );
-                renderTechnicianEditor();
-                await populateSupervisorOwnerFilter();
-                await populateTechnicianLoginSelect();
+
+                try {
+                    await window.FB.setDoc(
+                        window.FB.doc(window.FB.db, 'users', userDocId(t)),
+                        {
+                            name: t, role: 'technician', pin: '',
+                            dept: dept, depts: dept ? [dept] : [],
+                            phone: String(phone).trim(), email: String(email).trim(),
+                            updatedAt: window.FB.serverTimestamp()
+                        },
+                        { merge: true }
+                    );
+                    USERS_CACHE = null;
+                    LIVE_USERS  = await loadUsersFromFirestore();
+                    await renderTechnicianEditor();
+                    await populateSupervisorOwnerFilter();
+                    await populateTechnicianLoginSelect();
+                    showStatus('✅ Technician "' + t + '" added.', true);
+                } catch (e) {
+                    console.error('[addTechnician]', e);
+                    showStatus('⚠️ Could not add: ' + e.message, false);
+                }
             });
             document.getElementById('saveTechniciansBtn')?.addEventListener('click', async function () {
                 const rows = document.querySelectorAll('#technicianEditorList .dept-editor-row');
@@ -13083,6 +13617,8 @@ techs[n] = {
                 const o = this.innerHTML;
                 this.innerHTML = '⏳ …';
                 try {
+                    // ✅ Clear cache FIRST so a failed write can't leave stale data
+                    USERS_CACHE = null;
                     const prevUsers = await loadUsersFromFirestore();
                     for (const u of upd) {
                         const prevPin = (prevUsers[u.name] && prevUsers[u.name].pin) || '';
@@ -13294,13 +13830,13 @@ techs[n] = {
                 };
 
                 if (kpi) kpi.innerHTML = `
-        <div class="kpi-card" style="background:#eef6fc;"><div class="kpi-label">TOTAL</div><div class="kpi-value" style="color:#0b3d91;">${k.total}</div></div>
-        <div class="kpi-card" style="background:#e2f0e6;"><div class="kpi-label">✅ MAINTAINED</div><div class="kpi-value" style="color:#1b6b3f;">${k.maintained}</div></div>
-        <div class="kpi-card" style="background:#fff3cd;"><div class="kpi-label">⏳ PENDING</div><div class="kpi-value" style="color:#7a5300;">${k.pending}</div></div>
-        <div class="kpi-card" style="background:#ffe6e6;"><div class="kpi-label">🚨 OVERDUE</div><div class="kpi-value" style="color:#b33a3a;">${k.overdue}</div></div>
-        <div class="kpi-card" style="background:#e7f0f8;"><div class="kpi-label">⚪ NEVER</div><div class="kpi-value" style="color:#5b7b96;">${k.never}</div></div>
-        <div class="kpi-card" style="background:#f3e8ff;"><div class="kpi-label">DEPTS</div><div class="kpi-value" style="color:#5d3578;">${k.depts}</div></div>
-        <div class="kpi-card" style="background:#e8f1fb;"><div class="kpi-label">PM RECORDS</div><div class="kpi-value" style="color:#0b3d91;">${k.pms}</div></div>`;
+        <div class="kpi-card kpi-blue"><div class="kpi-label">TOTAL</div><div class="kpi-value">${k.total}</div></div>
+        <div class="kpi-card kpi-green"><div class="kpi-label">✅ MAINTAINED</div><div class="kpi-value">${k.maintained}</div></div>
+        <div class="kpi-card kpi-yellow"><div class="kpi-label">⏳ PENDING</div><div class="kpi-value">${k.pending}</div></div>
+        <div class="kpi-card kpi-red"><div class="kpi-label">🚨 OVERDUE</div><div class="kpi-value">${k.overdue}</div></div>
+        <div class="kpi-card kpi-gray"><div class="kpi-label">⚪ NEVER</div><div class="kpi-value">${k.never}</div></div>
+        <div class="kpi-card kpi-purple"><div class="kpi-label">DEPTS</div><div class="kpi-value">${k.depts}</div></div>
+        <div class="kpi-card kpi-blue"><div class="kpi-label">PM RECORDS</div><div class="kpi-value">${k.pms}</div></div>`;
 
                 const rows = deptRows
                     .filter(r => supervisorStatusFilter === 'all' || r.status === supervisorStatusFilter)
@@ -14087,15 +14623,19 @@ if (n.type === 'pm_submitted') {
             /* ============================================================
                ESCALATION TO MANAGER  +  MANAGER REASSIGNMENT
                ============================================================ */
-            async function getSupervisorNames_() {
-                const names = [];
-                try {
-                    const users = await loadUsersFromFirestore();
-                    Object.keys(users).forEach(n => { if (users[n].role === 'supervisor') names.push(n); });
-                } catch (e) { }
-                if (names.indexOf(SUPERVISOR_NAME) === -1) names.push(SUPERVISOR_NAME);
-                return names;
+           async function getSupervisorNames_() {
+    const names = [];
+    try {
+        const users = await loadUsersFromFirestore();
+        Object.keys(users).forEach(n => {
+            if (users[n].role === 'supervisor' ||
+                (users[n].permissions && users[n].permissions.supervisor === true)) {
+                names.push(n);
             }
+        });
+    } catch (e) { }
+    return names;
+}
 /* ============================================================
    DEPARTMENT-SCOPED TECHNICIAN LOOKUP
    Only the System Manager (supervisor) sees BOTH departments.
@@ -14174,6 +14714,7 @@ try {
                 const reason = (document.getElementById('escalateReason').value || '').trim();
                 const suggestedTo = (document.getElementById('escalateSuggestTo').value || '').trim();
                 if (!reason) { errEl.textContent = '⚠️ Please give a reason for the escalation.'; return; }
+                c.escalationHistory = await freshCurHist_(c._docId);
 
                 const btn = document.getElementById('escalateCurativeSaveBtn');
                 const orig = btn.innerHTML;
@@ -14186,7 +14727,7 @@ try {
                         at: new Date().toISOString(),
                         by: currentLoggedInName,
                         reason: reason,
-                        suggestedTo: suggestedTo || ''
+                        suggestedTo: suggestedTo || '', action: 'escalated'
                     });
 
                     const ok = await updateCurativeRequest(c._docId, {
@@ -14286,6 +14827,7 @@ try {
                     sel.appendChild(o);
                 });
                 if (suggested) sel.value = suggested;
+                markAvailabilityInSelect_(sel, toIsoDate_(new Date()));
                 return el;
             }
 
@@ -14346,6 +14888,9 @@ return true;
                         const sel = b.closest('.curative-card').querySelector('.escalate-assign-select');
                         const target = sel ? sel.value : '';
                         if (!target) { alert('⚠️ Choose a technician to reassign to.'); return; }
+                        const _opt = sel.options[sel.selectedIndex];
+                        if (_opt && _opt.dataset.off === '1' &&
+                            !confirm('⛔ ' + target + ' is OFF DUTY today.\n\n' + _opt.textContent + '\n\nReassign anyway?')) return;
                         await reassignCurativeJob(id, target);
                     }));
                 } catch (e) {
@@ -14358,12 +14903,14 @@ return true;
                 const c = all.find(x => x._docId === id);
                 if (!c) return;
                 if (!confirm(`Reassign ${c.tag} to ${newTech}?`)) return;
+                c.escalationHistory = await freshCurHist_(id);
 
                 const history = (Array.isArray(c.escalationHistory) ? c.escalationHistory.slice() : []);
                 history.push({
                     at: new Date().toISOString(),
                     by: currentLoggedInName,
                     action: 'reassigned',
+                    from: c.escalatedBy || c.previousAssignee || c.assignedTo || '',
                     to: newTech
                 });
 
@@ -14433,7 +14980,13 @@ return true;
 
                 try {
                     const isBioHead = currentRole === 'head_biomedical';
-                    const dept = currentInchargeDept || inferDepartmentFromIncharge(currentLoggedInName);
+                    let dept = currentInchargeDept || inferDepartmentFromIncharge(currentLoggedInName);
+                    if (isInfrastructureUser() && (currentRole === 'incharge' || currentRole === 'supervisor')) {
+                        const sel = document.getElementById('icPmDeptFilter');
+                        if (sel && sel.style.display !== 'none' && sel.value) {
+                            dept = sel.value;
+                        }
+                    }
 
                     const allInv = await fetchAllInventory();
                     const records = await fetchAllLogs();
@@ -14476,25 +15029,25 @@ return true;
                     };
                     if (badge) badge.textContent = counts.total + ' unit(s)';
                     if (kpis) kpis.innerHTML = `
-                        <div class="kpi-card" style="background:#eef6fc;">
+                        <div class="kpi-card kpi-blue">
                             <div class="kpi-label">TOTAL</div>
-                            <div class="kpi-value" style="color:#0b3d91;">${counts.total}</div>
+                            <div class="kpi-value">${counts.total}</div>
                         </div>
-                        <div class="kpi-card" style="background:#e2f0e6;">
+                        <div class="kpi-card kpi-green">
                             <div class="kpi-label">✅ MAINTAINED</div>
-                            <div class="kpi-value" style="color:#1b6b3f;">${counts.maintained}</div>
+                            <div class="kpi-value">${counts.maintained}</div>
                         </div>
-                        <div class="kpi-card" style="background:#fff3cd;">
+                        <div class="kpi-card kpi-yellow">
                             <div class="kpi-label">⏳ DUE SOON</div>
-                            <div class="kpi-value" style="color:#7a5300;">${counts.pending}</div>
+                            <div class="kpi-value">${counts.pending}</div>
                         </div>
-                        <div class="kpi-card" style="background:#ffe6e6;">
+                        <div class="kpi-card kpi-red">
                             <div class="kpi-label">🚨 OVERDUE</div>
-                            <div class="kpi-value" style="color:#b33a3a;">${counts.overdue}</div>
+                            <div class="kpi-value">${counts.overdue}</div>
                         </div>
-                        <div class="kpi-card" style="background:#e7f0f8;">
+                        <div class="kpi-card kpi-gray">
                             <div class="kpi-label">⚪ NEVER</div>
-                            <div class="kpi-value" style="color:#5b7b96;">${counts.never}</div>
+                            <div class="kpi-value">${counts.never}</div>
                         </div>`;
 
                     const order = { overdue: 0, pending: 1, never: 2, maintained: 3 };
@@ -14608,7 +15161,13 @@ return true;
                     const { jsPDF } = window.jspdf;
                     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
                     const pW = 297, m = 14, cW = pW - m * 2;
-                    const deptLabel = currentRole === 'head_biomedical' ? BIOMEDICAL_DEPT_NAME : (currentInchargeDept || 'Department');
+                    let deptLabel = currentRole === 'head_biomedical' ? BIOMEDICAL_DEPT_NAME : (currentInchargeDept || 'Department');
+                    if (isInfrastructureUser() && (currentRole === 'incharge' || currentRole === 'supervisor')) {
+                        const sel = document.getElementById('icPmDeptFilter');
+                        if (sel && sel.style.display !== 'none' && sel.value) {
+                            deptLabel = sel.value;
+                        }
+                    }
                     let y = drawChubHeader(doc, {
                         title: 'DEPARTMENT PM STATUS REPORT',
                         subtitle: 'Department: ' + deptLabel + ' · ' + rows.length + ' unit(s)',
@@ -14818,6 +15377,7 @@ bindCurativeButtons(wrap, all, { canVerify: _canVerify });
             ${jcRow('Reported by', escapeHtml(c.reportedBy || '—'))}
             ${jcRow('Reported at', formatDateOnly(c.reportedAt))}
         </div>
+        ${renderTimelineHtml_(c.escalationHistory)}
         <div class="info-card"><h2>🔧 Technician Work</h2>
             ${jcRow('Assigned to', escapeHtml(c.assignedTo || '—'))}
             ${c.completedAt ? jcRow('Completed', formatDateOnly(c.completedAt)) : ''}
@@ -14891,6 +15451,7 @@ bindCurativeButtons(wrap, all, { canVerify: _canVerify });
                     }
                 } catch (e) { errorEl.textContent = '⚠️ ' + e.message; }
                 document.getElementById('raiseCurativeModal').classList.add('show');
+                markAvailabilityInSelect_(assignSel, toIsoDate_(new Date()));
             }
             async function saveCurativeRequest() {
                 const errorEl = document.getElementById('curativeRaiseError');
@@ -14904,6 +15465,9 @@ bindCurativeButtons(wrap, all, { canVerify: _canVerify });
                 if (!issue) { errorEl.textContent = '⚠️ Describe the problem.'; return; }
                 const prio = (document.querySelector('#curativePriorityGroup input:checked') || {}).value || 'medium';
                 const assignTo = (document.getElementById('curativeAssignTo').value || '').trim();
+                const _ao = document.getElementById('curativeAssignTo').selectedOptions[0];
+                if (assignTo && _ao && _ao.dataset.off === '1' &&
+                    !await smartConfirm(assignTo + ' is OFF DUTY today. Assign anyway?', { title: '⛔ Technician Off Duty', icon: '⛔', okText: 'Assign anyway', danger: true })) return;
 
                 let tag = '', dept = '', loc = '', brand = '', model = '', serial = '', equipType = 'Other', equipName = '';
 
@@ -15019,7 +15583,7 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
                 const o = btn.innerHTML;
                 btn.disabled = true; btn.innerHTML = '⏳ …';
                 try {
-                    const ok = await updateCurativeRequest(c._docId, { status: 'paused', pauseReason: reason, pausedAt: 'NOW' });
+                    const ok = await updateCurativeRequest(c._docId, { status: 'paused', pauseReason: reason, pausedAt: 'NOW', escalationHistory: pushHist_(await freshCurHist_(c._docId), { action: 'paused', reason: reason }) });
                     if (!ok) throw new Error('Failed');
                     if (c.reportedBy) await createNotification({ recipient: c.reportedBy, type: 'curative_paused', title: '⏸️ Job Paused — ' + c.tag, message: `${currentLoggedInName} paused the work at ${c.loc}. Reason: ${reason}`, relatedDocId: c._docId, relatedTag: c.tag, relatedDept: c.dept });
                     showStatus('⏸️ Job paused.', true);
@@ -15030,14 +15594,15 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
             }
             async function resumeCurativeJob(id) {
                 if (!await smartConfirm('Resume this curative job?', { title: '▶️ Resume Job', icon: '▶️', okText: 'Resume', danger: false })) return;
-                const ok = await updateCurativeRequest(id, { status: 'in_progress', resumedAt: 'NOW', pauseReason: '' });
+                const ok = await updateCurativeRequest(id, { status: 'in_progress', resumedAt: 'NOW', pauseReason: '', escalationHistory: pushHist_(await freshCurHist_(id), { action: 'resumed' }) });
                 if (!ok) { showStatus('⚠️ Failed to resume.', false); return; }
                 showStatus('▶️ Job resumed.', true);
                 await refreshTechnicianCurative();
             }
             async function startCurativeJob(id) {
                 if (!id || !await smartConfirm('Start this curative job?', { title: '🔧 Take Curative Job', icon: '🔧', okText: 'Take Job', danger: false })) return;
-                const ok = await updateCurativeRequest(id, { status: 'in_progress', assignedTo: currentLoggedInName, startedAt: 'NOW' });
+                const _h = await freshCurHist_(id);
+const ok = await updateCurativeRequest(id, { status: 'in_progress', assignedTo: currentLoggedInName, startedAt: 'NOW', escalationHistory: pushHist_(_h, { action: 'started' }) });
                 if (!ok) { showStatus('⚠️ Failed.', false); return; }
                 const all = await fetchCurativeRequests({});
                 const c = all.find(x => x._docId === id);
@@ -15071,6 +15636,8 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
                 errorEl.textContent = '';
                 const notes = (document.getElementById('completeCurativeNotes').value || '').trim();
                 if (!notes) { errorEl.textContent = '⚠️ Describe the work.'; return; }
+                const _sr = await sealApproval_('curative', c._docId, 'tech', 'completed', { tag: c.tag, notes: notes });
+                if (!_sr.ok) return;
                 const btn = document.getElementById('completeCurativeSaveBtn');
                 const o = btn.innerHTML;
                 btn.disabled = true;
@@ -15079,6 +15646,7 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
                     const ok = await updateCurativeRequest(c._docId, {
                         status: 'completed',
                         technicianNotes: notes,
+                        escalationHistory: pushHist_(await freshCurHist_(c._docId), { action: 'completed', reason: notes }),
                         technicianPhoto: PENDING_CURATIVE_PHOTO || '',
                         completedAt: 'NOW'
                     });
@@ -15129,6 +15697,10 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
                 errorEl.textContent = '';
                 const comment = (document.getElementById('verifyCurativeComment').value || '').trim();
                 const quality = (document.querySelector('#curativeQualityGroup input:checked') || {}).value || 'good';
+                if (approve) {
+                    const _sr = await sealApproval_('curative', c._docId, 'verifier', 'verified', { tag: c.tag, quality: quality, comment: comment });
+                    if (!_sr.ok) return;
+                }
                 const btn = approve
                     ? document.getElementById('verifyCurativeApproveBtn')
                     : document.getElementById('verifyCurativeRejectBtn');
@@ -15139,6 +15711,7 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
                     const ok = await updateCurativeRequest(c._docId, {
                         status: approve ? 'verified' : 'rejected',
                         verifiedBy: currentLoggedInName,
+                        escalationHistory: pushHist_(await freshCurHist_(c._docId), { action: approve ? 'verified' : 'rejected', reason: comment }),
                         verifiedAt: 'NOW',
                         feedback: comment,
                         feedbackQuality: quality
@@ -15302,6 +15875,36 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
                 doc.text('Started: ' + formatDateOnly(curative.startedAt), m + 3, y);
                 doc.text('Completed: ' + formatDateOnly(curative.completedAt), m + 3, y + 4);
                 y += 8;
+                {
+                    const _tl = normalizeTimeline_(curative.escalationHistory).filter(e => e.action !== 'verified' && e.action !== 'rejected');
+                    if (_tl.length) {
+                        if (y + 30 > pH - 22) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'CURATIVE JOB CARD (cont.)', ref: 'CHUB/CUR' }); }
+                        doc.autoTable({
+                            startY: y, margin: { left: m, right: m },
+                            head: [['When', 'By', 'Event', 'Details']],
+                            body: _tl.map(e => [fmtWhen_(e.at), pdfSanitize(e.by || '-'), pdfSanitize(TIMELINE_LABELS_[e.action] || e.action), pdfSanitize(timelineDetail_(e) || '-')]),
+                            theme: 'striped', styles: { fontSize: 7.5, cellPadding: 1.5 },
+                            headStyles: { fillColor: [122, 83, 0], textColor: 255 },
+                            columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 38 }, 2: { cellWidth: 26 } }
+                        });
+                        y = doc.lastAutoTable.finalY + 5;
+                    }
+                }
+                {
+                    const _tl = normalizeTimeline_(curative.escalationHistory).filter(e => e.action !== 'verified' && e.action !== 'rejected');
+                    if (_tl.length) {
+                        if (y + 30 > pH - 22) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'CURATIVE JOB CARD (cont.)', ref: 'CHUB/CUR' }); }
+                        doc.autoTable({
+                            startY: y, margin: { left: m, right: m },
+                            head: [['When', 'By', 'Event', 'Details']],
+                            body: _tl.map(e => [fmtWhen_(e.at), pdfSanitize(e.by || '-'), pdfSanitize(TIMELINE_LABELS_[e.action] || e.action), pdfSanitize(timelineDetail_(e) || '-')]),
+                            theme: 'striped', styles: { fontSize: 7.5, cellPadding: 1.5 },
+                            headStyles: { fillColor: [122, 83, 0], textColor: 255 },
+                            columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 38 }, 2: { cellWidth: 26 } }
+                        });
+                        y = doc.lastAutoTable.finalY + 5;
+                    }
+                }
                 if (curative.verifiedAt || curative.feedback) {
                     if (y + 26 > pH - 22) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'CURATIVE JOB CARD (cont.)', ref: 'CHUB/CUR' }); }
                     doc.setFillColor(255, 251, 235);
@@ -15395,6 +15998,15 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(6.5);
                 doc.setTextColor(91, 123, 150);
+                {
+                    const _ts = await fetchSeal_('curative', curative._docId, 'tech');
+                    const _vs = await fetchSeal_('curative', curative._docId, 'verifier');
+                    if ((_ts || _vs) && y + 22 < pH - 18) {
+                        if (_ts) drawSealStamp_(doc, m, y, halfW, _ts);
+                        if (_vs) drawSealStamp_(doc, m + halfW + gap, y, halfW, _vs);
+                        y += 21;
+                    }
+                }
                 doc.text('Job ID: ' + pdfSanitize(curative._docId || '—'), m, y);
                 y += 4;
                 if (isCertLoaded()) {
@@ -15730,6 +16342,11 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
                 const decision = (document.querySelector('#disposalDecisionGroup input:checked') || {}).value || 'approved';
                 const comment = (document.getElementById('disposalApprovalComment').value || '').trim();
                 const errEl = document.getElementById('disposalApprovalError');
+                if (decision === 'approved') {
+                    const _sr = await sealApproval_('disposal', r._docId, role, 'approved',
+                        { tag: r.tag, dept: r.dept, reason: r.reason, comment: comment });
+                    if (!_sr.ok) return;
+                }
                 const btn = document.getElementById('disposalApprovalSaveBtn');
                 const o = btn.innerHTML;
                 btn.disabled = true;
@@ -15932,6 +16549,33 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
                 });
                 y = doc.lastAutoTable.finalY + 6;
 
+                {
+                    const _ss = [
+                        ['1. Location In-Charge', await fetchSeal_('disposal', r._docId, 'location_incharge')],
+                        ['2. Technician In-Charge', await fetchSeal_('disposal', r._docId, 'tech_incharge')],
+                        ['3. Assets Manager (Final)', await fetchSeal_('disposal', r._docId, 'am')]
+                    ].filter(x => x[1]);
+                    if (_ss.length) {
+                        doc.autoTable({
+                            startY: y, margin: { left: m, right: m },
+                            head: [['Digital Seal', 'Signer certificate', 'Issuer', 'Signed at', 'Status']],
+                            body: _ss.map(x => [
+                                x[0], pdfSanitize(x[1].subject || x[1].signer), pdfSanitize(x[1].issuer || '-'),
+                                new Date(x[1].signedAt).toLocaleString('en-GB'),
+                                verifySeal_(x[1]) ? 'VERIFIED' : 'INVALID'
+                            ]),
+                            theme: 'grid', styles: { fontSize: 7.5, cellPadding: 1.6 },
+                            headStyles: { fillColor: [11, 61, 145], textColor: 255 },
+                            didParseCell: (d) => {
+                                if (d.section === 'body' && d.column.index === 4) {
+                                    d.cell.styles.fontStyle = 'bold';
+                                    d.cell.styles.textColor = d.cell.raw === 'VERIFIED' ? [27, 107, 63] : [179, 58, 58];
+                                }
+                            }
+                        });
+                        y = doc.lastAutoTable.finalY + 6;
+                    }
+                }
                 // ── Signature blocks ──
                 if (y + 55 > pH - 25) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'DISPOSAL REPORT (cont.)', ref: 'CHUB/DISP' }); }
                 const boxH = 50, gap = 4, halfW = (cW - gap) / 2;
@@ -16352,6 +16996,12 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
 
                 let isFirstPage = true;
                 let sigPlacements = []; // <--- ADD THIS
+                const pmSeals = {};
+                for (const _r of records) {
+                    if (_r._docId && safeStr(_r.inchargeSignedAt || _r['In-Charge Signed At'])) {
+                        pmSeals[_r._docId] = await fetchSeal_('pm', _r._docId, 'incharge');
+                    }
+                }
 
                                     function addHeader(data) {
                         if (isFirstPage) {
@@ -16599,7 +17249,7 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
     drawSection('Door, Seals & Function', 'Performance', data.doorRating, di, data.doorRemarks);
 }
 
-                    const boxH = 50;
+                    const boxH = 68;
                     if (y + boxH + 20 > pageHeight - 22) {
                         doc.addPage();
                         y = addHeader(data);
@@ -16736,6 +17386,18 @@ const dim = sigDims[_techKey];
                         doc.text('Pending co-signature', rbx + 3, y + 32);
                     }
 
+                    {
+                        const sy = y + 40, sw = halfW - 6;
+                        if (data.pkcs7Signature) {
+                            drawSealStamp_(doc, lbx + 3, sy, sw, {
+                                unverified: true, signer: data.technician,
+                                subject: data.signatureSubject, issuer: data.signatureIssuer,
+                                serial: data.signatureSerial, signedAt: data.signatureSignedAt
+                            });
+                        }
+                        const _is = data._docId ? pmSeals[data._docId] : null;
+                        if (_is && sigAt) drawSealStamp_(doc, rbx + 3, sy, sw, _is);
+                    }
                     // Store where the cryptographic stamp should go
                     sigPlacements.push({
                         page: doc.internal.getNumberOfPages() - 1,
@@ -18114,9 +18776,8 @@ if (!afO) {
             if (!u) return false;
 
             // ✅ 1. Explicitly include these three key people (by exact name)
-            if (n === INFRA_MANAGER_NAME)      return true;  // MUNYANEZA Joseph (self)
-            if (n === BIOMEDICAL_MANAGER_NAME) return true;  // KAMANAYO Emmanuel (Head Biomedical)
-            if (n === SUPERVISOR_NAME)         return true;  // GATANGANWA Raissa (Infra In-Charge)
+           if (n === INFRA_MANAGER_NAME)      return true;  // MUNYANEZA Joseph
+if (n === BIOMEDICAL_MANAGER_NAME) return true;  // KAMANAYO Emmanuel (Head Biomedical)
 
                        // ✅ 2. Include ANYONE (Technician, In-Charge, Manager) whose department is strictly Infrastructure or Biomedical
             const ds = Array.isArray(u.depts) && u.depts.length > 0
@@ -18190,7 +18851,92 @@ if (!afO) {
                 return `<span class="avail-badge warn">⚠️ ${escapeHtml(av.reason || 'Unavailable')}</span>`;
             }
 
-            function renderTeamAvailabilityCard(name, av) {
+            /* ===== ACTIVITY TIMELINE HELPERS ===== */
+function pushHist_(arr, entry) {
+    const h = Array.isArray(arr) ? arr.slice() : [];
+    h.push(Object.assign({ at: new Date().toISOString(), by: currentLoggedInName }, entry));
+    return h;
+}
+async function freshCurHist_(id) {
+    const all = await fetchCurativeRequests({ forceRefresh: true });
+    const c = all.find(x => x._docId === id);
+    return c ? c.escalationHistory : [];
+}
+async function freshTaskHist_(id) {
+    const all = await fetchAllTasks({ forceRefresh: true });
+    const t = all.find(x => x._docId === id);
+    return t ? t.history : [];
+}
+const TIMELINE_LABELS_ = { created: 'Created', started: 'Started', paused: 'Paused', resumed: 'Resumed', completed: 'Completed', escalated: 'Escalated', reassigned: 'Re-assigned', delegated: 'Delegated', verified: 'Verified', rejected: 'Rejected' };
+const TIMELINE_ICONS_ = { created: '🆕', started: '🔧', paused: '⏸️', resumed: '▶️', completed: '📸', escalated: '⚠️', reassigned: '🔁', delegated: '🔁', verified: '✅', rejected: '❌' };
+function normalizeTimeline_(arr) {
+    return (Array.isArray(arr) ? arr : []).map(e => {
+        if (!e || typeof e !== 'object') return null;
+        return {
+            at: e.at || '',
+            by: e.by || '',
+            action: e.action || (e.reason ? 'escalated' : ''),   // old escalation entries had no "action"
+            reason: e.reason || e.note || '',
+            to: e.to || '',
+            from: e.from || '',
+            suggestedTo: e.suggestedTo || ''
+        };
+    }).filter(e => e && e.action).sort((a, b) => new Date(a.at) - new Date(b.at));
+}
+function timelineDetail_(e) {
+    if (e.action === 'escalated') return (e.reason || '(no reason)') + (e.suggestedTo ? ' | suggested: ' + e.suggestedTo : '');
+    if (e.action === 'reassigned' || e.action === 'delegated')
+        return (e.from ? 'from ' + e.from + ' ' : '') + (e.to ? 'to ' + e.to : '') + (e.reason ? ' | ' + e.reason : '');
+    return e.reason || '';
+}
+function fmtWhen_(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' +
+           d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+function renderTimelineHtml_(arr) {
+    const tl = normalizeTimeline_(arr);
+    if (!tl.length) return '';
+    return `<div class="info-card" style="margin:10px 0;"><h2>🕒 Activity Timeline <span class="jc-count">${tl.length}</span></h2>` +
+        tl.map(e => {
+            const d = timelineDetail_(e);
+            const bad = e.action === 'escalated' || e.action === 'rejected';
+            return `<div class="jc-item ${bad ? 'bad' : 'ok'}"><span>${TIMELINE_ICONS_[e.action] || '•'}</span><span><strong>${escapeHtml(TIMELINE_LABELS_[e.action] || e.action)}</strong> — ${escapeHtml(e.by || '—')} · ${escapeHtml(fmtWhen_(e.at))}${d ? '<br><em>' + escapeHtml(d) + '</em>' : ''}</span></div>`;
+        }).join('') + '</div>';
+}
+
+/* ===== OFF-DUTY WARNING HELPERS ===== */
+async function markAvailabilityInSelect_(sel, dateStr) {
+    if (!sel || !dateStr) return;
+    const opts = Array.from(sel.options).filter(o => o.value);
+    await Promise.all(opts.map(async o => {
+        if (o.dataset.baseLabel === undefined) o.dataset.baseLabel = o.textContent;
+        try {
+            const av = await getAvailabilityFor(o.value, dateStr);
+            if (!av.available) {
+                o.textContent = '⛔ ' + o.dataset.baseLabel + ' — OFF DUTY (' + (av.reason || 'unavailable') + ')';
+                o.style.color = '#b33a3a'; o.dataset.off = '1';
+            } else if (av.shift === 'night') {
+                o.textContent = '🌙 ' + o.dataset.baseLabel + ' — Night shift';
+                o.style.color = '#5d3578'; o.dataset.off = '';
+            } else {
+                o.textContent = o.dataset.baseLabel;
+                o.style.color = ''; o.dataset.off = '';
+            }
+        } catch (e) { }
+    }));
+}
+function offDutyHintHtml_(av, name, sel) {
+    const alts = Array.from(sel.options)
+        .filter(o => o.value && o.value !== name && o.dataset.off !== '1' && o.dataset.baseLabel)
+        .map(o => o.dataset.baseLabel).slice(0, 5);
+    return `<div style="background:#ffe6e6;border:2px solid #b33a3a;border-radius:12px;padding:10px 14px;color:#8f2929;font-size:.85rem;line-height:1.5;">
+        <strong>⛔ ${escapeHtml(name)} is OFF DUTY on this date</strong><br>Reason: ${escapeHtml(av.reason || 'Unavailable')}
+        ${alts.length ? '<br><span style="color:#1b6b3f;">✅ Available instead: ' + alts.map(escapeHtml).join(', ') + '</span>' : ''}</div>`;
+}
+
+function renderTeamAvailabilityCard(name, av) {
                 let cls = 'shift-unknown';
                 let status = '⚪ Unknown';
                 if (av) {
@@ -18673,10 +19419,9 @@ if (!afO) {
 
             // 🔒 STRICT DEPARTMENT SEPARATION
             if (currentRole === 'infra_manager') {
-                // 🏗️ Infra Manager sees ONLY Infrastructure & Biomedical staff (except Raissa)
-                team = team.filter(n => {
-                    if (normalizeText(n) === normalizeText(SUPERVISOR_NAME)) return false;
-                    const u = users[n];
+    // 🏗️ Infra Manager sees ONLY Infrastructure & Biomedical staff
+    team = team.filter(n => {
+        const u = users[n];
                     const ds = Array.isArray(u.depts) && u.depts.length > 0 ? u.depts : (u.dept ? [u.dept] : []);
                     const inInfra = ds.some(d => normalizeText(d) === normalizeText(INFRA_DEPT_NAME));
                     const inBio   = ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
@@ -18931,6 +19676,7 @@ if (!afO) {
             </div>` : ''}
             ${t.notes ? `<div class="tc-notes">🔧 <strong>Work done:</strong> ${escapeHtml(t.notes)}</div>` : ''}
             ${t.feedback ? `<div class="tc-desc" style="border-left-color:#f4a300;background:#fff9ec;">💬 ${escapeHtml(t.feedback)} ${t.feedbackQuality ? '<em>(' + escapeHtml(t.feedbackQuality) + ')</em>' : ''}</div>` : ''}
+            ${renderTimelineHtml_(t.history)}
             <div class="tc-actions">
                 ${canStart ? `<button class="btn-primary" data-task-start="${escapeHtml(t._docId)}" style="padding:6px 14px;font-size:.82rem;">🔧 Start Task</button>` : ''}
                 ${opts.canComplete && t.status === 'in_progress' && normalizeText(t.assignedTo) === normalizeText(currentLoggedInName) ? `<button class="btn-secondary" data-task-pause="${escapeHtml(t._docId)}" style="padding:6px 14px;font-size:.82rem;background:#fff3cd;color:#7a5300;border-color:#f4d97a;">⏸️ Pause</button>` : ''}
@@ -19000,6 +19746,7 @@ if (!afO) {
                         status: 'pending',
                         assignedTo: ''
                     });
+                    await updateTaskDoc(t._docId, { history: pushHist_(await freshTaskHist_(t._docId), { action: 'escalated', reason: reason }) });
                     await createTaskNotification(t.assignedBy, 'task_escalated',
                         '⚠️ Task escalated — ' + t.title,
                         `${currentLoggedInName}: ${reason}`, t);
@@ -19119,10 +19866,16 @@ if (!afO) {
                     if (!t || !d) { hint.innerHTML = ''; return; }
                     hint.innerHTML = '<span style="color:#9cb9d0;">⏳ Checking availability…</span>';
                     const av = await getAvailabilityFor(t, d);
+                    if (!av.available) { hint.innerHTML = offDutyHintHtml_(av, t, sel); return; }
                     hint.innerHTML = renderAvailabilityBadge(av);
                 };
                 sel.onchange = updateAvail;
-                document.getElementById('taskPlannedDate').onchange = updateAvail;
+                const refreshAll = async () => {
+                    await markAvailabilityInSelect_(sel, document.getElementById('taskPlannedDate').value);
+                    await updateAvail();
+                };
+                document.getElementById('taskPlannedDate').onchange = refreshAll;
+                refreshAll();
 
                 document.getElementById('createTaskModal').classList.add('show');
             }
@@ -19205,7 +19958,7 @@ if (!afO) {
                 const o = btn.innerHTML;
                 btn.disabled = true; btn.innerHTML = '⏳ …';
                 try {
-                    const ok = await updateTaskDoc(t._docId, { status: 'paused', pauseReason: reason, pausedAt: 'NOW' });
+                    const ok = await updateTaskDoc(t._docId, { status: 'paused', pauseReason: reason, pausedAt: 'NOW', history: pushHist_(await freshTaskHist_(t._docId), { action: 'paused', reason: reason }) });
                     if (!ok) throw new Error('Failed');
                     showStatus('⏸️ Task paused.', true);
                     modal.classList.remove('show');
@@ -19215,7 +19968,7 @@ if (!afO) {
             }
             async function resumeTask(id) {
                 if (!await smartConfirm('Resume this task?', { title: '▶️ Resume Task', icon: '▶️', okText: 'Resume', danger: false })) return;
-                const ok = await updateTaskDoc(id, { status: 'in_progress', resumedAt: 'NOW', pauseReason: '' });
+                const ok = await updateTaskDoc(id, { status: 'in_progress', resumedAt: 'NOW', pauseReason: '', history: pushHist_(await freshTaskHist_(id), { action: 'resumed' }) });
                 if (!ok) { showStatus('⚠️ Failed to resume.', false); return; }
                 showStatus('▶️ Task resumed.', true);
                 refreshAllTaskViews();
@@ -19230,6 +19983,7 @@ if (!afO) {
                     assignedTo: currentLoggedInName
                 });
                 if (!ok) { showStatus('⚠️ Failed to start task.', false); return; }
+                await updateTaskDoc(id, { history: pushHist_(await freshTaskHist_(id), { action: 'started' }) });
                 await createTaskNotification(t.assignedBy, 'task_started',
                     '🔧 Task started — ' + t.title,
                     `${currentLoggedInName} started the task.`, t);
@@ -19264,6 +20018,7 @@ if (!afO) {
                         notes: notes
                     });
                     if (!ok) throw new Error('Update failed');
+                    await updateTaskDoc(t._docId, { history: pushHist_(await freshTaskHist_(t._docId), { action: 'completed', reason: notes }) });
                     await createTaskNotification(t.assignedBy, 'task_completed',
                         '📸 Task completed — ' + t.title,
                         `${currentLoggedInName}: ${notes.substring(0, 120)}`, t);
@@ -19303,6 +20058,10 @@ if (!afO) {
                 if (!t) return;
                 const comment = (document.getElementById('verifyTaskComment').value || '').trim();
                 const quality = (document.querySelector('#taskQualityGroup input:checked') || {}).value || 'good';
+                if (approve) {
+                    const _sr = await sealApproval_('task', t._docId, 'verifier', 'verified', { title: t.title, quality: quality, comment: comment });
+                    if (!_sr.ok) return;
+                }
                 const btn = approve
                     ? document.getElementById('verifyTaskApproveBtn')
                     : document.getElementById('verifyTaskRejectBtn');
@@ -19368,9 +20127,11 @@ if (!afO) {
                     if (!tech) { hint.innerHTML = ''; return; }
                     hint.innerHTML = '<span style="color:#9cb9d0;">⏳ Checking…</span>';
                     const av = await getAvailabilityFor(tech, targetDate);
+                    if (!av.available) { hint.innerHTML = offDutyHintHtml_(av, tech, sel); return; }
                     hint.innerHTML = renderAvailabilityBadge(av);
                 };
                 sel.onchange = updateAvail;
+                markAvailabilityInSelect_(sel, targetDate);
                 hint.innerHTML = '<span style="color:#5b7b96;font-size:.78rem;">📅 Checking availability for ' + formatDateOnly(targetDate) + '</span>';
 
                 modal._task = t;
@@ -19403,9 +20164,10 @@ if (!afO) {
                 btn.disabled = true;
                 btn.innerHTML = '⏳ Delegating…';
                 try {
-                    const history = (Array.isArray(t.history) ? t.history.slice() : []);
+                    const history = (await freshTaskHist_(t._docId)).slice();
                     history.push({
                         action: 'delegated',
+                        from: t.assignedTo || t.escalatedBy || '',
                         by: currentLoggedInName,
                         to: newTech,
                         note: note,
@@ -20258,6 +21020,40 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                     const pW = 210, m = 14;
                     
+                    // ===== EVENTS: pause / escalate / re-task =====
+                    const evByPerson = {};
+                    const EV_KEEP = ['paused', 'resumed', 'escalated', 'reassigned', 'delegated'];
+                    const addEv = (person, ev) => {
+                        if (!person || !isUserInScope(person)) return;
+                        (evByPerson[person] = evByPerson[person] || []).push(ev);
+                    };
+                    const collectEv = (list, kind, jobLabel) => {
+                        list.forEach(item => {
+                            normalizeTimeline_(kind === 'Task' ? item.history : item.escalationHistory).forEach(e => {
+                                if (!EV_KEEP.includes(e.action) || !isMatch(e.at)) return;
+                                const job = kind + ': ' + jobLabel(item);
+                                if (e.action === 'reassigned' || e.action === 'delegated') {
+                                    const done = new Set();
+                                    if (e.to) {
+                                        addEv(e.to, { at: e.at, type: 'Received (re-tasked)', job, text: 'Given by ' + (e.by || '-') + (e.from ? ', previously ' + e.from : '') + (e.reason ? ' | ' + e.reason : '') });
+                                        done.add(normalizeText(e.to));
+                                    }
+                                    if (e.from && !done.has(normalizeText(e.from))) {
+                                        addEv(e.from, { at: e.at, type: 'Handed over', job, text: 'Re-tasked to ' + (e.to || '-') + ' by ' + (e.by || '-') + (e.reason ? ' | ' + e.reason : '') });
+                                        done.add(normalizeText(e.from));
+                                    }
+                                    if (e.by && !done.has(normalizeText(e.by))) {
+                                        addEv(e.by, { at: e.at, type: 'Re-tasked', job, text: (e.from || '-') + ' -> ' + (e.to || '-') + (e.reason ? ' | ' + e.reason : '') });
+                                    }
+                                } else {
+                                    addEv(e.by, { at: e.at, type: TIMELINE_LABELS_[e.action] || e.action, job, text: timelineDetail_(e) });
+                                }
+                            });
+                        });
+                    };
+                    collectEv(tasks, 'Task', t => (t.title || '') + (t.location ? ' @ ' + t.location : ''));
+                    collectEv(curatives, 'Curative', c => getEqDetails(c.tag, c.loc));
+
                     const scopeLabel = targetDepts.length > 0 ? targetDepts.join(', ') : 'Fleet-Wide';
                     let y = drawChubHeader(doc, {
                         title: 'MONTHLY ACTIVITY LOG REPORT',
@@ -20347,6 +21143,38 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                         });
                         y = doc.lastAutoTable.finalY + 8;
                     });
+
+                    const evPeople = Object.keys(evByPerson).sort();
+                    if (evPeople.length) {
+                        hasData = true;
+                        if (y > 235) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'ACTIVITY LOG (cont.)', ref: 'CHUB/MON' }); }
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(11);
+                        doc.setTextColor(179, 58, 58);
+                        doc.text('PAUSES, ESCALATIONS & RE-ASSIGNMENTS', m, y);
+                        y += 6;
+                        evPeople.forEach(name => {
+                            const rows = evByPerson[name].sort((a, b) => new Date(a.at) - new Date(b.at))
+                                .map(e => [fmtWhen_(e.at), pdfSanitize(e.type), pdfSanitize(e.job), pdfSanitize(e.text || '-')]);
+                            if (y > 255) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'ACTIVITY LOG (cont.)', ref: 'CHUB/MON' }); }
+                            doc.setFillColor(255, 245, 245);
+                            doc.rect(m, y, pW - m * 2, 6, 'F');
+                            doc.setFont('helvetica', 'bold');
+                            doc.setFontSize(9);
+                            doc.setTextColor(143, 41, 41);
+                            doc.text(pdfSanitize(name), m + 2, y + 4);
+                            y += 6;
+                            doc.autoTable({
+                                startY: y, margin: { left: m, right: m },
+                                head: [['When', 'Event', 'Job', 'Comment / Details']],
+                                body: rows, theme: 'plain',
+                                styles: { fontSize: 7.5, cellPadding: 1.5, textColor: [31, 60, 84] },
+                                headStyles: { fillColor: [255, 250, 250], textColor: [143, 41, 41], fontSize: 7.5, fontStyle: 'bold' },
+                                columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 32, fontStyle: 'bold' }, 2: { cellWidth: 52 }, 3: { cellWidth: 'auto' } }
+                            });
+                            y = doc.lastAutoTable.finalY + 8;
+                        });
+                    }
 
                     if (!hasData) {
                         doc.setFont('helvetica', 'italic');
@@ -20738,13 +21566,11 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                     techs = Object.keys(users)
                         .filter(n => userRecHasPermission(users[n], 'assetsmanager'))
                         .sort();
-                } else if (loginRole === 'supervisor') {
-                    // 👑 ADMIN/MANAGER LOGIN → Hide dept picker, ONLY show the manager
-                    if (deptSel) deptSel.style.display = 'none';
-                    techs = Object.keys(users)
-                        .filter(n => n === SUPERVISOR_NAME || userRecHasPermission(users[n], 'supervisor'))
-                        .sort();
-                } else {
+                       } else if (loginRole === 'supervisor') {
+    if (deptSel) deptSel.style.display = 'none';
+    techs = Object.keys(users).filter(n => userRecHasPermission(users[n], 'supervisor')).sort();
+}
+                else {
                     // Normal Technician login → show department picker
                     if (deptSel) deptSel.style.display = 'block';
                     // Technician login → show department picker
@@ -20865,15 +21691,21 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                     // sessionStorage. The user will be prompted for the PFX password
                     // (askPfxPassword) the first time they sign a document in this session.
                     
-                    if (p.name === SUPERVISOR_NAME) currentRole = 'supervisor';
-                    else if (p.name === INFRA_MANAGER_NAME) currentRole = 'infra_manager';
-                    else if (p.name === BIOMEDICAL_MANAGER_NAME) currentRole = 'head_biomedical';
-                    else currentRole = p.role || 'technician';
-                    currentLoggedInName = p.name;
+                    const _liveU = LIVE_USERS[p.name];
+const _freshRole = (_liveU && _liveU.permissions)
+    ? computePrimaryRoleFromPerms(_liveU.permissions)
+    : null;
 
-                    if (currentRole === 'incharge') {
-                        currentInchargeDept = p.dept || '';
-                    }
+if (_freshRole === 'supervisor') currentRole = 'supervisor';
+else if (p.name === INFRA_MANAGER_NAME) currentRole = 'infra_manager';
+else if (p.name === BIOMEDICAL_MANAGER_NAME) currentRole = 'head_biomedical';
+else currentRole = _freshRole || p.role || 'technician';
+currentLoggedInName = p.name;
+
+if (currentRole === 'incharge') {
+    const _u = LIVE_USERS[p.name];
+    currentInchargeDept = (_u && _u.dept) || p.dept || '';
+}
 
                     if (currentRole === 'technician') {
                         let found = false;
@@ -20902,6 +21734,9 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                     if (_ugBtn) _ugBtn.style.display = 'inline-flex';
                     updateTechnicianDisplay();
                     applyRoleVisibility();
+
+                    // 👁️ Track this login for the admin activity dashboard
+                    recordLoginActivity(p.name).catch(() => {});
 
                     loginModal.classList.remove('show');
                     showStatus('👋 Welcome ' + p.name, true);
@@ -21133,11 +21968,12 @@ if (_ugBtn) _ugBtn.style.display = 'none';
                             return;
                         }
                         clearPinAttempts(n);
-                        let ar = r.role;
-                        if (n === SUPERVISOR_NAME) ar = 'supervisor';
-                        if (n === INFRA_MANAGER_NAME) ar = 'infra_manager';
-                        if (n === BIOMEDICAL_MANAGER_NAME) ar = 'head_biomedical';
-                        await maybeGateWith2FA(n, { name: n, role: ar });
+                       let ar = (r.permissions && typeof r.permissions === 'object')
+    ? computePrimaryRoleFromPerms(r.permissions)
+    : (r.role || 'technician');
+if (n === INFRA_MANAGER_NAME) ar = 'infra_manager';
+if (n === BIOMEDICAL_MANAGER_NAME) ar = 'head_biomedical';
+await maybeGateWith2FA(n, { name: n, role: ar });
                         return;
                     }
 
@@ -21146,7 +21982,12 @@ if (_ugBtn) _ugBtn.style.display = 'none';
                     if (!dept) { loginError.textContent = 'Choose department.'; return; }
                     if (!iname) { loginError.textContent = 'Enter your name.'; return; }
                     const r = LIVE_USERS[iname];
-                    if (!r || r.role !== 'incharge') { loginError.textContent = 'Not registered as In-Charge.'; loginPinInput.value = ''; loginPinInput.focus(); return; }
+if (!r || (!userRecHasPermission(r, 'incharge') && !userRecHasPermission(r, 'head_biomedical'))) {
+    loginError.textContent = 'Not registered as In-Charge.';
+    loginPinInput.value = '';
+    loginPinInput.focus();
+    return;
+}
                     if (r.dept && normalizeText(r.dept) !== normalizeText(dept)) {
     loginError.textContent = 'This account belongs to the ' + r.dept + ' department.';
     return;
@@ -21835,7 +22676,86 @@ const t = _pd ? _pd.getTime() : NaN;
                     // The PFX will be requested securely only when the user clicks a "Download PDF" button.
                 } catch (e) { console.error(e); }
             }
-            function askPfxPassword() {
+            /* ===== APPROVAL SEALS (PFX digital seal stored at approval time) ===== */
+function sealKey_(kind, docId, role) { return 'Seal_' + kind + '_' + docId + '_' + role; }
+
+async function sealApproval_(kind, docId, role, decision, payload) {
+    const name = currentLoggedInName;
+    if (!name || !docId) return { ok: true, seal: null };
+    let hasPfx = false;
+    try { hasPfx = !!(await firestoreConfigGet('TechPFX_' + name)); } catch (e) { }
+    if (!hasPfx) return { ok: true, seal: null };           // no PFX attached -> approve normally
+
+    if (!(isCertLoaded() && window.__sealOwner === name)) {
+        const loaded = await ensurePfxLoadedFor(name, { forceReload: true });   // asks the PFX password
+        if (!loaded) {
+            const go = await smartConfirm('Your digital signature was NOT unlocked. Continue WITHOUT the digital seal?',
+                { title: '🔐 Digital seal not applied', icon: '🔐', okText: 'Continue without seal', danger: true });
+            return { ok: !!go, seal: null };
+        }
+        window.__sealOwner = name;
+    }
+    const signedAt = new Date().toISOString();
+    const docHash = await computeSHA256(JSON.stringify(payload || {}));
+    const canonical = ['SEAL', kind, docId, role, decision, name, signedAt, docHash].join('|');
+    const sig = signCanonical(canonical);
+    if (!sig) { toast('Could not create the digital seal.', 'error'); return { ok: false, seal: null }; }
+
+    const seal = {
+        signer: name, role, decision, kind, docId, signedAt, hash: docHash, canonical,
+        sig: sig.base64, subject: sig.subject, issuer: sig.issuer, serial: sig.serial,
+        fingerprint: sig.fingerprint, validTo: sig.validTo,
+        cert: forge.pki.certificateToPem(CERT_STATE.certificate)
+    };
+    const saved = await firestoreConfigSet(sealKey_(kind, docId, role), JSON.stringify(seal), 'application/json', 'seal.json');
+    if (!saved) { toast('Seal could not be saved to the cloud.', 'error'); return { ok: false, seal: null }; }
+    return { ok: true, seal };
+}
+
+async function fetchSeal_(kind, docId, role) {
+    if (!docId) return null;
+    try {
+        const raw = await firestoreConfigGet(sealKey_(kind, docId, role));
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+}
+
+function verifySeal_(s) {
+    try {
+        if (!s || !s.cert || !s.sig) return false;
+        const cert = forge.pki.certificateFromPem(s.cert);
+        const md = forge.md.sha256.create();
+        md.update(s.canonical, 'utf8');
+        return cert.publicKey.verify(md.digest().bytes(), forge.util.decode64(s.sig));
+    } catch (e) { return false; }
+}
+
+function drawSealStamp_(doc, x, y, w, seal) {
+    if (!seal) return 0;
+    const h = 17;
+    const ok = seal.unverified ? true : verifySeal_(seal);
+    const c = ok ? [27, 107, 63] : [179, 58, 58];
+    doc.setDrawColor(c[0], c[1], c[2]);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(x, y, w, h, 1.5, 1.5, 'S');
+    doc.setLineWidth(0.2);
+    doc.roundedRect(x + 0.8, y + 0.8, w - 1.6, h - 1.6, 1, 1, 'S');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(c[0], c[1], c[2]);
+    doc.text(ok ? 'DIGITALLY SIGNED - VERIFIED' : 'SIGNATURE INVALID', x + 3, y + 4.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.8);
+    doc.setTextColor(31, 60, 84);
+    doc.text('Signer: ' + pdfSanitize(seal.subject || seal.signer || '-').substring(0, 42), x + 3, y + 8);
+    doc.text('Issuer: ' + pdfSanitize(seal.issuer || '-').substring(0, 42), x + 3, y + 11);
+    let when = '-';
+    try { when = new Date(seal.signedAt).toLocaleString('en-GB'); } catch (e) { }
+    doc.text('Signed: ' + when + '  Serial ' + pdfSanitize(String(seal.serial || '')).substring(0, 10), x + 3, y + 14);
+    return h;
+}
+
+function askPfxPassword() {
                 return new Promise(resolve => {
                     const modal = document.getElementById('pfxPasswordModal');
                     const input = document.getElementById('pfxAutoPasswordInput');
@@ -22867,7 +23787,40 @@ bindUpsPhaseSync('editMonPhaseType', 'editMonChecklist');
                         console.log('🗑️ Bootstrapped', ASSETS_MANAGER_NAME, '— PIN must be set on first login.');
                         USERS_CACHE = null; // Force reload so the manager sees it right away
                     }
-                } catch (e) { console.warn('Bootstrap Assets Manager failed:', e); }
+                                } catch (e) { console.warn('Bootstrap Assets Manager failed:', e); }
+
+                // 👔 Demote GATANGANWA Raissa → Infrastructure In-Charge only
+                try {
+                    const existing = await loadUsersFromFirestore();
+                    const herRec = existing[SUPERVISOR_NAME];
+                    const stillSupervisor = herRec && (
+                        herRec.role === 'supervisor' ||
+                        (herRec.permissions && herRec.permissions.supervisor === true)
+                    );
+                    if (stillSupervisor) {
+                        await window.FB.setDoc(
+                            window.FB.doc(window.FB.db, 'users', userDocId(SUPERVISOR_NAME)),
+                            {
+                                name: SUPERVISOR_NAME,
+                                role: 'incharge',
+                                dept: INFRA_DEPT_NAME,
+                                depts: [INFRA_DEPT_NAME],
+                                permissions: {
+                                    technician: false,
+                                    incharge: true,
+                                    assetsmanager: false,
+                                    infra_manager: false,
+                                    head_biomedical: false,
+                                    supervisor: false
+                                },
+                                updatedAt: window.FB.serverTimestamp()
+                            },
+                            { merge: true }
+                        );
+                        USERS_CACHE = null;
+                        console.log('✅ GATANGANWA Raissa demoted to Infrastructure In-Charge');
+                    }
+                } catch (e) { console.warn('Demote Raissa failed:', e); }
 
                 try { await populateTechnicianLoginSelect(); } catch (e) { console.warn('Tech login list:', e); }
                 try { await populateInchargeLoginList(); } catch (e) { console.warn('Incharge login list:', e); }
@@ -23671,10 +24624,9 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
            ============================================================ */
         const MON_ITEM = { view: 'tech-monitoring', icon: '📊', label: 'Equipment Monitoring' };
 
-        function canSeeIcTasks() {
-            return normalizeText(currentLoggedInName) === normalizeText(SUPERVISOR_NAME) ||
-                (currentRole === 'incharge' && (isInfrastructureUser() || isBiomedicalUser()));
-        }
+       function canSeeIcTasks() {
+    return currentRole === 'incharge' && (isInfrastructureUser() || isBiomedicalUser());
+}
 
         const SIDEBAR_MENUS = {
             technician: () => [
@@ -23696,6 +24648,12 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
                     ...(canSeeIcTasks() ? [{ view: 'ic-tasks', icon: '📋', label: 'My Tasks (In-Charge)', badge: 'icTaskCount' }] : []),
                     { view: 'ic-curative', icon: '🚨', label: 'Curative Requests', badge: 'curativeRaisedCount' },
                     { view: 'ic-disposal', icon: '🗑️', label: 'Disposal Requests', badge: 'inchargeDisposalCount' }
+                ]},
+                { group: 'Tracking & Analysis', items: [
+                    ...(isInfrastructureUser() ? [
+                        { view: 'ic-team-tracking', icon: '👨‍🔧', label: 'Team Tracker' },
+                        { view: 'ic-global-analysis', icon: '🌍', label: 'Global Analysis' }
+                    ] : [])
                 ]},
                 { group: 'Equipment', items: [
                     { view: 'ic-pm-status', icon: '📅', label: 'Department PM Status' },
@@ -23721,6 +24679,7 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
                     MON_ITEM
                 ]},
                 { group: 'Reports', items: [
+                    { view: 'sup-user-activity', icon: '👁️', label: 'User Activity' },
                     { view: 'sup-reports', icon: '📥', label: 'Download Reports' }
                 ]},
                 { group: 'Manage', items: [
@@ -23888,7 +24847,9 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
                 { view: 'ic-pm-status', selectors: ['#inchargePmStatusCard'] },
                 { view: 'ic-inventory', selectors: ['#invDeptIcon'] },
                 { view: 'ic-disposal',  selectors: ['#inchargeDisposalCard'] },
-                { view: 'ic-downloads', selectors: ['#inchargeDownloadAllBtn'] }
+                { view: 'ic-downloads', selectors: ['#inchargeDownloadAllBtn'] },
+                { view: 'ic-team-tracking', selectors: ['#icTeamTrackingCard'] },
+                { view: 'ic-global-analysis', selectors: ['#icGlobalAnalysisCard'] }
             ]);
 
             wrapGroup('assetsManagerSection', [
@@ -23913,6 +24874,7 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
                 { view: 'sup-escalated',    selectors: ['#escalatedCount'] },
                 { view: 'sup-fleet',        selectors: ['#supFleetOverviewDept'] },
                 { view: 'sup-inventory',    selectors: ['#supervisorInvCount'] },
+                { view: 'sup-user-activity', selectors: ['#uaKpiStrip'] },
                 { view: 'sup-reports',      selectors: ['#supervisorAnalysisDept'] },
                 { view: 'sup-manage-ic',    selectors: ['#inchargeEditorList'] },
                 { view: 'sup-manage-techs', selectors: ['#technicianEditorList'] }
@@ -24015,6 +24977,9 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
             if (viewId === 'ic-pm-status' && typeof renderInchargePmStatus === 'function') {
                 renderInchargePmStatus();
             }
+            if (viewId === 'sup-user-activity' && typeof renderUserActivityDashboard === 'function') {
+                renderUserActivityDashboard();
+            }
 
             // Equipment monitoring: technicians get the form, everyone else gets history
             const monBtns = document.getElementById('monitoringActionButtons');
@@ -24076,6 +25041,163 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
         document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
             document.getElementById('mainSidebar')?.classList.remove('open');
             document.getElementById('sidebarOverlay')?.classList.remove('show');
+        });
+
+        // ===== NEW: INFRA IN-CHARGE TEAM TRACKING & GLOBAL ANALYSIS =====
+        let IC_TEAM_STATUS_FILTER = 'all';
+
+        document.querySelectorAll('#icTeamStatusFilterBar .filter-chip').forEach(c => c.addEventListener('click', function() {
+            document.querySelectorAll('#icTeamStatusFilterBar .filter-chip').forEach(x => x.classList.remove('active'));
+            this.classList.add('active');
+            IC_TEAM_STATUS_FILTER = this.dataset.status;
+            refreshIcTeamTracking();
+        }));
+
+        function populateIcPmDeptFilter() {
+            const sel = document.getElementById('icPmDeptFilter');
+            if (!sel) return;
+            const isInfra = isInfrastructureUser() && (currentRole === 'incharge' || userHasPermission('incharge'));
+            sel.style.display = isInfra ? 'block' : 'none';
+            if (isInfra) {
+                const c = sel.value;
+                sel.innerHTML = '<option value="">— Select Department —</option>';
+                Object.keys(DEPARTMENTS).forEach(d => {
+                    const o = document.createElement('option');
+                    o.value = d; o.textContent = d;
+                    sel.appendChild(o);
+                });
+                sel.value = c || currentInchargeDept || INFRA_DEPT_NAME;
+            }
+        }
+
+        function populateIcAnalysisDept() {
+            const sel = document.getElementById('icAnalysisDept');
+            if (!sel) return;
+            const c = sel.value;
+            sel.innerHTML = '<option value="">— Pick a department —</option>';
+            Object.keys(DEPARTMENTS).forEach(d => {
+                const o = document.createElement('option'); o.value = d; o.textContent = d; sel.appendChild(o);
+            });
+            sel.value = c;
+        }
+
+        async function populateIcTeamTechFilter() {
+            const sel = document.getElementById('icTeamTechFilter');
+            if (!sel) return;
+            const users = await loadUsersFromFirestore();
+            sel.innerHTML = '<option value="all">All Technicians</option>';
+            Object.keys(users).filter(n => {
+                const u = users[n];
+                if (u.role !== 'technician') return false;
+                const ds = Array.isArray(u.depts) ? u.depts : (u.dept ? [u.dept] : []);
+                return ds.length === 0 || ds.some(d => normalizeText(d) === normalizeText(INFRA_DEPT_NAME));
+            }).sort().forEach(n => {
+                const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
+            });
+        }
+
+        async function refreshIcTeamTracking() {
+            const techFilter = document.getElementById('icTeamTechFilter')?.value || 'all';
+            const wrapT = document.getElementById('icTeamTasksList');
+            const wrapC = document.getElementById('icTeamCurativesList');
+            if (!wrapT || !wrapC) return;
+            
+            renderSkeletons(wrapT, 3, 'card');
+            renderSkeletons(wrapC, 3, 'card');
+
+            try {
+                // 1. Fetch ALL tasks and curatives across the whole hospital
+                const allTasks = await fetchAllTasks({});
+                const allCuratives = await fetchCurativeRequests({});
+
+                // 2. Get the list of Infrastructure technicians
+                const users = await loadUsersFromFirestore();
+                const infraTechs = Object.keys(users).filter(n => {
+                    const u = users[n];
+                    if (u.role !== 'technician') return false;
+                    const ds = Array.isArray(u.depts) ? u.depts : (u.dept ? [u.dept] : []);
+                    return ds.length === 0 || ds.some(d => normalizeText(d) === normalizeText(INFRA_DEPT_NAME));
+                });
+
+                // 3. Filter to show ONLY jobs belonging to Infra techs OR unassigned jobs in the Infra department
+                let filteredTasks = allTasks.filter(t => 
+                    infraTechs.includes(t.assignedTo) || 
+                    normalizeText(t.dept) === normalizeText(INFRA_DEPT_NAME)
+                );
+                
+                let filteredCuratives = allCuratives.filter(c => 
+                    infraTechs.includes(c.assignedTo) || 
+                    normalizeText(c.dept) === normalizeText(INFRA_DEPT_NAME)
+                );
+
+                // 4. Apply the dropdown filter (if a specific technician is selected)
+                if (techFilter !== 'all') {
+                    filteredTasks = filteredTasks.filter(t => normalizeText(t.assignedTo) === normalizeText(techFilter));
+                    filteredCuratives = filteredCuratives.filter(c => normalizeText(c.assignedTo) === normalizeText(techFilter));
+                }
+
+                // 5. Apply the status filter (Open, Pending, In Progress, etc.)
+                if (IC_TEAM_STATUS_FILTER !== 'all') {
+                    if (IC_TEAM_STATUS_FILTER === 'open') {
+                        filteredTasks = filteredTasks.filter(t => ['pending', 'in_progress', 'paused'].includes(t.status));
+                        filteredCuratives = filteredCuratives.filter(c => ['pending', 'in_progress', 'paused'].includes(c.status));
+                    } else {
+                        filteredTasks = filteredTasks.filter(t => t.status === IC_TEAM_STATUS_FILTER);
+                        filteredCuratives = filteredCuratives.filter(c => c.status === IC_TEAM_STATUS_FILTER);
+                    }
+                }
+
+                if (!filteredTasks.length) {
+                    wrapT.innerHTML = '<div style="text-align:center;padding:10px;color:#9cb9d0;font-style:italic;">No tasks found.</div>';
+                } else {
+                    wrapT.innerHTML = '<h3 style="font-size:.95rem;color:#12405e;margin-bottom:10px;">📋 Tasks</h3>' + filteredTasks.map(t => renderTaskCard(t, { canVerify: true })).join('');
+                    bindTaskCardButtons(wrapT, filteredTasks, { canVerify: true });
+                }
+
+                if (!filteredCuratives.length) {
+                    wrapC.innerHTML = '<div style="text-align:center;padding:10px;color:#9cb9d0;font-style:italic;">No curative jobs found.</div>';
+                } else {
+                    wrapC.innerHTML = '<h3 style="font-size:.95rem;color:#12405e;margin-bottom:10px;">🚨 Curative Jobs</h3>' + filteredCuratives.map(c => renderCurativeCard(c, { canVerify: true })).join('');
+                    bindCurativeButtons(wrapC, filteredCuratives, { canVerify: true });
+                }
+            } catch(e) {
+                wrapT.innerHTML = '<div class="info-error">⚠️ Error loading tasks.</div>';
+                wrapC.innerHTML = '<div class="info-error">⚠️ Error loading curatives.</div>';
+            }
+        }
+
+        document.getElementById('icPmDeptFilter')?.addEventListener('change', renderInchargePmStatus);
+        document.getElementById('icTeamTechFilter')?.addEventListener('change', refreshIcTeamTracking);
+        
+        document.getElementById('icDownloadAnalysisBtn')?.addEventListener('click', async function() {
+            const dept = document.getElementById('icAnalysisDept').value;
+            if (!dept) { showStatus('⚠️ Pick a department.', false); return; }
+            const btn = this;
+            const o = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Generating...';
+            try {
+                const recs = await fetchAllLogs();
+                const f = recs.filter(r => normalizeText(r['Department'] || r.refDept) === normalizeText(dept));
+                if (!f.length) { showStatus('📭 No PMs for this department.', false); btn.disabled = false; btn.innerHTML = o; return; }
+                await generateAnalysisPDF(f, dept);
+                showStatus('📊 Analysis generated.', true);
+            } catch (e) {
+                showStatus('⚠️ ' + e.message, false);
+            }
+            btn.disabled = false;
+            btn.innerHTML = o;
+        });
+
+        document.getElementById('icViewDeptInventoryBtn')?.addEventListener('click', () => {
+            const dept = document.getElementById('icAnalysisDept').value;
+            if (!dept) { showStatus('⚠️ Pick a department.', false); return; }
+            showView('ic-pm-status');
+            const sel = document.getElementById('icPmDeptFilter');
+            if (sel) {
+                sel.value = dept;
+                renderInchargePmStatus();
+            }
         });
 
         })();
