@@ -3689,67 +3689,124 @@ window.setupPushNotifications = async function(userName) {
             z-index: 5001 !important;
         }
         
-               /* ===== ENHANCED PRETTY MANAGER THEME ===== */
-        body.manager-theme {
-            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
-        }
-        body.manager-theme .app-container {
-            box-shadow: 0 25px 50px -12px rgba(49, 46, 129, 0.25);
-            border: 1px solid #c7d2fe;
-        }
-        body.manager-theme .title-hero {
-            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
-            box-shadow: 0 14px 30px -10px rgba(49, 46, 129, .6);
-        }
-        body.manager-theme .title-hero .title-sub {
-            color: #c7d2fe;
-        }
-        body.manager-theme .title-hero h1 .title-accent {
-            background: linear-gradient(90deg, #fbbf24, #fcd34d);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        body.manager-theme .subhead {
-            background: #ffffff;
-            border-color: #c7d2fe;
-            box-shadow: 0 4px 12px rgba(67, 56, 202, 0.08);
-        }
-        body.manager-theme #mainSidebar {
-            border-color: #c7d2fe;
-            box-shadow: 0 16px 34px -14px rgba(49, 46, 129, 0.3);
-        }
-        body.manager-theme #mainSidebar .sidebar-brand .brand-icon {
-            background: linear-gradient(135deg, #4338ca, #312e81);
-        }
-        body.manager-theme #mainSidebar .sidebar-item.active {
-            background: linear-gradient(135deg, #4338ca 0%, #312e81 100%);
-            box-shadow: 0 10px 22px -6px rgba(67, 56, 202, .45);
-        }
-        body.manager-theme #mainSidebar .sidebar-item.active::before {
-            background: #fbbf24;
-            box-shadow: 0 0 12px rgba(251, 191, 36, .6);
-        }
-        body.manager-theme .btn-primary {
-            background: linear-gradient(135deg, #4338ca, #312e81);
-            box-shadow: 0 10px 18px -8px rgba(67, 56, 202, .4);
-        }
-        body.manager-theme .btn-primary:hover {
-            background: linear-gradient(135deg, #3730a3, #1e1b4b);
-        }
-        body.manager-theme #dualRoleSwitcher {
-            background: #ffffff;
-            border-color: #fbbf24;
-            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
-        }
-        body.manager-theme #dualRoleSwitcher span {
-            color: #4338ca;
-        }
-        body.manager-theme #viewModeSelect {
-            border-color: #c7d2fe;
-            color: #4338ca;
-            background: #eef2ff;
-        }
+/* ===================================================================
+   ROLE THEMES (technician / incharge / admin / assets)
+   =================================================================== */
+body.theme-tech{
+  --t1:#047857; --t2:#10b981; --t3:#6ee7b7; --tdark:#064e3b;
+  --tsoft:#ecfdf5; --tborder:#a7f3d0; --tpop:#fcd34d;
+  --tbg1:#ecfdf5; --tbg2:#d1fae5;
+  --tshadow:rgba(4,120,87,.35); --tglow:rgba(16,185,129,.18);
+}
+body.theme-incharge{
+  --t1:#b45309; --t2:#f59e0b; --t3:#fcd34d; --tdark:#78350f;
+  --tsoft:#fffbeb; --tborder:#fde68a; --tpop:#38bdf8;
+  --tbg1:#fffbeb; --tbg2:#fef3c7;
+  --tshadow:rgba(180,83,9,.35); --tglow:rgba(245,158,11,.2);
+}
+body.theme-admin{
+  --t1:#4338ca; --t2:#7c3aed; --t3:#a78bfa; --tdark:#1e1b4b;
+  --tsoft:#eef2ff; --tborder:#c7d2fe; --tpop:#fbbf24;
+  --tbg1:#f0f4ff; --tbg2:#e0e7ff;
+  --tshadow:rgba(67,56,202,.35); --tglow:rgba(124,58,237,.18);
+}
+body.theme-assets{
+  --t1:#be123c; --t2:#f43f5e; --t3:#fda4af; --tdark:#4c0519;
+  --tsoft:#fff1f2; --tborder:#fecdd3; --tpop:#fbbf24;
+  --tbg1:#fff1f2; --tbg2:#ffe4e6;
+  --tshadow:rgba(190,18,60,.3); --tglow:rgba(244,63,94,.18);
+}
+
+/* ---- Page + container ---- */
+body[class*="theme-"]{ background:linear-gradient(135deg,var(--tbg1) 0%,var(--tbg2) 100%); transition:background .4s; }
+body.dark[class*="theme-"]{ background:linear-gradient(135deg,#0f172a 0%,#1a2332 100%); }
+body[class*="theme-"]:not(.dark)::before{ color:var(--t1); opacity:.07; }
+body[class*="theme-"] .app-container{
+  position:relative; border:1px solid var(--tborder);
+  box-shadow:0 25px 50px -12px var(--tshadow);
+}
+body[class*="theme-"] .app-container::before{
+  content:''; position:absolute; top:0; left:0; right:0; height:6px;
+  border-radius:32px 32px 0 0;
+  background:linear-gradient(90deg,var(--t1),var(--t2),var(--tpop),var(--t2),var(--t1));
+  background-size:200% 100%; animation:themeFlow 8s linear infinite;
+}
+@keyframes themeFlow{ to{ background-position:-200% 0; } }
+
+/* ---- Hero banner ---- */
+body[class*="theme-"] .title-hero{
+  background:linear-gradient(135deg,var(--tdark) 0%,var(--t1) 55%,var(--t2) 100%);
+  box-shadow:0 14px 30px -10px var(--tshadow);
+}
+body[class*="theme-"] .title-hero .title-sub{ color:var(--tsoft); }
+body[class*="theme-"] .title-hero .title-sub .dot-sep{ background:var(--tpop); }
+body[class*="theme-"] .title-hero h1 .title-accent{
+  background:linear-gradient(90deg,var(--tpop),#ffffff);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+
+/* ---- Top bar (subhead) ---- */
+body[class*="theme-"]:not(.dark) .subhead{
+  background:#fff; border-color:var(--tborder);
+  box-shadow:0 6px 16px -8px var(--tshadow);
+}
+body[class*="theme-"]:not(.dark) .tech-info{ color:var(--t1); }
+body[class*="theme-"] #loggedInUser{ background:var(--t1)!important; border-color:var(--t1)!important; color:#fff!important; }
+body[class*="theme-"] .user-avatar{ background:linear-gradient(135deg,var(--t1),var(--t2)); }
+body[class*="theme-"] .generator-banner{ background:linear-gradient(90deg,var(--tdark) 0%,var(--t1) 60%,var(--t2) 100%); box-shadow:0 8px 20px -8px var(--tshadow); }
+body[class*="theme-"]:not(.dark) .generator-selector{ border-color:var(--tborder); background:var(--tsoft); }
+
+/* ---- SIDE PANEL ---- */
+body[class*="theme-"] #mainSidebar{
+  background:linear-gradient(180deg,var(--tdark) 0%,var(--t1) 100%);
+  border:none; box-shadow:0 18px 38px -14px var(--tshadow);
+}
+body[class*="theme-"] #mainSidebar::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.3); }
+body[class*="theme-"] #mainSidebar .sidebar-brand{ color:#fff; border-bottom:2px solid rgba(255,255,255,.18); }
+body[class*="theme-"] #mainSidebar .brand-icon{ background:linear-gradient(135deg,var(--tpop),var(--t2)); box-shadow:0 6px 14px -4px rgba(0,0,0,.4); }
+.brand-text{ display:flex; flex-direction:column; line-height:1.2; }
+.brand-text small{ font-size:.66rem; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:var(--tpop,#7fc8ff); }
+body[class*="theme-"] #mainSidebar .sidebar-section-label{ color:var(--t3); }
+body[class*="theme-"] #mainSidebar .sidebar-item{ color:rgba(255,255,255,.92); }
+body[class*="theme-"] #mainSidebar .sidebar-item:hover{ background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.28); }
+body[class*="theme-"] #mainSidebar .sidebar-item.active{
+  background:#fff; color:var(--t1); box-shadow:0 10px 22px -6px rgba(0,0,0,.35);
+}
+body[class*="theme-"] #mainSidebar .sidebar-item.active::before{ background:var(--tpop); box-shadow:0 0 12px var(--tpop); }
+body[class*="theme-"] #mainSidebar .sidebar-item.active .si-badge{ background:var(--t1); color:#fff; }
+body[class*="theme-"] .sidebar-footer{ border-top:2px solid rgba(255,255,255,.18); }
+body[class*="theme-"] .sidebar-footer .sidebar-item{ color:#fecaca; }
+body[class*="theme-"] .sidebar-footer .sidebar-item:hover{ background:rgba(255,255,255,.14); border-color:rgba(254,202,202,.5); }
+body[class*="theme-"] #sidebarToggle{ background:linear-gradient(135deg,var(--t1),var(--t2)); }
+
+/* ---- Buttons / chips ---- */
+body[class*="theme-"] .btn-primary,
+body[class*="theme-"] .modal-box .btn-go{ background:linear-gradient(135deg,var(--t1),var(--t2)); }
+body[class*="theme-"] .btn-primary:hover,
+body[class*="theme-"] .modal-box .btn-go:hover{ filter:brightness(1.1); }
+body[class*="theme-"]:not(.dark) .btn-secondary{ border-color:var(--tborder); color:var(--t1); }
+body[class*="theme-"]:not(.dark) .btn-secondary:hover{ background:var(--tsoft); }
+body[class*="theme-"] .filter-chip:hover{ border-color:var(--t2); color:var(--t1); }
+body[class*="theme-"] .filter-chip.active{ background:linear-gradient(135deg,var(--t1),var(--t2)); border-color:var(--t1); color:#fff; }
+
+/* ---- Cards, tables, forms, modals ---- */
+body[class*="theme-"]:not(.dark) .card{ border-color:var(--tborder); }
+body[class*="theme-"]:not(.dark) .card-header{
+  background:linear-gradient(90deg,var(--tsoft),#fff); color:var(--t1); border-bottom:1px solid var(--tborder);
+}
+body[class*="theme-"]:not(.dark) .inv-table th{ background:var(--tsoft); color:var(--t1); border-color:var(--tborder); }
+body[class*="theme-"] .inv-table thead th{ box-shadow:0 2px 0 var(--tborder); }
+body[class*="theme-"]:not(.dark) .signoff-section{ background:var(--tsoft); border-color:var(--tborder); }
+body[class*="theme-"] .section-title{ color:var(--t1); }
+body[class*="theme-"] .modal-box{ border-top:5px solid var(--t2); }
+body[class*="theme-"]:not(.dark) .modal-box h2{ color:var(--t1); }
+body[class*="theme-"] .field-group input:focus,
+body[class*="theme-"] .field-group select:focus,
+body[class*="theme-"] .remark-input:focus{ border-color:var(--t2); box-shadow:0 0 0 3px var(--tglow); }
+body[class*="theme-"] .check-item input[type="checkbox"],
+body[class*="theme-"] .rating-option input[type="radio"]{ accent-color:var(--t2); }
+body[class*="theme-"] .notif-panel-header{ background:linear-gradient(135deg,var(--tdark),var(--t1)); }
+body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(--tsoft); }
 
         /* Force PFX Password modal to sit above all other modals */
         #pfxPasswordModal {
@@ -4131,7 +4188,7 @@ window.setupPushNotifications = async function(userName) {
             <aside id="mainSidebar">
                 <div class="sidebar-brand">
                     <span class="brand-icon">🧊</span>
-                    <span>CHUB Nav</span>
+                    <span class="brand-text">CHUB Nav<small id="sidebarRoleChip"></small></span>
                 </div>
                 <div id="sidebarMenu"></div>
             </aside>
@@ -6979,6 +7036,32 @@ window.setupPushNotifications = async function(userName) {
             </div>
         </div>
     </div>
+        <!-- ============ DELEGATE CURATIVE MODAL ============ -->
+    <div class="modal-overlay" id="delegateCurativeModal">
+        <div class="modal-box" style="max-width:520px;">
+            <h2>🔁 Delegate Curative Job</h2>
+            <p id="delegateCurativeSubtitle">Hand this job to another technician.</p>
+            <div id="delegateCurativeDetails"
+                style="background:#f9fcff;border-radius:14px;padding:14px 16px;margin-bottom:14px;border:1px solid #e2eaf1;">
+            </div>
+            <div class="field-group">
+                <label for="delegateCurativeTo">Assign to technician *</label>
+                <select id="delegateCurativeTo">
+                    <option value="">— Choose technician —</option>
+                </select>
+            </div>
+            <div class="field-group">
+                <label for="delegateCurativeNote">Note to technician (optional)</label>
+                <textarea id="delegateCurativeNote" class="remark-input" rows="3"
+                    placeholder="e.g. Please check the compressor first"></textarea>
+            </div>
+            <div id="delegateCurativeError" style="color:#b33a3a;font-size:.85rem;min-height:18px;"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="delegateCurativeCancel">Cancel</button>
+                <button class="btn-go" id="delegateCurativeSaveBtn" style="background:#1b6b3f;">🔁 Delegate</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ============ VERIFY CURATIVE MODAL ============ -->
     <div class="modal-overlay" id="verifyCurativeModal">
@@ -7346,6 +7429,37 @@ window.setupPushNotifications = async function(userName) {
             <div class="modal-actions">
                 <button class="btn-cancel" id="editMonCancel">Cancel</button>
                 <button class="btn-go" id="editMonSaveBtn" style="background:#1b6b3f;">💾 Save Changes</button>
+            </div>
+        </div>
+    </div>
+        <!-- ============ TASKS REPORT MODAL ============ -->
+    <div class="modal-overlay" id="tasksReportModal">
+        <div class="modal-box" style="max-width:480px;">
+            <h2>📄 Tasks Work Report</h2>
+            <p id="tasksRepScopeNote">Choose what to include in the report.</p>
+            <div class="grid-3-wide" style="grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="field-group"><label for="tasksRepFrom">From date *</label><input type="date" id="tasksRepFrom"></div>
+                <div class="field-group"><label for="tasksRepTo">To date *</label><input type="date" id="tasksRepTo"></div>
+            </div>
+            <div class="field-group">
+                <label for="tasksRepStatus">Status</label>
+                <select id="tasksRepStatus">
+                    <option value="all">📋 All</option>
+                    <option value="open">🔧 Open (pending / in progress / paused)</option>
+                    <option value="completed">📸 Awaiting verification</option>
+                    <option value="verified">✅ Verified</option>
+                    <option value="rejected">❌ Rejected</option>
+                    <option value="escalated">⚠️ Escalated</option>
+                </select>
+            </div>
+            <div class="field-group">
+                <label for="tasksRepPerson">Participant</label>
+                <select id="tasksRepPerson"><option value="all">👥 All participants</option></select>
+            </div>
+            <div id="tasksRepError" style="color:#b33a3a;font-size:.85rem;min-height:18px;"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="tasksRepCancel">Cancel</button>
+                <button class="btn-go" id="tasksRepGenerate">📄 Generate PDF</button>
             </div>
         </div>
     </div>
@@ -11336,7 +11450,24 @@ window.__ckOwner = '';
                 }
 
                 // ✅ NEW: Toggle the beautiful Manager Theme
-                document.body.classList.toggle('manager-theme', isSup && !isIC || (isDual && CURRENT_DUAL_VIEW_MODE === 'supervisor'));
+                // 🎨 Role theme
+const _themeKey = (isSup || isIM || isBio) ? 'admin'
+                : isAM ? 'assets'
+                : isIC ? 'incharge'
+                : 'tech';
+const _themeMeta = {
+    tech:     { label: 'Technician',     icon: '🔧', color: '#047857' },
+    incharge: { label: 'In-Charge',      icon: '👔', color: '#b45309' },
+    admin:    { label: 'Manager',        icon: '👑', color: '#4338ca' },
+    assets:   { label: 'Assets Manager', icon: '🗑️', color: '#be123c' }
+}[_themeKey];
+document.body.classList.remove('manager-theme', 'theme-tech', 'theme-incharge', 'theme-admin', 'theme-assets');
+document.body.classList.add('theme-' + _themeKey);
+const _chip = document.getElementById('sidebarRoleChip');
+if (_chip) _chip.textContent = _themeMeta.label;
+const _bi = document.querySelector('#mainSidebar .brand-icon');
+if (_bi) _bi.textContent = _themeMeta.icon;
+document.querySelector('meta[name="theme-color"]')?.setAttribute('content', _themeMeta.color);
 
                 document.getElementById('technicianSection').style.display = isTech ? 'block' : 'none';
                 document.getElementById('inchargeSection').style.display = (isIC || isBio) ? 'block' : 'none';
@@ -14318,15 +14449,19 @@ if (n.type === 'pm_submitted') {
                     return;
                 }
                 if (n.type === 'curative_escalated') {
-                    if (currentRole === 'supervisor') {
-                        await refreshEscalatedCurative();
-                        scrollToId('escalatedCurativeList');
-                    } else if (currentRole === 'technician') {
-                        await refreshTechnicianCurative();
-                        scrollToId('technicianCurativeCard');
-                    }
-                    return;
-                }
+    if (currentRole === 'infra_manager' || currentRole === 'head_biomedical' || currentRole === 'supervisor') {
+        await refreshEscalatedCurative();
+        scrollToId('escalatedCurativeList');
+    } else if (currentRole === 'incharge') {
+        await refreshInchargeCurative();
+        scrollToId('inchargeCurativeList');
+    } else if (currentRole === 'technician') {
+        await refreshTechnicianCurative();
+        scrollToId('technicianCurativeCard');
+    }
+    return;
+}
+    
                 if (n.type === 'curative_reassigned') {
                     if (currentRole === 'technician') {
                         await refreshTechnicianCurative();
@@ -14456,9 +14591,10 @@ if (n.type === 'pm_submitted') {
                             feedback: d.feedback || '',
                             feedbackQuality: d.feedbackQuality || '',
                             quarterKey: quarterKeyOf(d.reportedAt || new Date()),
-                            escalated: d.escalated === true,
-                            escalatedBy: d.escalatedBy || '',
-                            escalatedAt: d.escalatedAt && d.escalatedAt.toDate ? d.escalatedAt.toDate().toISOString() : (d.escalatedAt || ''),
+                                                   escalated: d.escalated === true,
+                        escalationLevel: d.escalationLevel || 0, // 👈 THIS IS THE FIX
+                        escalatedBy: d.escalatedBy || '',
+                        escalatedAt: d.escalatedAt && d.escalatedAt.toDate ? d.escalatedAt.toDate().toISOString() : (d.escalatedAt || ''),
                             escalationReason: d.escalationReason || '',
                             escalationSuggestedTo: d.escalationSuggestedTo || '',
                             escalationResolved: d.escalationResolved === true,
@@ -14536,10 +14672,31 @@ if (n.type === 'pm_submitted') {
                 const sl = ({ pending: '⏳ Pending', in_progress: '🔧 In Progress', paused: '⏸️ Paused', completed: '📸 Awaiting Verification', verified: '✅ Verified', rejected: '❌ Rejected' })[c.status] || c.status;
                 const pl = c.priority.charAt(0).toUpperCase() + c.priority.slice(1);
                 const _isEscalated = c.escalated === true && c.escalationResolved !== true;
-                const _canEscalate = opts.canEscalate === true
-                    && !c.escalated
-                    && (c.status === 'pending' || c.status === 'in_progress')
-                    && (normalizeText(c.assignedTo) === normalizeText(currentLoggedInName) || !c.assignedTo);
+                const _isManagerLevelEscalation = _isEscalated && c.escalationLevel === 2; // 🆕 Check if it's with the Manager
+                const _isIncharge = (currentRole === 'incharge' || currentRole === 'head_biomedical');
+                // ✅ NEW: Check if the job is in this In-Charge's department
+                
+
+               const _isDeptManager = currentLoggedInName === INFRA_MANAGER_NAME || currentLoggedInName === BIOMEDICAL_MANAGER_NAME;
+const _heldByMe = normalizeText(c.assignedTo) === normalizeText(currentLoggedInName);
+// Level-1: every In-Charge of the escalating technician's department may act on it
+const _sharedLevel1 = _isEscalated && c.escalationLevel === 1 && _isIncharge
+    && (userInDept_(c.escalatedBy, myWorkDept_())
+        || userInDept_(c.assignedTo, myWorkDept_())
+        || userInDept_(c.reassignedBy, myWorkDept_()));
+// Equipment-dept In-Charge may act only while the job is NOT escalated
+const _isMyDept = _isIncharge && !_isEscalated
+    && normalizeText(c.dept) === normalizeText(currentInchargeDept);
+const _mayAct = _heldByMe || _sharedLevel1 || _isMyDept || (!c.assignedTo && !_isEscalated);
+
+const _canEscalate = opts.canEscalate === true && !_isDeptManager && _mayAct
+    && (c.status === 'pending' || c.status === 'in_progress' || c.status === 'paused')
+    && (_isIncharge ? ((c.escalationLevel || 0) < 2) : !c.escalated);
+
+const _canDelegate = opts.canDelegate === true && !_isManagerLevelEscalation && _mayAct
+    && (c.status === 'pending' || c.status === 'in_progress' || c.status === 'paused');
+                
+                const _escalateLabel = _isIncharge ? '⚠️ Escalate to Manager' : '⚠️ Escalate to In-Charge';
                 return `<div class="curative-card priority-${c.priority} status-${c.status} collapsed">
         <div class="cc-head" title="Click to expand / collapse">
             <div>
@@ -14572,7 +14729,8 @@ if (n.type === 'pm_submitted') {
             <div class="cc-actions">
                 <button class="btn-secondary" data-view-curative="${escapeHtml(c._docId)}" style="padding:6px 14px;font-size:.82rem;">👁️ View</button>
                 ${opts.canStart && c.status === 'pending' && !c.escalated && (!c.assignedTo || normalizeText(c.assignedTo) === normalizeText(currentLoggedInName)) ? `<button class="btn-primary" data-start-curative="${escapeHtml(c._docId)}" style="padding:6px 14px;font-size:.82rem;">🔧 Take Job</button>` : ''}
-                ${_canEscalate ? `<button class="btn-remove" data-escalate-curative="${escapeHtml(c._docId)}" style="padding:6px 14px;font-size:.82rem;">⚠️ Escalate to Manager</button>` : ''}
+                ${_canDelegate ? `<button class="btn-secondary" data-delegate-curative="${escapeHtml(c._docId)}" style="padding:6px 14px;font-size:.82rem;background:#e8f1fb;color:#0b3d91;border-color:#bdd3e6;">🔁 Delegate to Tech</button>` : ''}
+                ${_canEscalate ? `<button class="btn-remove" data-escalate-curative="${escapeHtml(c._docId)}" style="padding:6px 14px;font-size:.82rem;">${_escalateLabel}</button>` : ''}
                 ${opts.canComplete && c.status === 'in_progress' && normalizeText(c.assignedTo) === normalizeText(currentLoggedInName) ? `<button class="btn-secondary" data-pause-curative="${escapeHtml(c._docId)}" style="padding:6px 14px;font-size:.82rem;background:#fff3cd;color:#7a5300;border-color:#f4d97a;">⏸️ Pause</button>` : ''}
                 ${opts.canComplete && c.status === 'paused' && normalizeText(c.assignedTo) === normalizeText(currentLoggedInName) ? `<button class="btn-primary" data-resume-curative="${escapeHtml(c._docId)}" style="padding:6px 14px;font-size:.82rem;background:#1b6b3f;">▶️ Resume</button>` : ''}
                 ${opts.canComplete && c.status === 'in_progress' && normalizeText(c.assignedTo) === normalizeText(currentLoggedInName) ? `<button class="btn-approve" data-complete-curative="${escapeHtml(c._docId)}" style="padding:6px 14px;font-size:.82rem;">✅ Complete</button>` : ''}
@@ -14612,6 +14770,11 @@ if (n.type === 'pm_submitted') {
                     const c = list.find(x => x._docId === b.getAttribute('data-escalate-curative'));
                     if (c) openEscalateCurativeModal(c);
                 }));
+                container.querySelectorAll('[data-delegate-curative]').forEach(b => b.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const c = list.find(x => x._docId === b.getAttribute('data-delegate-curative'));
+                    if (c) openDelegateCurativeModal(c);
+                }));
                 container.querySelectorAll('.curative-card > .cc-head').forEach(h => {
                     h.addEventListener('click', function (e) {
                         if (e.target.closest('button, a')) return;
@@ -14635,6 +14798,42 @@ if (n.type === 'pm_submitted') {
         });
     } catch (e) { }
     return names;
+}
+/* ============================================================
+   ESCALATION CHAIN HELPERS
+   ============================================================ */
+function userWorkDepts_(name) {
+    const u = LIVE_USERS[name];
+    let ds = u ? ((Array.isArray(u.depts) && u.depts.length) ? u.depts : (u.dept ? [u.dept] : [])) : [];
+    if (!ds.length && name === INFRA_MANAGER_NAME) ds = [INFRA_DEPT_NAME];
+    if (!ds.length && name === BIOMEDICAL_MANAGER_NAME) ds = [BIOMEDICAL_DEPT_NAME];
+    return ds;
+}
+function userInDept_(name, dept) {
+    if (!name || !dept) return false;
+    return userWorkDepts_(name).some(d => normalizeText(d) === normalizeText(dept));
+}
+// The department the current user WORKS in (Infrastructure / Biomedical / own dept)
+function myWorkDept_() {
+    if (isBiomedicalUser()) return BIOMEDICAL_DEPT_NAME;
+    if (isInfrastructureUser()) return INFRA_DEPT_NAME;
+    return currentInchargeDept || userWorkDepts_(currentLoggedInName)[0] || '';
+}
+function deptManagerName_(dept) {
+    return normalizeText(dept) === normalizeText(BIOMEDICAL_DEPT_NAME)
+        ? BIOMEDICAL_MANAGER_NAME : INFRA_MANAGER_NAME;
+}
+// In-Charges of a department (departmental managers are NOT counted as in-charges)
+async function findDeptIncharges_(dept, excludeName) {
+    const users = await loadUsersFromFirestore();
+    return Object.keys(users).filter(n => {
+        if (excludeName && normalizeText(n) === normalizeText(excludeName)) return false;
+        if (n === INFRA_MANAGER_NAME || n === BIOMEDICAL_MANAGER_NAME) return false;
+        if (!userRecHasPermission(users[n], 'incharge')) return false;
+        const ds = (Array.isArray(users[n].depts) && users[n].depts.length)
+            ? users[n].depts : (users[n].dept ? [users[n].dept] : []);
+        return ds.some(d => normalizeText(d) === normalizeText(dept));
+    }).sort();
 }
 /* ============================================================
    DEPARTMENT-SCOPED TECHNICIAN LOOKUP
@@ -14670,8 +14869,10 @@ async function getEligibleTechniciansForUser(excludeSelf) {
             async function openEscalateCurativeModal(c) {
                 if (!c) return;
                 const modal = document.getElementById('escalateCurativeModal');
-                document.getElementById('escalateCurativeSubtitle').textContent =
-                    'Escalating ' + c.tag + ' to the Manager for reassignment.';
+                const _isIC = (currentRole === 'incharge' || currentRole === 'head_biomedical');
+                document.getElementById('escalateCurativeSubtitle').textContent = _isIC
+                    ? 'Escalating ' + c.tag + ' to the System Manager for reassignment.'
+                    : 'Escalating ' + c.tag + ' to the In-Charge for delegation.';
                 document.getElementById('escalateCurativeDetails').innerHTML = `
         <div class="info-row"><span class="k">Tag</span><span class="v">${escapeHtml(c.tag || '—')}</span></div>
         <div class="info-row"><span class="k">Location</span><span class="v">${escapeHtml(c.loc || '—')}</span></div>
@@ -14706,73 +14907,221 @@ try {
             }
 
             async function submitCurativeEscalation() {
-                const modal = document.getElementById('escalateCurativeModal');
+    const modal = document.getElementById('escalateCurativeModal');
+    const c = modal._curative;
+    if (!c) return;
+    const errEl = document.getElementById('escalateCurativeError');
+    errEl.textContent = '';
+    const reason = (document.getElementById('escalateReason').value || '').trim();
+    const suggestedTo = (document.getElementById('escalateSuggestTo').value || '').trim();
+    if (!reason) { errEl.textContent = '⚠️ Please give a reason for the escalation.'; return; }
+
+    const btn = document.getElementById('escalateCurativeSaveBtn');
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Sending…';
+
+    try {
+        const users = await loadUsersFromFirestore();
+        LIVE_USERS = users;
+        const isInchargeEscalating = (currentRole === 'incharge' || currentRole === 'head_biomedical');
+        const workDept = myWorkDept_();
+
+        let targetLevel, notifyUsers;
+        if (isInchargeEscalating) {
+            // In-Charge -> departmental manager
+            targetLevel = 2;
+            notifyUsers = [deptManagerName_(workDept)];
+        } else {
+            // Technician -> In-Charge of the TECHNICIAN'S department
+            const ics = await findDeptIncharges_(workDept, currentLoggedInName);
+            if (ics.length) { targetLevel = 1; notifyUsers = ics; }
+            else { targetLevel = 2; notifyUsers = [deptManagerName_(workDept)]; } // no in-charge -> straight to manager
+        }
+        notifyUsers = notifyUsers.filter(n => users[n]);
+        if (!notifyUsers.length) {
+            throw new Error('No In-Charge / Manager found for the ' + workDept + ' department. Contact the System Manager.');
+        }
+        const targetUser = notifyUsers[0];
+
+        c.escalationHistory = await freshCurHist_(c._docId);
+        const history = Array.isArray(c.escalationHistory) ? c.escalationHistory.slice() : [];
+        history.push({
+            at: new Date().toISOString(),
+            by: currentLoggedInName,
+            action: 'escalated',
+            to: targetUser,
+            reason: reason,
+            suggestedTo: suggestedTo || ''
+        });
+
+        const ok = await updateCurativeRequest(c._docId, {
+            status: 'pending',
+            assignedTo: targetUser,
+            startedAt: '',
+            completedAt: '',
+            pauseReason: '',
+            previousAssignee: c.previousAssignee || c.assignedTo || currentLoggedInName,
+            escalated: true,
+            escalationLevel: targetLevel,
+            escalatedBy: currentLoggedInName,
+            escalatedAt: 'NOW',
+            escalationReason: reason,
+            escalationSuggestedTo: suggestedTo,
+            escalationResolved: false,
+            escalationHistory: history
+        });
+        if (!ok) throw new Error('Could not update the job.');
+
+        for (const r of notifyUsers) {
+            await createNotification({
+                recipient: r,
+                type: 'curative_escalated',
+                title: '⚠️ Curative Escalated — ' + c.tag,
+                message: `${currentLoggedInName} escalated ${c.tag} at ${c.loc}. Reason: ${reason}` +
+                         (suggestedTo ? ` (suggests ${suggestedTo})` : ''),
+                relatedDocId: c._docId, relatedTag: c.tag, relatedDept: c.dept
+            });
+        }
+        if (c.reportedBy && !notifyUsers.some(n => normalizeText(n) === normalizeText(c.reportedBy))
+            && normalizeText(c.reportedBy) !== normalizeText(currentLoggedInName)) {
+            await createNotification({
+                recipient: c.reportedBy,
+                type: 'curative_escalated',
+                title: '⚠️ Escalated — ' + c.tag,
+                message: `${currentLoggedInName} escalated the job at ${c.loc} to ${targetUser}.`,
+                relatedDocId: c._docId, relatedTag: c.tag, relatedDept: c.dept
+            });
+        }
+
+        showStatus('⚠️ Escalated to ' + targetUser + (targetLevel === 2 ? ' (Manager).' : ' (In-Charge).'), true);
+        modal.classList.remove('show');
+        if (isInchargeEscalating) await refreshInchargeCurative();
+        else await refreshTechnicianCurative();
+        await renderNotificationBell();
+    } catch (e) {
+        errEl.textContent = '⚠️ ' + (e.message || 'Failed.');
+    }
+    btn.disabled = false;
+    btn.innerHTML = orig;
+}
+                        /* ============================================================
+               IN-CHARGE DELEGATION  (send a curative back to a technician)
+               ============================================================ */
+            async function openDelegateCurativeModal(c) {
+                if (!c) return;
+                
+                // ✅ REMOVED HARD BLOCK: The UI already ensures the button is only visible if it's safe to delegate.
+
+                const modal = document.getElementById('delegateCurativeModal');
+                document.getElementById('delegateCurativeSubtitle').textContent =
+                    'Hand "' + c.tag + '" to another technician.';
+                document.getElementById('delegateCurativeDetails').innerHTML = `
+                    <div class="info-row"><span class="k">Tag</span><span class="v">${escapeHtml(c.tag || '—')}</span></div>
+                    <div class="info-row"><span class="k">Location</span><span class="v">${escapeHtml(c.loc || '—')}</span></div>
+                    <div class="info-row"><span class="k">Department</span><span class="v">${escapeHtml(c.dept || '—')}</span></div>
+                    <div class="info-row"><span class="k">Priority</span><span class="v">${escapeHtml((c.priority || 'medium').toUpperCase())}</span></div>
+                    <div style="margin-top:8px;padding:8px 12px;background:white;border-radius:8px;border-left:4px solid #b33a3a;">
+                        <strong>Issue:</strong> ${escapeHtml(c.issue || '—')}
+                    </div>`;
+                document.getElementById('delegateCurativeNote').value = '';
+                document.getElementById('delegateCurativeError').textContent = '';
+
+                const sel = document.getElementById('delegateCurativeTo');
+                sel.innerHTML = '<option value="">— Choose technician —</option>';
+                try {
+                    const users = await loadUsersFromFirestore();
+                    const techs = Object.keys(users).filter(n => {
+                        const u = users[n];
+                        if (u.role !== 'technician' && !(u.permissions && u.permissions.technician)) return false;
+                        // Exclude the current user — you cannot delegate to yourself
+                        if (normalizeText(n) === normalizeText(currentLoggedInName)) return false;
+                        // Prefer same-department technicians
+                        const ds = Array.isArray(u.depts) && u.depts.length ? u.depts : (u.dept ? [u.dept] : []);
+                        return ds.some(d => normalizeText(d) === normalizeText(myWorkDept_()));
+                    }).sort();
+                    if (!techs.length) {
+                        const o = document.createElement('option');
+                        o.value = ''; o.disabled = true;
+                        o.textContent = '— No technicians in this department —';
+                        sel.appendChild(o);
+                    } else {
+                        techs.forEach(n => {
+                            const o = document.createElement('option');
+                            o.value = n; o.textContent = n;
+                            sel.appendChild(o);
+                        });
+                    }
+                } catch (e) { }
+
+                modal._curative = c;
+                modal.classList.add('show');
+            }
+
+                        async function saveCurativeDelegation() {
+                const modal = document.getElementById('delegateCurativeModal');
                 const c = modal._curative;
                 if (!c) return;
-                const errEl = document.getElementById('escalateCurativeError');
+                const newTech = document.getElementById('delegateCurativeTo').value || '';
+                const note = (document.getElementById('delegateCurativeNote').value || '').trim();
+                const errEl = document.getElementById('delegateCurativeError');
                 errEl.textContent = '';
-                const reason = (document.getElementById('escalateReason').value || '').trim();
-                const suggestedTo = (document.getElementById('escalateSuggestTo').value || '').trim();
-                if (!reason) { errEl.textContent = '⚠️ Please give a reason for the escalation.'; return; }
-                c.escalationHistory = await freshCurHist_(c._docId);
+                if (!newTech) { errEl.textContent = '⚠️ Pick a technician.'; return; }
 
-                const btn = document.getElementById('escalateCurativeSaveBtn');
+                // Always read the freshest timeline (manager's reassignment included)
+                const history = (await freshCurHist_(c._docId)).slice();
+                history.push({
+                    at: new Date().toISOString(),
+                    by: currentLoggedInName,
+                    action: 'delegated',
+                    from: c.assignedTo || '',
+                    to: newTech,
+                    reason: note || ''
+                });
+
+                const btn = document.getElementById('delegateCurativeSaveBtn');
                 const orig = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = '⏳ Sending…';
+                btn.innerHTML = '⏳ Delegating…';
 
                 try {
-                    const history = (Array.isArray(c.escalationHistory) ? c.escalationHistory.slice() : []);
-                    history.push({
-                        at: new Date().toISOString(),
-                        by: currentLoggedInName,
-                        reason: reason,
-                        suggestedTo: suggestedTo || '', action: 'escalated'
-                    });
-
                     const ok = await updateCurativeRequest(c._docId, {
+                        assignedTo: newTech,
                         status: 'pending',
-                        assignedTo: '',
-                        startedAt: '',                                            // ← NEW: drop Tech A's start time
-                        completedAt: '',                                          // ← NEW: drop Tech A's completion time
-                        previousAssignee: c.previousAssignee || c.assignedTo || currentLoggedInName,
-                        escalated: true,
-                        escalatedBy: currentLoggedInName,
-                        escalatedAt: 'NOW',
-                        escalationReason: reason,
-                        escalationSuggestedTo: suggestedTo,
-                        escalationResolved: false,
+                        startedAt: '',
+                        completedAt: '',
+                        technicianNotes: '',
+                        technicianPhoto: '',
+                        escalated: false,
+                        escalationLevel: 0,
+                        escalationResolved: true,
+                        reassignedBy: currentLoggedInName,
+                        reassignedAt: 'NOW',
+                        previousAssignee: c.previousAssignee || c.escalatedBy || c.assignedTo || currentLoggedInName,
                         escalationHistory: history
                     });
-                    if (!ok) throw new Error('Could not update the job.');
+                    if (!ok) throw new Error('Update failed');
 
-                    const supNames = await getSupervisorNames_();
-                    for (const s of supNames) {
-                        await createNotification({
-                            recipient: s,
-                            type: 'curative_escalated',
-                            title: '⚠️ Curative Escalated — ' + c.tag,
-                            message: `${currentLoggedInName} escalated ${c.tag} at ${c.loc}. Reason: ${reason}` +
-                                (suggestedTo ? ` (suggests ${suggestedTo})` : ''),
-                            relatedDocId: c._docId,
-                            relatedTag: c.tag,
-                            relatedDept: c.dept
-                        });
-                    }
-                    if (c.reportedBy) {
+                    await createNotification({
+                        recipient: newTech,
+                        type: 'curative_reassigned',
+                        title: '🔁 Curative Delegated to You — ' + c.tag,
+                        message: `${currentLoggedInName} delegated ${c.tag} at ${c.loc} to you.${note ? ' Note: ' + note : ''}`,
+                        relatedDocId: c._docId, relatedTag: c.tag, relatedDept: c.dept
+                    });
+                    if (c.reportedBy && normalizeText(c.reportedBy) !== normalizeText(newTech)) {
                         await createNotification({
                             recipient: c.reportedBy,
-                            type: 'curative_escalated',
-                            title: '⚠️ Escalated — ' + c.tag,
-                            message: `${currentLoggedInName} could not handle the job at ${c.loc} and escalated it to the Manager.`,
-                            relatedDocId: c._docId,
-                            relatedTag: c.tag,
-                            relatedDept: c.dept
+                            type: 'curative_reassigned',
+                            title: '🔄 Job reassigned — ' + c.tag,
+                            message: `${c.tag} at ${c.loc} is now assigned to ${newTech}.`,
+                            relatedDocId: c._docId, relatedTag: c.tag, relatedDept: c.dept
                         });
                     }
-                    showStatus('⚠️ Escalated to Manager ' + (supNames[0] || '') + '.', true);
+
+                    showStatus('🔁 Delegated to ' + newTech + '.', true);
                     modal.classList.remove('show');
-                    await refreshTechnicianCurative();
+                    await refreshInchargeCurative();
                     await renderNotificationBell();
                 } catch (e) {
                     errEl.textContent = '⚠️ ' + (e.message || 'Failed.');
@@ -14780,7 +15129,6 @@ try {
                 btn.disabled = false;
                 btn.innerHTML = orig;
             }
-
             function renderEscalatedCard(c, techList) {
                 const el = document.createElement('div');
                 el.className = 'curative-card priority-critical';
@@ -14805,29 +15153,46 @@ try {
                 💬 ${escapeHtml(c.escalationReason || '(no reason given)')}
                 ${suggested ? '<br>💡 Suggested: <strong>' + escapeHtml(suggested) + '</strong>' : ''}
             </div>
+                        ${currentRole === 'infra_manager' ? `
             <div class="field-group" style="margin-top:12px;">
-                <label style="font-size:.82rem;font-weight:700;color:#12405e;">Reassign to technician *</label>
+                <label style="font-size:.82rem;font-weight:700;color:#12405e;">Reassign to Tech or In-Charge *</label>
                 <select class="escalate-assign-select"
                         style="width:100%;padding:10px 14px;border-radius:14px;border:1.5px solid #cfdfeb;font-weight:600;font-family:inherit;">
-                    <option value="">— Choose technician —</option>
+                    <option value="">— Choose Tech or In-Charge —</option>
                 </select>
             </div>
+            <div class="field-group" style="margin-top:8px;">
+                <label style="font-size:.82rem;font-weight:700;color:#12405e;">Manager's Note (optional)</label>
+                <input type="text" class="escalate-assign-comment" placeholder="e.g. Please handle this urgently..." style="width:100%;padding:10px 14px;border-radius:14px;border:1.5px solid #cfdfeb;font-family:inherit;">
+            </div>
+            ` : `
+            <div style="margin-top:12px; padding:10px 14px; background:#fff5f5; border-radius:10px; font-size:.85rem; color:#b33a3a; font-weight:600; border:1px solid #f0b8b8;">
+                ℹ️ View-only mode. Only the Infra Manager can reassign this job.
+            </div>
+            `}
             <div class="cc-actions">
                 <button class="btn-secondary" data-view-curative="${escapeHtml(c._docId)}"
                         style="padding:6px 14px;font-size:.82rem;">👁️ View</button>
-                <button class="btn-approve" data-reassign-curative="${escapeHtml(c._docId)}"
-                        style="padding:6px 14px;font-size:.82rem;background:#b33a3a;">🔁 Reassign Job</button>
+                ${currentRole === 'infra_manager' ? `<button class="btn-approve" data-reassign-curative="${escapeHtml(c._docId)}"
+                        style="padding:6px 14px;font-size:.82rem;background:#b33a3a;">🔁 Reassign Job</button>` : ''}
             </div>
         </div>`;
                 const sel = el.querySelector('.escalate-assign-select');
-                techList.forEach(t => {
-                    const o = document.createElement('option');
-                    o.value = t;
-                    o.textContent = t + (normalizeText(t) === normalizeText(suggested) ? '  ⭐ (suggested)' : '');
-                    sel.appendChild(o);
-                });
-                if (suggested) sel.value = suggested;
-                markAvailabilityInSelect_(sel, toIsoDate_(new Date()));
+                if (sel) {
+                    const _liveUsers = LIVE_USERS || {};
+                    techList.forEach(t => {
+                        const _r = _liveUsers[t] || {};
+                        const _isIC = userRecHasPermission(_r, 'incharge') || userRecHasPermission(_r, 'head_biomedical');
+                        const o = document.createElement('option');
+                        o.value = t;
+                        o.textContent = t
+                            + (_isIC ? ' (In-Charge)' : '')
+                            + (normalizeText(t) === normalizeText(suggested) ? '  ⭐ (suggested)' : '');
+                        sel.appendChild(o);
+                    });
+                    if (suggested) sel.value = suggested;
+                    markAvailabilityInSelect_(sel, toIsoDate_(new Date()));
+                }
                 return el;
             }
 
@@ -14838,15 +15203,22 @@ try {
                 renderSkeletons(wrap, 3, 'card');
                 try {
                     let all = await fetchCurativeRequests({});
-                    const esc = all.filter(c => c.escalated === true && c.escalationResolved !== true)
+                                       const esc = all.filter(c => {
+                        if (c.escalated !== true || c.escalationResolved === true) return false;
+                        // 🔒 STRICTLY Level-2 escalations (In-Charge → Manager).
+                        // Level 1 (Tech → In-Charge) must NEVER be seen here by the Manager.
+                        if (c.escalationLevel !== 2) return false;
+                        return true;
+                    })
                         .filter(c => {
                             // 🔒 Strict department separation
-                           if (currentRole === 'head_biomedical') return normalizeText(c.dept) === normalizeText(BIOMEDICAL_DEPT_NAME);
-// Infra Manager + Supervisor see *everything except* Biomedical.
+                           const escDept = userWorkDepts_(c.escalatedBy)[0] || c.dept;
+if (currentRole === 'head_biomedical') return normalizeText(escDept) === normalizeText(BIOMEDICAL_DEPT_NAME);
 if (currentRole === 'supervisor' || currentRole === 'infra_manager') {
-    return normalizeText(c.dept) !== normalizeText(BIOMEDICAL_DEPT_NAME);
+    return normalizeText(escDept) !== normalizeText(BIOMEDICAL_DEPT_NAME);
 }
 return true;
+                            
                         });
                     if (cnt) cnt.textContent = esc.length;
                     if (!esc.length) {
@@ -14855,26 +15227,29 @@ return true;
                     }
                     const users = await loadUsersFromFirestore();
                     const isManager = currentRole === 'supervisor' || userHasPermission('supervisor');
-                    const techSet = new Set();
+                                        const techSet = new Set();
 
                     Object.keys(users).forEach(n => {
                         const u = users[n];
                         const isTech = u.role === 'technician' || (u.permissions && u.permissions.technician);
-                        if (!isTech) return;
+                        const isIC = userRecHasPermission(u, 'incharge') || userRecHasPermission(u, 'head_biomedical');
+                        if (!isTech && !isIC) return;
 
                         const ds = Array.isArray(u.depts) && u.depts.length ? u.depts : (u.dept ? [u.dept] : []);
                         let include = false;
 
-                        if (isManager) include = true; // both
-                        else if (currentRole === 'head_biomedical') {
+                        if (currentRole === 'head_biomedical') {
                             include = ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
+                        } else if (currentRole === 'supervisor' || currentRole === 'infra_manager') {
+                            // ✅ STRICT FILTER: Only show Infrastructure Techs and In-Charges
+                            include = ds.some(d => normalizeText(d) === normalizeText(INFRA_DEPT_NAME));
                         } else {
                             include = !ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
                         }
-                        
+
                         if (include) techSet.add(n.trim());
                     });
-                    
+
                     const techList = Array.from(techSet).sort();
                     wrap.innerHTML = '';
                     esc.forEach(c => wrap.appendChild(renderEscalatedCard(c, techList)));
@@ -14885,81 +15260,104 @@ return true;
                     }));
                     wrap.querySelectorAll('[data-reassign-curative]').forEach(b => b.addEventListener('click', async function () {
                         const id = b.getAttribute('data-reassign-curative');
-                        const sel = b.closest('.curative-card').querySelector('.escalate-assign-select');
+                        const card = b.closest('.curative-card');
+                        const sel = card.querySelector('.escalate-assign-select');
                         const target = sel ? sel.value : '';
+                        const commentInput = card.querySelector('.escalate-assign-comment');
+                        const comment = commentInput ? commentInput.value.trim() : '';
+
                         if (!target) { alert('⚠️ Choose a technician to reassign to.'); return; }
+                        if (!comment) { alert('⚠️ Please write a note for the assignee before reassigning.'); return; }
                         const _opt = sel.options[sel.selectedIndex];
                         if (_opt && _opt.dataset.off === '1' &&
                             !confirm('⛔ ' + target + ' is OFF DUTY today.\n\n' + _opt.textContent + '\n\nReassign anyway?')) return;
-                        await reassignCurativeJob(id, target);
+                        
+                        await reassignCurativeJob(id, target, comment);
                     }));
                 } catch (e) {
                     wrap.innerHTML = '<div class="info-error">⚠️ ' + escapeHtml(e.message) + '</div>';
                 }
             }
 
-            async function reassignCurativeJob(id, newTech) {
-                const all = await fetchCurativeRequests({});
-                const c = all.find(x => x._docId === id);
-                if (!c) return;
-                if (!confirm(`Reassign ${c.tag} to ${newTech}?`)) return;
-                c.escalationHistory = await freshCurHist_(id);
+                       async function reassignCurativeJob(id, newTech, comment) {
+                try {
+                    if (currentRole !== 'infra_manager' && currentRole !== 'head_biomedical') { showStatus('⛔ Only the departmental manager can reassign.', false); return; }
+                    const all = await fetchCurativeRequests({});
+                    const c = all.find(x => x._docId === id);
+                    if (!c) return;
+                    if (!confirm(`Reassign ${c.tag} to ${newTech}?`)) return;
+                    
+                    c.escalationHistory = await freshCurHist_(id);
+                    const history = (Array.isArray(c.escalationHistory) ? c.escalationHistory.slice() : []);
+                    history.push({
+                        at: new Date().toISOString(),
+                        by: currentLoggedInName,
+                        action: 'reassigned',
+                        from: c.escalatedBy || c.previousAssignee || c.assignedTo || '',
+                        to: newTech,
+                        reason: comment || ''
+                    });
 
-                const history = (Array.isArray(c.escalationHistory) ? c.escalationHistory.slice() : []);
-                history.push({
-                    at: new Date().toISOString(),
-                    by: currentLoggedInName,
-                    action: 'reassigned',
-                    from: c.escalatedBy || c.previousAssignee || c.assignedTo || '',
-                    to: newTech
-                });
+                    const usersMap = await loadUsersFromFirestore();
+                    const targetRec = usersMap[newTech];
+                    const targetIsIncharge = targetRec && (
+                        userRecHasPermission(targetRec, 'incharge') ||
+                        userRecHasPermission(targetRec, 'head_biomedical')
+                    );
 
-                const ok = await updateCurativeRequest(id, {
-                    assignedTo: newTech,
-                    status: 'pending',
-                    startedAt: '',                                        // ← NEW: fresh start for new tech
-                    completedAt: '',                                      // ← NEW
-                    technicianNotes: '',                                  // ← NEW: clear old tech's notes
-                    technicianPhoto: '',                                  // ← NEW
-                    escalated: false,
-                    escalationResolved: true,
-                    reassignedBy: currentLoggedInName,
-                    reassignedAt: 'NOW',
-                    previousAssignee: c.previousAssignee || c.escalatedBy || c.assignedTo || '',
-                    escalationHistory: history
-                });
-                if (!ok) { showStatus('⚠️ Reassign failed.', false); return; }
+                    const ok = await updateCurativeRequest(id, {
+                        assignedTo: newTech,
+                        status: 'pending',
+                        startedAt: '',
+                        completedAt: '',
+                        technicianNotes: '',
+                        technicianPhoto: '',
+                        escalated: targetIsIncharge,
+                        escalationLevel: targetIsIncharge ? 1 : 0,
+                        escalationResolved: !targetIsIncharge,
+                        reassignedBy: currentLoggedInName,
+                        reassignedAt: 'NOW',
+                        // ✅ FIX: Use null instead of empty string to prevent 400 Bad Request
+                        previousAssignee: c.previousAssignee || c.escalatedBy || c.assignedTo || null, 
+                        escalationHistory: history
+                    });
+                    
+                    if (!ok) throw new Error('Database update failed. Check the console for details.');
 
-                await createNotification({
-                    recipient: newTech,
-                    type: 'curative_reassigned',
-                    title: '🔁 Job Reassigned to You — ' + c.tag,
-                    message: `${currentLoggedInName} assigned you ${c.tag} at ${c.loc}. Original escalation by ${c.escalatedBy || '—'}.`,
-                    relatedDocId: c._docId, relatedTag: c.tag, relatedDept: c.dept
-                });
-                if (c.escalatedBy && normalizeText(c.escalatedBy) !== normalizeText(newTech)) {
                     await createNotification({
-                        recipient: c.escalatedBy,
+                        recipient: newTech,
                         type: 'curative_reassigned',
-                        title: '✅ Your escalation was resolved — ' + c.tag,
-                        message: `${currentLoggedInName} reassigned ${c.tag} to ${newTech}.`,
+                        title: '🔁 Job Reassigned to You — ' + c.tag,
+                        message: `${currentLoggedInName} assigned you ${c.tag} at ${c.loc}. ${comment ? 'Note: ' + comment : ''}`,
                         relatedDocId: c._docId, relatedTag: c.tag, relatedDept: c.dept
                     });
-                }
-                if (c.reportedBy && normalizeText(c.reportedBy) !== normalizeText(newTech)) {
-                    await createNotification({
-                        recipient: c.reportedBy,
-                        type: 'curative_reassigned',
-                        title: '🔄 Job reassigned — ' + c.tag,
-                        message: `${c.tag} at ${c.loc} is now assigned to ${newTech}.`,
-                        relatedDocId: c._docId, relatedTag: c.tag, relatedDept: c.dept
-                    });
-                }
+                    if (c.escalatedBy && normalizeText(c.escalatedBy) !== normalizeText(newTech)) {
+                        await createNotification({
+                            recipient: c.escalatedBy,
+                            type: 'curative_reassigned',
+                            title: '✅ Your escalation was resolved — ' + c.tag,
+                            message: `${currentLoggedInName} reassigned ${c.tag} to ${newTech}.`,
+                            relatedDocId: c._docId, relatedTag: c.tag, relatedDept: c.dept
+                        });
+                    }
+                    if (c.reportedBy && normalizeText(c.reportedBy) !== normalizeText(newTech)) {
+                        await createNotification({
+                            recipient: c.reportedBy,
+                            type: 'curative_reassigned',
+                            title: '🔄 Job reassigned — ' + c.tag,
+                            message: `${c.tag} at ${c.loc} is now assigned to ${newTech}.`,
+                            relatedDocId: c._docId, relatedTag: c.tag, relatedDept: c.dept
+                        });
+                    }
 
-                showStatus('🔁 Reassigned to ' + newTech + '.', true);
-                await refreshEscalatedCurative();
-                await refreshSupervisorCurative();
-                await renderNotificationBell();
+                    showStatus('🔁 Reassigned to ' + newTech + '.', true);
+                    await refreshEscalatedCurative();
+                    await refreshSupervisorCurative();
+                    await renderNotificationBell();
+                } catch (error) {
+                    console.error('[reassignCurativeJob] Error:', error);
+                    showStatus('⚠️ Reassign failed: ' + error.message, false);
+                }
             }
             /* ============================================================
                IN-CHARGE: DEPARTMENT PM STATUS
@@ -15235,7 +15633,10 @@ return true;
                     // (e.g. a BMET fault in another department that I reported)
                     const all = allDept.filter(c =>
                         normalizeText(c.dept) === normalizeText(dept) ||
-                        normalizeText(c.reportedBy) === normalizeText(currentLoggedInName)
+                        normalizeText(c.reportedBy) === normalizeText(currentLoggedInName) ||
+                        normalizeText(c.assignedTo) === normalizeText(currentLoggedInName) ||
+                        // 🔥 FALLBACK: Guarantee the In-Charge sees ANY Level-1 escalation in their department
+                        (c.escalated === true && c.escalationLevel === 1 && !c.escalationResolved && userInDept_(c.escalatedBy, myWorkDept_()))
                     );
                     const f = INCHARGE_CURATIVE_STATUS_FILTER === 'all'
                         ? all
@@ -15245,8 +15646,9 @@ return true;
                         wrap.innerHTML = '<div style="text-align:center;padding:18px;color:#9cb9d0;font-style:italic;">📭 No curative requests.</div>';
                         return;
                     }
-                    wrap.innerHTML = f.map(c => renderCurativeCard(c, { canVerify: true })).join('');
-                    bindCurativeButtons(wrap, f, { canVerify: true });
+                    const _cardOpts = { canVerify: true, canDelegate: true, canEscalate: true };
+                    wrap.innerHTML = f.map(c => renderCurativeCard(c, _cardOpts)).join('');
+                    bindCurativeButtons(wrap, f, _cardOpts);
                 } catch (e) {
                     wrap.innerHTML = '<div class="info-error">⚠️ ' + escapeHtml(e.message) + '</div>';
                 }
@@ -18884,7 +19286,7 @@ function normalizeTimeline_(arr) {
     }).filter(e => e && e.action).sort((a, b) => new Date(a.at) - new Date(b.at));
 }
 function timelineDetail_(e) {
-    if (e.action === 'escalated') return (e.reason || '(no reason)') + (e.suggestedTo ? ' | suggested: ' + e.suggestedTo : '');
+    if (e.action === 'escalated') return (e.to ? 'to ' + e.to + ' | ' : '') + (e.reason || '(no reason)') + (e.suggestedTo ? ' | suggested: ' + e.suggestedTo : '');
     if (e.action === 'reassigned' || e.action === 'delegated')
         return (e.from ? 'from ' + e.from + ' ' : '') + (e.to ? 'to ' + e.to : '') + (e.reason ? ' | ' + e.reason : '');
     return e.reason || '';
@@ -19678,6 +20080,7 @@ function renderTeamAvailabilityCard(name, av) {
             ${t.feedback ? `<div class="tc-desc" style="border-left-color:#f4a300;background:#fff9ec;">💬 ${escapeHtml(t.feedback)} ${t.feedbackQuality ? '<em>(' + escapeHtml(t.feedbackQuality) + ')</em>' : ''}</div>` : ''}
             ${renderTimelineHtml_(t.history)}
             <div class="tc-actions">
+                <button class="btn-secondary" data-task-pdf="${escapeHtml(t._docId)}" style="padding:6px 14px;font-size:.82rem;">📄 PDF</button>
                 ${canStart ? `<button class="btn-primary" data-task-start="${escapeHtml(t._docId)}" style="padding:6px 14px;font-size:.82rem;">🔧 Start Task</button>` : ''}
                 ${opts.canComplete && t.status === 'in_progress' && normalizeText(t.assignedTo) === normalizeText(currentLoggedInName) ? `<button class="btn-secondary" data-task-pause="${escapeHtml(t._docId)}" style="padding:6px 14px;font-size:.82rem;background:#fff3cd;color:#7a5300;border-color:#f4d97a;">⏸️ Pause</button>` : ''}
                 ${opts.canComplete && t.status === 'paused' && normalizeText(t.assignedTo) === normalizeText(currentLoggedInName) ? `<button class="btn-primary" data-task-resume="${escapeHtml(t._docId)}" style="padding:6px 14px;font-size:.82rem;background:#1b6b3f;">▶️ Resume</button>` : ''}
@@ -19699,6 +20102,16 @@ function renderTeamAvailabilityCard(name, av) {
                         this.parentElement.classList.toggle('collapsed');
                     });
                 });
+                                container.querySelectorAll('[data-task-pdf]').forEach(b => b.addEventListener('click', async e => {
+                    e.stopPropagation();
+                    const t = list.find(x => x._docId === b.getAttribute('data-task-pdf'));
+                    if (!t) return;
+                    const o = b.innerHTML;
+                    b.disabled = true; b.innerHTML = '⏳';
+                    try { await generateTaskJobCardPDF(t); showStatus('📄 Task PDF downloaded.', true); }
+                    catch (er) { showStatus('⚠️ ' + er.message, false); }
+                    b.disabled = false; b.innerHTML = o;
+                }));
                 container.querySelectorAll('[data-task-start]').forEach(b => b.addEventListener('click', e => {
                     e.stopPropagation();
                     startTask(b.getAttribute('data-task-start'));
@@ -19738,18 +20151,33 @@ function renderTeamAvailabilityCard(name, av) {
                     if (!t) return;
                     const reason = prompt('Why are you escalating this task?');
                     if (!reason) return;
+
+                    // 🔥 ROUTING FIX: Find the Infrastructure In-Charge to send the escalation to
+                    const users = await loadUsersFromFirestore();
+                    let targetIncharge = t.assignedBy; // Fallback
+                    const infraIC = Object.keys(users).find(n => {
+                        const u = users[n];
+                        if (!userRecHasPermission(u, 'incharge')) return false;
+                        const ds = Array.isArray(u.depts) && u.depts.length ? u.depts : (u.dept ? [u.dept] : []);
+                        return ds.some(d => normalizeText(d) === normalizeText(INFRA_DEPT_NAME));
+                    });
+                    if (infraIC) targetIncharge = infraIC;
+
                     await updateTaskDoc(t._docId, {
                         escalated: true,
                         escalatedBy: currentLoggedInName,
                         escalatedAt: 'NOW',
                         escalationReason: reason,
                         status: 'pending',
-                        assignedTo: ''
+                        assignedTo: targetIncharge // Assign to the In-Charge so it appears in their queue
                     });
                     await updateTaskDoc(t._docId, { history: pushHist_(await freshTaskHist_(t._docId), { action: 'escalated', reason: reason }) });
-                    await createTaskNotification(t.assignedBy, 'task_escalated',
-                        '⚠️ Task escalated — ' + t.title,
-                        `${currentLoggedInName}: ${reason}`, t);
+                    
+                    if (targetIncharge) {
+                        await createTaskNotification(targetIncharge, 'task_escalated',
+                            '⚠️ Task escalated — ' + t.title,
+                            `${currentLoggedInName}: ${reason}`, t);
+                    }
                     showStatus('⚠️ Task escalated.', true);
                     refreshAllTaskViews();
                 }));
@@ -20058,6 +20486,10 @@ function renderTeamAvailabilityCard(name, av) {
                 if (!t) return;
                 const comment = (document.getElementById('verifyTaskComment').value || '').trim();
                 const quality = (document.querySelector('#taskQualityGroup input:checked') || {}).value || 'good';
+                if (!approve && !comment) {
+                    document.getElementById('verifyTaskError').textContent = '⚠️ Please write a comment explaining what must be redone.';
+                    return;
+                }
                 if (approve) {
                     const _sr = await sealApproval_('task', t._docId, 'verifier', 'verified', { title: t.title, quality: quality, comment: comment });
                     if (!_sr.ok) return;
@@ -20076,6 +20508,9 @@ function renderTeamAvailabilityCard(name, av) {
                         feedbackQuality: quality
                     });
                     if (!ok) throw new Error('Update failed');
+                                        await updateTaskDoc(t._docId, {
+                        history: pushHist_(await freshTaskHist_(t._docId), { action: approve ? 'verified' : 'rejected', reason: comment })
+                    });
                     await createTaskNotification(t.assignedTo, approve ? 'task_verified' : 'task_rejected',
                         (approve ? '🎉 Task verified — ' : '↩️ Task rejected — ') + t.title,
                         (approve ? 'Verified' : 'Rejected') + ' by ' + currentLoggedInName + '. ' + (comment || ''), t);
@@ -20237,14 +20672,17 @@ function renderTeamAvailabilityCard(name, av) {
                         wrap.innerHTML = '<div style="text-align:center;padding:18px;color:#9cb9d0;font-style:italic;">📭 No tasks in this filter.</div>';
                         return;
                     }
-                    wrap.innerHTML = f.map(t => renderTaskCard(t, {
+                    // 🏗️ INFRA MANAGER: can only VERIFY (approve / reject) completed work
+                    const _imOpts = {
                         canVerify: true,
-                        canReassign: true,
+                        canReassign: false,
                         canStart: false,
                         canComplete: false,
-                        canDelegate: false
-                    })).join('');
-                    bindTaskCardButtons(wrap, f, { canVerify: true });
+                        canDelegate: false,
+                        canEscalate: false
+                    };
+                    wrap.innerHTML = f.map(t => renderTaskCard(t, _imOpts)).join('');
+                    bindTaskCardButtons(wrap, f, _imOpts);
                 } catch (e) {
                     wrap.innerHTML = '<div class="info-error">⚠️ ' + escapeHtml(e.message) + '</div>';
                 }
@@ -20325,6 +20763,357 @@ function renderTeamAvailabilityCard(name, av) {
                 if (currentRole === 'incharge') refreshMyTasksForRole('incharge');
                 if (currentRole === 'supervisor') refreshMyTasksForRole('supervisor');
             }
+            /* ============================================================
+   📄 TASKS REPORT PDF  (all participating users)
+   ============================================================ */
+function taskVerifierOf_(t) {
+    const h = normalizeTimeline_(t.history).filter(e => e.action === 'verified' || e.action === 'rejected');
+    return h.length ? h[h.length - 1].by : '';
+}
+function taskParticipants_(t) {
+    const m = new Map();
+    const add = (n, role) => {
+        const nm = String(n || '').trim(); if (!nm) return;
+        const k = normalizeText(nm);
+        if (!m.has(k)) m.set(k, { name: nm, roles: new Set() });
+        m.get(k).roles.add(role);
+    };
+    add(t.assignedBy, 'Creator');
+    add(t.originalAssignee, 'Original assignee');
+    add(t.assignedTo, 'Current assignee');
+    add(t.delegatedBy, 'Delegator');
+    add(t.escalatedBy, 'Escalated');
+    normalizeTimeline_(t.history).forEach(e => {
+        if (e.action === 'verified' || e.action === 'rejected') add(e.by, 'Verifier');
+        else if (e.action === 'delegated') { add(e.by, 'Delegator'); add(e.to, 'Delegate'); }
+        else if (e.action === 'escalated') add(e.by, 'Escalated');
+        else if (['started', 'paused', 'resumed', 'completed'].includes(e.action)) add(e.by, 'Worker');
+    });
+    return m;
+}
+function taskUserStats_(tasks) {
+    const S = new Map();
+    const g = n => {
+        const nm = String(n || '').trim(); if (!nm) return null;
+        const k = normalizeText(nm);
+        if (!S.has(k)) S.set(k, { name: nm, created: 0, received: 0, started: 0, paused: 0, completed: 0, delegated: 0, escalated: 0, verified: 0, rejected: 0 });
+        return S.get(k);
+    };
+    tasks.forEach(t => {
+        const hist = normalizeTimeline_(t.history);
+        if (!hist.some(e => e.action === 'created')) { const s = g(t.assignedBy); if (s) s.created++; }
+        const r = g(t.assignedTo); if (r) r.received++;
+        hist.forEach(e => {
+            const s = g(e.by); if (!s) return;
+            if (s[e.action] !== undefined && e.action !== 'received') s[e.action]++;
+        });
+    });
+    return Array.from(S.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+function tasksReportScope_() {
+    return (currentRole === 'infra_manager' || currentRole === 'supervisor' ||
+        (currentRole === 'incharge' && isInfrastructureUser())) ? 'all' : 'mine';
+}
+async function getTasksForReport_() {
+    const all = await fetchAllTasks({ forceRefresh: true });
+    if (tasksReportScope_() === 'all') return all;
+    const me = normalizeText(currentLoggedInName);
+    return all.filter(t => taskParticipants_(t).has(me));
+}
+function filterTasksForReport_(tasks, from, to, status, person) {
+    return tasks.filter(t => {
+        const d = parseToDate(t.createdAt || t.plannedDate);
+        if (d) { const iso = toIsoDate_(d); if (iso < from || iso > to) return false; }
+        if (status === 'open' && !['pending', 'in_progress', 'paused'].includes(t.status)) return false;
+        else if (status === 'escalated' && t.escalated !== true) return false;
+        else if (['completed', 'verified', 'rejected'].includes(status) && t.status !== status) return false;
+        if (person && person !== 'all' && !taskParticipants_(t).has(normalizeText(person))) return false;
+        return true;
+    });
+}
+
+async function generateTasksReportPDF(tasks, meta) {
+    meta = meta || {};
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pW = 297, pH = 210, m = 14, cW = pW - m * 2;
+    if (currentLoggedInName) await ensurePfxLoadedFor(currentLoggedInName);
+
+    const personTxt = (meta.person && meta.person !== 'all') ? '   |   Participant: ' + meta.person : '';
+    let y = drawChubHeader(doc, {
+        title: 'TASKS & ACTIVITIES WORK REPORT',
+        subtitle: formatDateOnly(meta.from) + ' to ' + formatDateOnly(meta.to) + '   |   ' + tasks.length + ' task(s)' + personTxt,
+        ref: 'CHUB/TASK/' + new Date().toISOString().slice(0, 10).replace(/-/g, ''),
+        date: new Date().toLocaleDateString('en-GB')
+    });
+
+    const st = computeTaskStats(tasks);
+    const people = taskUserStats_(tasks);
+    const tiles = [
+        ['TOTAL', st.total, [238, 246, 252], [11, 59, 92]],
+        ['PENDING', st.pending, [255, 243, 205], [122, 83, 0]],
+        ['IN PROGRESS', st.in_progress, [231, 240, 248], [30, 74, 109]],
+        ['AWAITING VERIFY', st.completed, [238, 246, 252], [11, 59, 92]],
+        ['VERIFIED', st.verified, [226, 240, 230], [27, 107, 63]],
+        ['REJECTED', st.rejected, [255, 230, 230], [179, 58, 58]],
+        ['ESCALATED', st.escalated, [255, 230, 230], [179, 58, 58]],
+        ['PARTICIPANTS', people.length, [243, 232, 255], [93, 53, 120]]
+    ];
+    const kW = (cW - 7 * 3) / 8;
+    tiles.forEach((k, i) => drawKpiTile(doc, m + i * (kW + 3), y, kW, 16, k[0], String(k[1]), null, k[2], k[3]));
+    y += 22;
+
+    const section = (txt, color) => {
+        if (y > pH - 45) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'TASKS REPORT (cont.)', ref: 'CHUB/TASK' }); }
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(color[0], color[1], color[2]);
+        doc.text(txt, m, y); y += 3;
+    };
+    const tbl = { margin: { left: m, right: m, top: 18 }, theme: 'striped', styles: { fontSize: 7.5, cellPadding: 1.6 } };
+
+    // 1) What each participant did
+    section('1.  PARTICIPANTS - WHAT EACH USER DID', [11, 59, 92]);
+    doc.autoTable(Object.assign({}, tbl, {
+        startY: y,
+        head: [['User', 'System role', 'Created', 'Currently assigned', 'Started', 'Paused', 'Completed', 'Delegated', 'Escalated', 'Verified', 'Rejected']],
+        body: people.map(p => {
+            const u = LIVE_USERS[p.name] || {};
+            return [pdfSanitize(p.name), pdfSanitize(u.role || '-'), p.created, p.received, p.started, p.paused, p.completed, p.delegated, p.escalated, p.verified, p.rejected];
+        }),
+        headStyles: { fillColor: [11, 61, 145], textColor: 255 },
+        columnStyles: { 0: { cellWidth: 52, fontStyle: 'bold' } }
+    }));
+    y = doc.lastAutoTable.finalY + 8;
+
+    // 2) Task list
+    section('2.  TASK LIST', [27, 107, 63]);
+    doc.autoTable(Object.assign({}, tbl, {
+        startY: y,
+        head: [['Task', 'Location', 'Priority', 'Created by', 'Assigned to', 'Planned', 'Status', 'Completed', 'Verified / rejected by']],
+        body: tasks.map(t => [
+            pdfSanitize(t.title), pdfSanitize(t.location || '-'), (t.priority || '').toUpperCase(),
+            pdfSanitize(t.assignedBy || '-'), pdfSanitize(t.assignedTo || '-'),
+            formatDateOnly(t.plannedDate), pdfText(TASK_STATUS_LABELS[t.status] || t.status),
+            t.completedAt ? formatDateOnly(t.completedAt) : '-', pdfSanitize(taskVerifierOf_(t) || '-')
+        ]),
+        headStyles: { fillColor: [27, 107, 63], textColor: 255 },
+        columnStyles: { 0: { cellWidth: 60 } }
+    }));
+    y = doc.lastAutoTable.finalY + 8;
+
+    // 3) Timeline
+    const rows = [];
+    tasks.forEach(t => normalizeTimeline_(t.history).forEach(e => rows.push([
+        fmtWhen_(e.at), pdfSanitize(t.title).substring(0, 40), pdfSanitize(e.by || '-'),
+        pdfSanitize(TIMELINE_LABELS_[e.action] || e.action), pdfSanitize(timelineDetail_(e) || '-'), e.at
+    ])));
+    rows.sort((a, b) => new Date(a[5]) - new Date(b[5]));
+    section('3.  ACTIVITY TIMELINE (who did what, and when)', [122, 83, 0]);
+    if (rows.length) {
+        doc.autoTable(Object.assign({}, tbl, {
+            startY: y,
+            head: [['When', 'Task', 'By', 'Event', 'Comment / details']],
+            body: rows.map(r => r.slice(0, 5)),
+            headStyles: { fillColor: [122, 83, 0], textColor: 255 },
+            columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 60 }, 2: { cellWidth: 45 }, 3: { cellWidth: 28 } }
+        }));
+        y = doc.lastAutoTable.finalY + 8;
+    } else {
+        doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(91, 123, 150);
+        doc.text('(no recorded events)', m, y + 4); y += 10;
+    }
+
+    // Prepared-by block (on the last page)
+    if (y + 34 > pH - 20) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'TASKS REPORT (cont.)', ref: 'CHUB/TASK' }); }
+    const sigY = y;
+    doc.setFillColor(240, 246, 252); doc.setDrawColor(207, 224, 238);
+    doc.roundedRect(m, sigY, 90, 30, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(91, 123, 150);
+    doc.text('PREPARED BY', m + 3, sigY + 4.5);
+    doc.setFontSize(9.5); doc.setTextColor(10, 42, 63);
+    doc.text(pdfSanitize(currentLoggedInName || '-'), m + 3, sigY + 10);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(58, 101, 131);
+    doc.text(new Date().toLocaleString('en-GB'), m + 3, sigY + 14);
+    try {
+        const sg = await getDisposalSignerSig(currentLoggedInName);
+        if (sg && sg.url) {
+            let w = 50, h = 14;
+            if (sg.dims && sg.dims.width && sg.dims.height) { const a = sg.dims.width / sg.dims.height; h = w / a; if (h > 14) { h = 14; w = h * a; } }
+            doc.addImage(sg.url, getImageFormat(sg.url), m + 3, sigY + 15, w, h);
+        }
+    } catch (e) { }
+
+    const tp = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= tp; p++) { doc.setPage(p); drawChubFooter(doc, p, tp); }
+
+    const fname = 'CHUB_Tasks_Report_' + new Date().toISOString().slice(0, 10) + '.pdf';
+    const bytes = doc.output('arraybuffer');
+    const sb = isCertLoaded() ? await signPdfBytes(bytes, {
+        placements: [{ page: tp - 1, yFromTopMm: sigY + 18, xMm: m + 95 }]
+    }) : null;
+    if (sb) downloadBytes(sb, fname); else doc.save(fname);
+}
+
+async function generateTaskJobCardPDF(t) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pW = 210, pH = 297, m = 16, cW = pW - m * 2;
+    if (currentLoggedInName) await ensurePfxLoadedFor(currentLoggedInName);
+
+    let y = drawChubHeader(doc, {
+        title: 'TASK / ACTIVITY JOB CARD',
+        subtitle: pdfSanitize(t.title).substring(0, 70),
+        ref: 'CHUB/TASK/' + String(t._docId || '').substring(0, 10).toUpperCase(),
+        date: new Date().toLocaleDateString('en-GB')
+    });
+    doc.autoTable({
+        startY: y, margin: { left: m, right: m, top: 18 },
+        head: [['Task details', '']],
+        body: [
+            ['Title', pdfSanitize(t.title)],
+            ['Category', pdfSanitize(t.category || '-')],
+            ['Priority', (t.priority || '').toUpperCase()],
+            ['Location', pdfSanitize(t.location || '-')],
+            ['Created by', pdfSanitize(t.assignedBy || '-')],
+            ['Assigned to', pdfSanitize(t.assignedTo || '-')],
+            ['Planned date', formatDateOnly(t.plannedDate) + (t.duration && t.duration !== 'same-day' ? ' (' + t.duration + ')' : '')],
+            ['Created at', formatDateOnly(t.createdAt)],
+            ['Completed at', t.completedAt ? formatDateOnly(t.completedAt) : '-'],
+            ['Verified at', t.verifiedAt ? formatDateOnly(t.verifiedAt) : '-'],
+            ['Status', pdfText(TASK_STATUS_LABELS[t.status] || t.status)]
+        ],
+        theme: 'striped', styles: { fontSize: 8.5, cellPadding: 1.8 },
+        headStyles: { fillColor: [30, 74, 109], textColor: 255 },
+        columnStyles: { 0: { cellWidth: 40, fontStyle: 'bold', textColor: [18, 64, 94] } }
+    });
+    y = doc.lastAutoTable.finalY + 5;
+
+    const box = (label, text, fill, line, txt) => {
+        const lines = doc.splitTextToSize(pdfSanitize(text || '-'), cW - 6).slice(0, 8);
+        const h = 9 + lines.length * 4;
+        if (y + h > pH - 25) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'TASK JOB CARD (cont.)', ref: 'CHUB/TASK' }); }
+        doc.setFillColor(fill[0], fill[1], fill[2]); doc.setDrawColor(line[0], line[1], line[2]);
+        doc.roundedRect(m, y, cW, h, 2, 2, 'FD');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(txt[0], txt[1], txt[2]);
+        doc.text(label, m + 3, y + 5);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+        doc.text(lines, m + 3, y + 10);
+        y += h + 4;
+    };
+    box('DESCRIPTION', t.description, [249, 252, 255], [207, 224, 238], [18, 64, 94]);
+    if (t.notes) box('WORK PERFORMED', t.notes, [240, 253, 244], [27, 107, 63], [21, 82, 49]);
+    if (t.feedback) box('VERIFIER FEEDBACK' + (t.feedbackQuality ? ' (' + t.feedbackQuality.toUpperCase() + ')' : ''), t.feedback, [255, 251, 235], [244, 217, 122], [122, 83, 0]);
+
+    // Participants
+    const parts = Array.from(taskParticipants_(t).values());
+    if (parts.length) {
+        if (y + 30 > pH - 25) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'TASK JOB CARD (cont.)', ref: 'CHUB/TASK' }); }
+        doc.autoTable({
+            startY: y, margin: { left: m, right: m, top: 18 },
+            head: [['Participant', 'Role(s) in this task']],
+            body: parts.map(p => [pdfSanitize(p.name), Array.from(p.roles).join(', ')]),
+            theme: 'striped', styles: { fontSize: 8, cellPadding: 1.6 },
+            headStyles: { fillColor: [93, 53, 120], textColor: 255 },
+            columnStyles: { 0: { cellWidth: 60, fontStyle: 'bold' } }
+        });
+        y = doc.lastAutoTable.finalY + 5;
+    }
+    // Timeline
+    const tl = normalizeTimeline_(t.history);
+    if (tl.length) {
+        if (y + 30 > pH - 25) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'TASK JOB CARD (cont.)', ref: 'CHUB/TASK' }); }
+        doc.autoTable({
+            startY: y, margin: { left: m, right: m, top: 18 },
+            head: [['When', 'By', 'Event', 'Details']],
+            body: tl.map(e => [fmtWhen_(e.at), pdfSanitize(e.by || '-'), pdfSanitize(TIMELINE_LABELS_[e.action] || e.action), pdfSanitize(timelineDetail_(e) || '-')]),
+            theme: 'striped', styles: { fontSize: 7.5, cellPadding: 1.5 },
+            headStyles: { fillColor: [122, 83, 0], textColor: 255 },
+            columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 38 }, 2: { cellWidth: 26 } }
+        });
+        y = doc.lastAutoTable.finalY + 6;
+    }
+    // Digital seal of the verifier (if he signed with a PFX)
+    try {
+        const vs = await fetchSeal_('task', t._docId, 'verifier');
+        if (vs) {
+            if (y + 22 > pH - 22) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'TASK JOB CARD (cont.)', ref: 'CHUB/TASK' }); }
+            drawSealStamp_(doc, m, y, cW / 2, vs);
+            y += 21;
+        }
+    } catch (e) { }
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(91, 123, 150);
+    doc.text('Task ID: ' + pdfSanitize(t._docId || '-') + '   |   Downloaded by ' + pdfSanitize(currentLoggedInName || '-') + ' on ' + new Date().toLocaleString('en-GB'), m, Math.min(y + 4, pH - 20));
+
+    const tp = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= tp; p++) { doc.setPage(p); drawChubFooter(doc, p, tp); }
+    const fname = 'CHUB_Task_' + String(t.title || 'task').replace(/[^\w\-]+/g, '_').substring(0, 40) + '_' + new Date().toISOString().slice(0, 10) + '.pdf';
+    const bytes = doc.output('arraybuffer');
+    const sb = isCertLoaded() ? await signPdfBytes(bytes, {
+        placements: [{ page: tp - 1, yFromTopMm: pH - 40, xMm: m }]
+    }) : null;
+    if (sb) downloadBytes(sb, fname); else doc.save(fname);
+}
+
+/* ---- Modal wiring ---- */
+async function openTasksReportModal() {
+    const modal = document.getElementById('tasksReportModal');
+    document.getElementById('tasksRepError').textContent = '';
+    const now = new Date(), first = new Date(now.getFullYear(), now.getMonth(), 1);
+    document.getElementById('tasksRepFrom').value = toIsoDate_(first);
+    document.getElementById('tasksRepTo').value = toIsoDate_(now);
+    document.getElementById('tasksRepStatus').value = 'all';
+    document.getElementById('tasksRepScopeNote').textContent = tasksReportScope_() === 'all'
+        ? 'Report covers ALL tasks and every participating user.'
+        : 'Report covers the tasks you took part in, with every user who participated in them.';
+    const sel = document.getElementById('tasksRepPerson');
+    sel.innerHTML = '<option value="all">👥 All participants</option>';
+    modal.classList.add('show');
+    try {
+        const all = await getTasksForReport_();
+        const names = new Map();
+        all.forEach(t => taskParticipants_(t).forEach(p => names.set(normalizeText(p.name), p.name)));
+        Array.from(names.values()).sort().forEach(n => {
+            const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
+        });
+    } catch (e) { }
+}
+document.getElementById('tasksRepCancel')?.addEventListener('click',
+    () => document.getElementById('tasksReportModal').classList.remove('show'));
+document.getElementById('tasksRepGenerate')?.addEventListener('click', async function () {
+    const btn = this, o = btn.innerHTML;
+    const err = document.getElementById('tasksRepError');
+    const from = document.getElementById('tasksRepFrom').value;
+    const to = document.getElementById('tasksRepTo').value;
+    const status = document.getElementById('tasksRepStatus').value;
+    const person = document.getElementById('tasksRepPerson').value;
+    err.textContent = '';
+    if (!from || !to) { err.textContent = '⚠️ Pick both dates.'; return; }
+    if (from > to) { err.textContent = '⚠️ From must be before To.'; return; }
+    btn.disabled = true; btn.innerHTML = '⏳ …';
+    try {
+        const all = await getTasksForReport_();
+        const list = filterTasksForReport_(all, from, to, status, person);
+        if (!list.length) {
+            err.textContent = '📭 No tasks match these filters.';
+        } else {
+            document.getElementById('tasksReportModal').classList.remove('show');
+            await generateTasksReportPDF(list, { from, to, status, person });
+            showStatus('📄 Tasks report downloaded (' + list.length + ' task(s)).', true);
+        }
+    } catch (e) { err.textContent = '⚠️ ' + e.message; }
+    btn.disabled = false; btn.innerHTML = o;
+});
+
+/* ---- Put the download button on every task page ---- */
+['infraTaskFilterBar', 'techTaskFilterBar', 'icTaskFilterBar', 'supTaskFilterBar'].forEach(id => {
+    const bar = document.getElementById(id);
+    if (!bar) return;
+    const w = document.createElement('div');
+    w.style.cssText = 'margin-bottom:12px;';
+    w.innerHTML = '<button type="button" class="btn-pdf" style="padding:10px 20px;font-size:.85rem;">📄 Download Tasks Report (PDF)</button>';
+    w.firstChild.addEventListener('click', openTasksReportModal);
+    bar.insertAdjacentElement('afterend', w);
+});
 
             document.getElementById('createTaskBtn')?.addEventListener('click', openCreateTaskModal);
             document.getElementById('createTaskCancel')?.addEventListener('click',
@@ -21857,6 +22646,7 @@ if (currentRole === 'incharge') {
                 }
             }
             function lockApp() {
+                document.body.classList.remove('theme-tech', 'theme-incharge', 'theme-admin', 'theme-assets', 'manager-theme');
                 // Clear any legacy PFX data sitting in sessionStorage
                 try {
                     if (currentLoggedInName) {
@@ -22541,6 +23331,9 @@ const t = _pd ? _pd.getTime() : NaN;
             document.getElementById('completeCurativeCancel')?.addEventListener('click',
                 () => document.getElementById('completeCurativeModal').classList.remove('show'));
             document.getElementById('completeCurativeSaveBtn')?.addEventListener('click', saveCompleteCurative);
+            document.getElementById('delegateCurativeCancel')?.addEventListener('click',
+    () => document.getElementById('delegateCurativeModal').classList.remove('show'));
+document.getElementById('delegateCurativeSaveBtn')?.addEventListener('click', saveCurativeDelegation);
             document.getElementById('escalateCurativeCancel')?.addEventListener('click',
                 () => document.getElementById('escalateCurativeModal').classList.remove('show'));
             document.getElementById('escalateCurativeSaveBtn')?.addEventListener('click', submitCurativeEscalation);
@@ -23277,7 +24070,6 @@ bindUpsPhaseSync('editMonPhaseType', 'editMonChecklist');
                             dept: dept,
                             loc: loc,
                             owner: ownerVal,
-                            phaseType: cat === 'ups' ? document.getElementById('editMonPhaseType').value : '',
                             phaseType: cat === 'ups' ? document.getElementById('editMonPhaseType').value : ''
                         };
                         await editInventoryItemInCloud(original, updated, currentLoggedInName);
@@ -23387,7 +24179,10 @@ bindUpsPhaseSync('editMonPhaseType', 'editMonChecklist');
 
                         document.getElementById('addMonCancel')?.addEventListener('click', () => {
                 document.getElementById('addMonitorUnitModal').classList.remove('show');
-                document.getElementById('monitorUnitSelect').value = document.getElementById('monitorUnitSelect').options[0].value;
+                // Safely check if the first option exists before trying to read its value
+                const firstOpt = document.getElementById('monitorUnitSelect').options[0];
+                document.getElementById('monitorUnitSelect').value = firstOpt ? firstOpt.value : '';
+                
                 // ✅ NEW: Trigger the change event to bring the Edit button back
                 document.getElementById('monitorUnitSelect').dispatchEvent(new Event('change'));
             });
@@ -23401,7 +24196,7 @@ bindUpsPhaseSync('editMonPhaseType', 'editMonChecklist');
 
                 try {
                     const cat = document.getElementById('addMonitorUnitModal').dataset.category;
-                    const name = document.getElementById('newMonUnitName').value.trim();;
+                    const name = document.getElementById('newMonUnitName').value.trim();
                     const tag = document.getElementById('newMonTag').value.trim() || 'AUTO-' + Math.random().toString(36).substring(2, 7).toUpperCase();
                     const serial = document.getElementById('newMonSerial').value.trim() || 'N/A';
                     const dept = document.getElementById('newMonDept').value;
