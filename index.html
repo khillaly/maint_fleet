@@ -4055,6 +4055,74 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
         body.dark #mainSidebar .sidebar-item:hover { background: #0f172a; border-color: #475569; }
         body.dark #mainSidebar .sidebar-item.active { background: linear-gradient(135deg, #0b3d91, #1e4a6d); color: #fff; }
         body.dark .sidebar-footer { border-color: #334155; }
+
+        /* ===== Settings buttons live in the sidebar now (kept in DOM for the JS) ===== */
+        #changePinBtn, #twoFactorBtn, #signatureBtn { display: none !important; }
+
+        /* ===== SMART HOVER-EXPAND SIDEBAR (desktop only) ===== */
+        @media (min-width: 901px) {
+            .app-body { grid-template-columns: 78px minmax(0, 1fr); }
+
+            #mainSidebar {
+                width: 78px;
+                padding: 18px 10px;
+                overflow-x: hidden;
+                scrollbar-width: none;
+                transition: width .28s ease, box-shadow .28s ease;
+            }
+            #mainSidebar::-webkit-scrollbar { display: none; }
+
+            /* expands over the page (does not push content), with a tiny delay
+               so it doesn't open when the mouse just passes by */
+            #mainSidebar:hover {
+                width: 260px;
+                padding: 18px 12px;
+                scrollbar-width: thin;
+                box-shadow: 0 25px 60px -10px rgba(0, 0, 0, .45);
+                transition-delay: .12s;
+            }
+
+            /* --- collapsed state: icons only --- */
+            #mainSidebar .si-label,
+            #mainSidebar .brand-text {
+                opacity: 0; flex: 0; width: 0; overflow: hidden; white-space: nowrap;
+                transition: opacity .18s ease;
+            }
+            #mainSidebar .sidebar-brand { justify-content: center; padding: 4px 0 14px; gap: 0; }
+            #mainSidebar .sidebar-item { justify-content: center; padding: 11px 0; gap: 0; }
+            #mainSidebar .sidebar-item:hover { transform: none; }
+            #mainSidebar .sidebar-item.active::before { left: -10px; }
+
+            /* section labels become thin dividers */
+            #mainSidebar .sidebar-section-label {
+                height: 1px; padding: 0; margin: 10px 10px;
+                font-size: 0; overflow: hidden;
+                background: rgba(150, 150, 150, .35);
+            }
+
+            /* badges become small dots on the icon */
+            #mainSidebar .sidebar-item .si-badge {
+                position: absolute; top: 2px; right: 6px;
+                min-width: 16px; padding: 1px 5px; font-size: .6rem;
+            }
+
+            /* --- expanded state (on hover) --- */
+            #mainSidebar:hover .si-label,
+            #mainSidebar:hover .brand-text {
+                opacity: 1; flex: 1; width: auto; transition-delay: .12s;
+            }
+            #mainSidebar:hover .sidebar-brand { justify-content: flex-start; padding: 4px 8px 14px; gap: 10px; }
+            #mainSidebar:hover .sidebar-item { justify-content: flex-start; padding: 11px 14px; gap: 12px; }
+            #mainSidebar:hover .sidebar-item:hover { transform: translateX(3px); }
+            #mainSidebar:hover .sidebar-item.active::before { left: -12px; }
+            #mainSidebar:hover .sidebar-section-label {
+                height: auto; margin: 0; padding: 12px 12px 6px;
+                font-size: .68rem; background: none; overflow: visible;
+            }
+            #mainSidebar:hover .sidebar-item .si-badge {
+                position: static; min-width: 22px; padding: 2px 8px; font-size: .68rem;
+            }
+        }
     </style>
 </head>
 
@@ -25576,6 +25644,12 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
             });
         });
     });
+    // ⚙️ Configuration group — shown to every role, always last
+    out.push({ group: 'Configuration', items: [
+        { view: '__security',  icon: '🔐', label: 'Security (2FA)' },
+        { view: '__signature', icon: '🖊️', label: 'Signature & Certificate' },
+        { view: '__changepin', icon: '🔑', label: 'Change PIN' },
+    ]});
     return out.filter(g => g.items.length);
 }
 
@@ -25707,6 +25781,13 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
                 btn.addEventListener('click', () => {
                     const target = btn.getAttribute('data-view');
                     if (target === '__logout') { document.getElementById('logoutBtn')?.click(); return; }
+                    const settingsMap = { __security: 'twoFactorBtn', __signature: 'signatureBtn', __changepin: 'changePinBtn' };
+                    if (settingsMap[target]) {
+                        document.getElementById(settingsMap[target])?.click();
+                        document.getElementById('mainSidebar')?.classList.remove('open');
+                        document.getElementById('sidebarOverlay')?.classList.remove('show');
+                        return;
+                    }
                     showView(target);
                 });
             });
@@ -25997,6 +26078,464 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
 
         })();
     </script>
+
+    <!-- ===================== LANGUAGE ENGINE (EN / FR) ===================== -->
+    <script>
+    (function () {
+        'use strict';
+
+        /* ---------- FRENCH DICTIONARY (English text -> French) ---------- */
+        const FR = {
+        // ----- Hero / header -----
+        "Infrastructure & Maintenance":"Infrastructure et maintenance","CHUB Site":"Site CHUB","All Equipment":"Tous les équipements",
+        "Planned PM Schedule":"Calendrier PM planifié","Data recording started on":"Enregistrement des données commencé le",
+        "all reports & analysis cover this period onwards":"tous les rapports et analyses couvrent cette période et la suite",
+        "Technician":"Technicien","In-Charge":"Responsable","Manager":"Manager","Head of Biomedical":"Chef du Biomédical",
+        "Assets Manager":"Gestionnaire des actifs","Infra Manager":"Responsable infrastructure","Active View":"Vue active",
+        "Profile":"Profil","Change PIN":"Changer le code PIN","Message Admin":"Écrire à l'admin","Security":"Sécurité",
+        "Signature & Cert":"Signature et certificat","User Guide":"Guide d'utilisation","Logout":"Déconnexion",
+        "Work date":"Date de travail","Ready":"Prêt","All synced":"Tout synchronisé","Saved":"Enregistré","Syncing":"Synchronisation",
+        "Sending":"Envoi","Offline — queued":"Hors ligne — en attente","Menu":"Menu","Notifications":"Notifications",
+        "Mark all read":"Tout marquer comme lu","Clear read notifications":"Effacer les notifications lues","No notifications yet.":"Aucune notification.",
+
+        // ----- Sidebar -----
+        "CHUB Nav":"Navigation CHUB","Maintenance":"Maintenance","My Work":"Mon travail","Approvals":"Approbations",
+        "Field Work":"Travail de terrain","Tracking & Analysis":"Suivi et analyse","Equipment":"Équipements","Reports":"Rapports",
+        "Overview":"Vue d'ensemble","Operations":"Opérations","Fleet":"Parc","Manage":"Gestion","Communications":"Communications",
+        "Planning":"Planification","Configuration":"Configuration","PM Inspection":"Inspection PM",
+        "Equipment Monitoring":"Suivi des équipements","My Tasks":"Mes tâches","Curative Jobs":"Travaux curatifs",
+        "PM Progress":"Progression PM","Pending Co-Signs":"Co-signatures en attente","My Tasks (In-Charge)":"Mes tâches (Responsable)",
+        "Curative Requests":"Demandes curatives","Disposal Requests":"Demandes de mise au rebut","Team Tracker":"Suivi de l'équipe",
+        "Global Analysis":"Analyse globale","Department PM Status":"Statut PM du département","Department Inventory":"Inventaire du département",
+        "Downloads & Analysis":"Téléchargements et analyse","Fleet Analytics":"Analyses du parc","Technician Rankings":"Classement des techniciens",
+        "Escalated Jobs":"Travaux escaladés","Team Availability":"Disponibilité de l'équipe","Fleet Overview":"Vue d'ensemble du parc",
+        "User Activity":"Activité des utilisateurs","Download Reports":"Télécharger les rapports","Manage In-Charges":"Gérer les responsables",
+        "Manage Technicians":"Gérer les techniciens","Manage Departments":"Gérer les départements","Broadcast Alert":"Alerte générale",
+        "User Messages":"Messages des utilisateurs","Technician Timetables":"Horaires des techniciens","Task Dashboard":"Tableau des tâches",
+        "Curative (Fleet)":"Curatif (parc)","Disposal Approvals":"Approbations de mise au rebut","Security (2FA)":"Sécurité (2FA)",
+        "Signature & Certificate":"Signature et certificat","Curative Requests ":"Demandes curatives",
+
+        // ----- Login / PIN / 2FA -----
+        "Login":"Connexion","Select your role and enter your PIN.":"Sélectionnez votre rôle et entrez votre code PIN.",
+        "Login as":"Se connecter en tant que","Admin / Manager":"Admin / Manager","Your Department":"Votre département",
+        "Choose your department":"Choisissez votre département","Biomedical (BMET)":"Biomédical (BMET)","Your name":"Votre nom",
+        "Choose your name":"Choisissez votre nom","Your full name (as it appears in reports)":"Votre nom complet (tel qu'il apparaît dans les rapports)",
+        "Your PIN":"Votre code PIN","Unlock & Continue":"Déverrouiller et continuer","Enter your PIN.":"Entrez votre code PIN.",
+        "Select your name.":"Sélectionnez votre nom.","User not found. Contact manager.":"Utilisateur introuvable. Contactez le manager.",
+        "Choose department.":"Choisissez le département.","Enter your name.":"Entrez votre nom.","Not registered as In-Charge.":"Non enregistré comme responsable.",
+        "Please contact the System Manager":"Veuillez contacter l'administrateur du système","phone not set — ask in person":"téléphone non renseigné — demandez en personne",
+        "email not set — ask in person":"e-mail non renseigné — demandez en personne","Set Your PIN":"Définissez votre PIN",
+        "New PIN (4–8 digits)":"Nouveau PIN (4–8 chiffres)","Confirm PIN":"Confirmer le PIN","Remember this PIN.":"Retenez ce PIN.",
+        "If you forget it, the Manager must reset it for you.":"Si vous l'oubliez, le Manager doit le réinitialiser pour vous.",
+        "Cancel":"Annuler","Save PIN & Continue":"Enregistrer le PIN et continuer","Change Your PIN":"Changer votre PIN",
+        "Update the PIN for":"Mettre à jour le PIN de","Current PIN":"PIN actuel","Confirm new PIN":"Confirmer le nouveau PIN",
+        "Save New PIN":"Enregistrer le nouveau PIN","Enable Two-Factor Authentication":"Activer l'authentification à deux facteurs",
+        "Scan this QR code with Google Authenticator (or Authy / Microsoft Authenticator).":"Scannez ce code QR avec Google Authenticator (ou Authy / Microsoft Authenticator).",
+        "Enter the 6-digit code from your app *":"Entrez le code à 6 chiffres de votre application *","Enable 2FA":"Activer la 2FA",
+        "Enter your 2FA code":"Entrez votre code 2FA","Verify":"Vérifier","Open Google Authenticator and type the 6-digit code for":"Ouvrez Google Authenticator et saisissez le code à 6 chiffres de",
+        "Invalid code.":"Code invalide.","Wrong code — try again.":"Code incorrect — réessayez.","2FA cancelled.":"2FA annulée.",
+        "Digital Signature Password":"Mot de passe de la signature numérique","Enter your PFX password to auto-load your Digital Signature.":"Entrez votre mot de passe PFX pour charger votre signature numérique.",
+        "Cancel (Skip Signature)":"Annuler (ignorer la signature)","Unlock Signature":"Déverrouiller la signature",
+
+        // ----- Common words / buttons -----
+        "Close":"Fermer","Save":"Enregistrer","Refresh":"Actualiser","Refresh list":"Actualiser la liste","Download":"Télécharger",
+        "Loading":"Chargement","Loading pending records":"Chargement des enregistrements en attente","Confirm":"Confirmer","Reset form":"Réinitialiser le formulaire",
+        "Are you sure?":"Êtes-vous sûr ?","This action cannot be undone.":"Cette action est irréversible.","Yes":"Oui","No":"Non",
+        "Edit":"Modifier","Delete":"Supprimer","View":"Voir","Send":"Envoyer","Submit":"Soumettre","Approve":"Approuver","Reject":"Rejeter",
+        "Back":"Retour","Remarks":"Remarques","Priority":"Priorité","Status":"Statut","Date":"Date","Actions":"Actions","Name":"Nom",
+        "Total":"Total","Done":"Terminé","Low":"Faible","Medium":"Moyenne","High":"Haute","Critical":"Critique","Good":"Bon","Fair":"Moyen",
+        "Needs attention":"Nécessite une attention","Working":"En marche","Not Working":"Hors service","Other":"Autre","None":"Aucun",
+        "Quick range":"Plage rapide","Last 30 days":"30 derniers jours","Last 90 days":"90 derniers jours","Last 12 months":"12 derniers mois",
+        "All time":"Toute la période","From date *":"Date de début *","To date *":"Date de fin *","From date":"Date de début","To date":"Date de fin",
+        "Period":"Période","This week":"Cette semaine","This month":"Ce mois","This quarter":"Ce trimestre","This fiscal year":"Cet exercice",
+        "Last 3 months":"3 derniers mois","Last 6 months":"6 derniers mois","Last 1 Month":"Dernier mois","Last 3 Months":"3 derniers mois","Last 6 Months":"6 derniers mois",
+        "All Time":"Toute la période","Search":"Rechercher","Department":"Département","Departments":"Départements","All Departments":"Tous les départements",
+        "All Owners":"Tous les propriétaires","All Technicians":"Tous les techniciens","All Roles":"Tous les rôles","All Users":"Tous les utilisateurs",
+        "Pick a department":"Choisissez un département","Choose technician":"Choisissez un technicien","Choose assignee":"Choisissez un responsable",
+        "No matches.":"Aucun résultat.","No equipment.":"Aucun équipement.","Loading…":"Chargement…",
+
+        // ----- Technician PM page -----
+        "Work date (auto-selected)":"Date de travail (auto)","Category":"Catégorie","All Categories":"Toutes les catégories",
+        "Fridge / Freezer":"Réfrigérateur / Congélateur","Air Conditioner":"Climatiseur","Electrical":"Électricité","Biomedical":"Biomédical",
+        "UPS":"Onduleur (UPS)","Laundry":"Buanderie","Air Compressor":"Compresseur d'air","Vacuum System":"Système de vide","Waste Water":"Eaux usées",
+        "Waste Water Treatment":"Traitement des eaux usées","Generators":"Groupes électrogènes","Mortuary":"Morgue","Incinerators":"Incinérateurs",
+        "Lightening":"Paratonnerre","Access Control":"Contrôle d'accès","Biomedical Equipment":"Équipement biomédical","Laundry Machines":"Machines de buanderie",
+        "Lightening Protections":"Protections contre la foudre","Access Control Devices":"Dispositifs de contrôle d'accès","Other / New Equipment":"Autre / Nouvel équipement",
+        "All Statuses":"Tous les statuts","Select Equipment":"Sélectionner l'équipement","Add New Equipment":"Ajouter un équipement",
+        "Edit This Equipment":"Modifier cet équipement","Remove Equipment":"Supprimer l'équipement","QR Sticker":"Autocollant QR",
+        "Print All QR Stickers":"Imprimer tous les autocollants QR","Location · Brand · Model · Serial":"Emplacement · Marque · Modèle · N° de série",
+        "Active":"Actif","Department In-Charge for this PM":"Responsable du département pour ce PM",
+        "Start typing a name...":"Commencez à saisir un nom...","Inspection Checklist":"Liste de contrôle d'inspection",
+        "Ready to inspect this equipment?":"Prêt à inspecter cet équipement ?","Loading checklist information...":"Chargement de la liste de contrôle...",
+        "Start / Continue Inspection":"Démarrer / Continuer l'inspection","Progress":"Progression","Hide checklist":"Masquer la liste",
+        "Complete all items below":"Complétez tous les éléments ci-dessous","Cleaning & Hygiene":"Nettoyage et hygiène",
+        "Temperature & Performance":"Température et performance","Door, Seals & Function":"Porte, joints et fonctionnement",
+        "Condition":"État","Within range":"Dans la plage","Fluctuating":"Fluctuant","Out of range":"Hors plage","Performance":"Performance",
+        "Sealed & functional":"Étanche et fonctionnel","Minor issue":"Problème mineur","Needs repair":"Réparation nécessaire",
+        "Clean interior shelves, walls and drawers":"Nettoyer les étagères, parois et tiroirs intérieurs","Clean door gaskets and seals":"Nettoyer les joints de porte",
+        "Clean condenser coils and ventilation grills":"Nettoyer les serpentins du condenseur et les grilles de ventilation","Clean/empty drain pan and clear drain line":"Nettoyer/vider le bac de drainage et dégager la conduite",
+        "Clean exterior surfaces and control panel":"Nettoyer les surfaces extérieures et le panneau de commande","Check refrigerator temperature (2 – 8 °C)":"Vérifier la température du réfrigérateur (2 – 8 °C)",
+        "Check freezer temperature (≤ –18 °C)":"Vérifier la température du congélateur (≤ –18 °C)","Verify thermostat calibration and stability":"Vérifier l'étalonnage et la stabilité du thermostat",
+        "Check evaporator fan and condenser fan operation":"Vérifier le fonctionnement des ventilateurs évaporateur et condenseur","Verify defrost cycle is functioning properly":"Vérifier que le cycle de dégivrage fonctionne",
+        "Inspect door seal (gasket) for cracks, gaps or mould":"Inspecter le joint de porte (fissures, jeux, moisissures)","Test door seal with dollar bill test":"Tester l'étanchéité avec le test du billet",
+        "Check door hinge alignment and self-closing function":"Vérifier l'alignement des charnières et la fermeture automatique","Verify door alarm and interior light function":"Vérifier l'alarme de porte et l'éclairage intérieur",
+        "Inspect shelving, drawers and door bins integrity":"Inspecter l'état des étagères, tiroirs et bacs de porte",
+        "Inspect, clean, or replace filters":"Inspecter, nettoyer ou remplacer les filtres","Clean indoor evaporator coil":"Nettoyer l'évaporateur intérieur","Clean outdoor condenser coil":"Nettoyer le condenseur extérieur",
+        "Check blower motor and wheel":"Vérifier le moteur et la roue du ventilateur","Verify proper airflow across unit":"Vérifier le débit d'air de l'unité",
+        "Verify correct refrigerant charge (superheat/subcooling)":"Vérifier la charge de réfrigérant (surchauffe/sous-refroidissement)","Tighten and inspect electrical connections":"Serrer et inspecter les connexions électriques",
+        "Test relays, contactors, and capacitors":"Tester relais, contacteurs et condensateurs","Measure compressor and fan motor amps":"Mesurer l'intensité du compresseur et du ventilateur",
+        "Inspect wiring for frays or heat damage":"Inspecter le câblage (usure, dommages thermiques)","Clear condensate drain line and pan":"Dégager la conduite et le bac de condensat",
+        "Check thermostat calibration and controls":"Vérifier l'étalonnage et les commandes du thermostat","Measure supply/return air temperatures (Delta T)":"Mesurer les températures d'air soufflé/repris (Delta T)",
+        "Verify overall system efficiency":"Vérifier l'efficacité globale du système","Inspect ductwork for leaks (visible)":"Inspecter les gaines (fuites visibles)",
+        "Filters, Coils & Airflow":"Filtres, serpentins et débit d'air","Electrical & Refrigerant":"Électricité et réfrigérant","Drainage & Performance":"Drainage et performance",
+        "All functional":"Tout fonctionnel","Partially tested":"Partiellement testé","Fault found":"Défaut détecté","Smooth":"Fluide","Delayed":"Retardé","Issue":"Problème",
+        "No Checklist Required":"Aucune liste requise","This equipment category (Lamp / Switch / Socket / Other) does not require a routine PM checklist.":"Cette catégorie d'équipement (lampe / interrupteur / prise / autre) ne nécessite pas de liste PM de routine.",
+        "SIGN-OFF · Refrigerator PM completed by":"VALIDATION · PM du réfrigérateur effectué par","Site: CHUB · Work date:":"Site : CHUB · Date de travail :","Next PM":"Prochain PM",
+        "In-Charge":"Responsable","Sign-off & Save to Database":"Valider et enregistrer","Export Current as PDF":"Exporter en PDF","Download My PMs (Cloud)":"Télécharger mes PM (cloud)",
+        "Download PM Cards by Equipment":"Télécharger les fiches PM par équipement","PM Analysis (Period + Dept)":"Analyse PM (période + dépt.)","Sync pending":"Synchroniser en attente",
+        "Filter Type":"Filtrer par type","Form has been reset.":"Le formulaire a été réinitialisé.",
+        "My Assigned Activities / Tasks":"Mes activités / tâches assignées","My Curative Jobs":"Mes travaux curatifs",
+        "Curative requests raised by the in-charge for your department. Fix the unit and submit for verification.":"Demandes curatives créées par le responsable pour votre département. Réparez l'unité et soumettez pour vérification.",
+        "My Curative Performance — This Quarter":"Ma performance curative — ce trimestre","Download My Quarterly Curative Report":"Télécharger mon rapport curatif trimestriel",
+        "My PM Progress (This Month)":"Ma progression PM (ce mois)","DONE THIS MONTH":"TERMINÉS CE MOIS","AWAITING SIGN":"EN ATTENTE DE SIGNATURE","REJECTED":"REJETÉS",
+        "Click a status above to view details.":"Cliquez sur un statut ci-dessus pour voir les détails.","VERIFIED":"VÉRIFIÉS","TOTAL":"TOTAL","IN PROGRESS":"EN COURS","RATE":"TAUX","PENDING":"EN ATTENTE",
+        "Open":"Ouvertes","Open (pending + in progress + paused)":"Ouvertes (en attente + en cours + en pause)","Paused":"En pause","Awaiting Verification":"En attente de vérification",
+        "Verified":"Vérifiées","Rejected":"Rejetées","All":"Toutes","Pending":"En attente","In Progress":"En cours","Escalated":"Escaladées",
+        "Maintained":"Entretenu","Never serviced":"Jamais entretenu","Overdue":"En retard","Due Soon":"Bientôt dû","Due soon":"Bientôt dû",
+        "Open (Pending + In Progress + Paused)":"Ouvertes (en attente + en cours + en pause)",
+
+        // ----- In-charge -----
+        "Pending Co-Signatures":"Co-signatures en attente","My Department Only":"Mon département uniquement","No pending.":"Aucune en attente.",
+        "Review each PM below and attach your approval signature. Use":"Examinez chaque PM ci-dessous et joignez votre signature d'approbation. Utilisez",
+        "Job Card":"Fiche de travail","to open the full maintenance detail before you co-sign.":"pour ouvrir le détail complet de la maintenance avant de co-signer.",
+        "Co-sign all mine":"Co-signer toutes les miennes","Co-sign":"Co-signer","My Activities / Tasks":"Mes activités / tâches",
+        "Activities assigned to you by the Infrastructure Manager. You can delegate to a technician or handle them yourself.":"Activités qui vous sont assignées par le responsable de l'infrastructure. Vous pouvez les déléguer à un technicien ou les traiter vous-même.",
+        "Report a broken fridge or freezer. Assigned technicians get a notification instantly, fix the issue, and you verify the work.":"Signalez un réfrigérateur ou congélateur en panne. Les techniciens assignés sont notifiés immédiatement, réparent, et vous vérifiez le travail.",
+        "Raise New Curative Request":"Créer une demande curative","Equipment Inventory":"Inventaire des équipements",
+        "All equipment in your department (fridges, freezers, lamps, switches, sockets, panels, …) with last PM, next PM, and status.":"Tous les équipements de votre département avec dernier PM, prochain PM et statut.",
+        "Tag":"Étiquette","Equipment Name":"Nom de l'équipement","Location":"Emplacement","Brand / Model":"Marque / Modèle","Working?":"En marche ?","Owner":"Propriétaire",
+        "Last PM":"Dernier PM","PM Cards":"Fiches PM","Days Left":"Jours restants","Serial Number":"N° de série","Technician ":"Technicien","Category / Unit":"Catégorie / Unité",
+        "Dept":"Dépt.","Transfer":"Transférer","Department PM Status ":"Statut PM du département",
+        "Live preventive-maintenance status of every unit in your department. Sorted by urgency (overdue first).":"Statut de maintenance préventive en direct de chaque unité de votre département, trié par urgence (retards en premier).",
+        "Search Tag, SN, or Model...":"Rechercher étiquette, N° de série ou modèle...","Select Department":"Sélectionner un département",
+        "Download PM Status PDF":"Télécharger le statut PM en PDF","PM History":"Historique PM","Disposal Requests — Your Approval":"Demandes de mise au rebut — Votre approbation",
+        "Approve disposal (first-level). Once you approve, it goes to the Assets Manager for final approval.":"Approuvez la mise au rebut (premier niveau). Après votre approbation, elle est transmise au Gestionnaire des actifs pour approbation finale.",
+        "Team Activities Tracker":"Suivi des activités de l'équipe","Filter by Technician":"Filtrer par technicien",
+        "Cross-Department Analysis & Status":"Analyse et statut inter-départements","View equipment maintenance status and generate analysis reports for any department.":"Consultez le statut de maintenance et générez des rapports d'analyse pour n'importe quel département.",
+        "Download Dept Analysis":"Télécharger l'analyse du dépt.","View Dept PM Status":"Voir le statut PM du dépt.",
+        "Download All My Department PMs":"Télécharger tous les PM de mon département","Download My Department Analysis":"Télécharger l'analyse de mon département",
+        "Print All QR Stickers (My Dept)":"Imprimer les autocollants QR (mon dépt.)","TOTAL ":"TOTAL","MAINTAINED":"ENTRETENUS","DUE SOON":"BIENTÔT DUS","OVERDUE":"EN RETARD","NEVER":"JAMAIS",
+
+        // ----- Curative / tasks / modals -----
+        "Raise Curative Request":"Créer une demande curative","Report any fault: fridge not cooling, water leak, lamp/socket/switch broken, electrical issue.":"Signalez toute panne : réfrigérateur ne refroidit pas, fuite d'eau, lampe/prise/interrupteur cassé, problème électrique.",
+        "Refrigeration (fridge / freezer)":"Réfrigération (frigo / congélateur)","Air Conditioner (AC)":"Climatiseur (AC)","Biomedical Equipment (BMET)":"Équipement biomédical (BMET)",
+        "Electrical (lamp, switch, socket, panel)":"Électricité (lampe, interrupteur, prise, tableau)","Location / Room *":"Emplacement / Salle *","Describe the affected item *":"Décrivez l'élément concerné *",
+        "Describe the problem *":"Décrivez le problème *","Assign to technician (optional)":"Assigner à un technicien (facultatif)","Auto-assign to department technicians":"Assigner automatiquement aux techniciens du département",
+        "Send Request":"Envoyer la demande","Take Job":"Prendre le travail","Delegate to Tech":"Déléguer à un technicien","Pause":"Pause","Resume":"Reprendre","Complete":"Terminer",
+        "Escalate to Manager":"Escalader au Manager","Escalate to In-Charge":"Escalader au Responsable","Reassign Job":"Réassigner le travail","Verify":"Vérifier",
+        "Mark Task as Completed":"Marquer la tâche comme terminée","Mark Curative Job as Completed":"Marquer le travail curatif comme terminé","Work performed *":"Travail effectué *",
+        "Submit for Verification":"Soumettre pour vérification","Verify Completed Task":"Vérifier la tâche terminée","Verify Curative Work":"Vérifier le travail curatif",
+        "Quality of work *":"Qualité du travail *","Excellent":"Excellent","Poor":"Faible","Feedback (visible to assignee)":"Commentaire (visible par l'assigné)",
+        "Feedback (visible to the technician)":"Commentaire (visible par le technicien)","Reject — needs redo":"Rejeter — à refaire","Approve & Verify":"Approuver et vérifier",
+        "Pause Curative Job":"Mettre le travail curatif en pause","Pause Task":"Mettre la tâche en pause","Reason for pausing *":"Motif de la pause *","Confirm Pause":"Confirmer la pause",
+        "Create New Activity / Task":"Créer une activité / tâche","Create Task":"Créer la tâche","Title *":"Titre *","Description *":"Description *","Priority *":"Priorité *","Planned date *":"Date prévue *",
+        "Duration":"Durée","Same day":"Même jour","2 days":"2 jours","1 week":"1 semaine","2 weeks":"2 semaines","Ongoing":"En continu","Assign To *":"Assigner à *",
+        "Delegate Task to Technician":"Déléguer la tâche à un technicien","Delegate Curative Job":"Déléguer le travail curatif","Delegate":"Déléguer","Assign to technician *":"Assigner au technicien *",
+        "Note to technician (optional)":"Note au technicien (facultatif)","Escalate to Manager ":"Escalader au Manager","Why can't you handle this job? *":"Pourquoi ne pouvez-vous pas traiter ce travail ? *",
+        "Suggest a technician (optional)":"Suggérer un technicien (facultatif)","No suggestion":"Aucune suggestion",
+        "Curative Job Card":"Fiche de travail curatif","Download PDF":"Télécharger le PDF","Maintenance Job Card":"Fiche de travail de maintenance","Download Job Card PDF":"Télécharger la fiche en PDF",
+        "Your Review (In-Charge)":"Votre évaluation (Responsable)","Approve & Co-sign":"Approuver et co-signer","Reject Work":"Rejeter le travail",
+        "Rejected Maintenance Work":"Travail de maintenance rejeté","Acknowledge All":"Tout accepter",
+        "Request Equipment Disposal":"Demander la mise au rebut d'un équipement","Reason for disposal *":"Motif de la mise au rebut *","Current condition *":"État actuel *",
+        "Submit Disposal Request":"Soumettre la demande","Beyond Repair":"Irréparable","Damaged":"Endommagé","Obsolete":"Obsolète","Disposal Approval":"Approbation de mise au rebut",
+        "Decision *":"Décision *","Approve Disposal":"Approuver la mise au rebut","Reject Disposal":"Rejeter la mise au rebut","Comment (optional)":"Commentaire (facultatif)","Submit Decision":"Soumettre la décision",
+        "Disposal Requests — Final Approval":"Demandes de mise au rebut — Approbation finale","Awaiting My Approval":"En attente de mon approbation","Awaiting In-Charge":"En attente du Responsable","Disposed":"Mis au rebut",
+        "All Equipment — Fleet-Wide":"Tous les équipements — Parc complet","Download Inventory PDF":"Télécharger l'inventaire en PDF","Search tag or serial...":"Rechercher étiquette ou n° de série...",
+
+        // ----- Equipment modals -----
+        "Add New Equipment ":"Ajouter un équipement","Equipment photo":"Photo de l'équipement","Choose photo":"Choisir une photo","Tag Number / ID (Optional)":"N° d'étiquette / ID (facultatif)",
+        "Department *":"Département *","Equipment Name *":"Nom de l'équipement *","Brand *":"Marque *","Model *":"Modèle *","Equipment Category *":"Catégorie d'équipement *",
+        "Equipment Type *":"Type d'équipement *","Serial Number":"N° de série","Working Status *":"État de fonctionnement *","Last PM date (optional)":"Date du dernier PM (facultatif)",
+        "Next PM date (auto)":"Date du prochain PM (auto)","Assign Owner / Technician *":"Assigner propriétaire / technicien *","Save Equipment to Cloud":"Enregistrer l'équipement dans le cloud",
+        "Edit Equipment":"Modifier l'équipement","Save Changes":"Enregistrer les modifications","Last PM date":"Date du dernier PM","Transfer Equipment":"Transférer l'équipement",
+        "Current Department":"Département actuel","New Department *":"Nouveau département *","New Dedicated Technician *":"Nouveau technicien dédié *","New Location / Room *":"Nouvel emplacement / salle *",
+        "Reason for Transfer (Optional)":"Motif du transfert (facultatif)","Confirm Transfer":"Confirmer le transfert","QR Code Sticker":"Autocollant code QR","Print / Save as PDF":"Imprimer / Enregistrer en PDF",
+        "This tag already exists in the fleet!":"Cette étiquette existe déjà dans le parc !","OK, I understand":"OK, j'ai compris",
+
+        // ----- Supervisor / Infra manager -----
+        "Technician Availability & Timetables":"Disponibilité et horaires des techniciens","Bulk Import Monthly Schedule (Excel)":"Import mensuel en masse (Excel)",
+        "View Team Availability Today":"Voir la disponibilité de l'équipe aujourd'hui","Infrastructure Manager Dashboard":"Tableau de bord du responsable infrastructure",
+        "Create New Activity / Task ":"Créer une activité / tâche","Technician Performance & Rankings":"Performance et classement des techniciens","Export PDF":"Exporter en PDF",
+        "Quarterly Final Ranks (past quarters)":"Classements finaux trimestriels (trimestres passés)","Broadcast Alert to All Technicians":"Alerte générale à tous les techniciens",
+        "Manager Only":"Manager uniquement","Compose Broadcast":"Rédiger une alerte","Send to All":"Envoyer à tous","Recipients *":"Destinataires *","Toggle All":"Tout basculer","Message *":"Message *",
+        "Info — general announcement":"Info — annonce générale","Important — action needed":"Important — action requise","Urgent — emergency":"Urgent — urgence",
+        "User Messages & Feedback":"Messages et retours des utilisateurs","Unread / New":"Non lus / Nouveaux","Replied / Closed":"Répondus / Fermés","Send Reply":"Envoyer la réponse",
+        "Team Availability ":"Disponibilité de l'équipe","Fleet Analytics Dashboard":"Tableau de bord analytique du parc","Live Analytics":"Analyses en direct","TOTAL PMs":"TOTAL PM",
+        "CO-SIGNED":"CO-SIGNÉS","OVERDUE NOW":"EN RETARD","PM RATE":"TAUX PM","PMs per Department per Month":"PM par département et par mois","Working vs Not Working":"En marche vs Hors service",
+        "Overdue Trend Over Time":"Tendance des retards","Equipment Failure Heatmap":"Carte thermique des pannes","User Activity & Usage Analytics":"Activité et utilisation des utilisateurs",
+        "Recent Activity (Last 50 Events)":"Activité récente (50 derniers événements)","Curative Requests — Fleet-Wide":"Demandes curatives — Parc complet","Manager View":"Vue Manager",
+        "Escalated Curative Jobs — Awaiting Reassignment":"Travaux curatifs escaladés — En attente de réassignation","Fleet Overview — ":"Vue d'ensemble du parc — ","Manager View · Read-only":"Vue Manager · Lecture seule",
+        "All Equipment Inventory":"Inventaire de tous les équipements","Download Analysis Reports":"Télécharger les rapports d'analyse","Download Selected Department Analysis":"Télécharger l'analyse du département choisi",
+        "Download Full Fleet Analysis":"Télécharger l'analyse complète du parc","Add New In-Charge":"Ajouter un responsable","Save All Changes to Cloud":"Enregistrer toutes les modifications dans le cloud",
+        "Add New Technician":"Ajouter un technicien","Add Department":"Ajouter un département","Save All Changes":"Enregistrer toutes les modifications","Monthly Activity Reports":"Rapports d'activité mensuels",
+        "Generate Monthly Activity PDF":"Générer le PDF d'activité mensuelle","Month *":"Mois *","Year *":"Année *","Generate PDF":"Générer le PDF","January":"Janvier","February":"Février","March":"Mars","April":"Avril",
+        "May":"Mai","June":"Juin","July":"Juillet","August":"Août","September":"Septembre","October":"Octobre","November":"Novembre","December":"Décembre",
+        "Weekly Shift Pattern":"Horaire hebdomadaire","Leave Periods (Annual, Maternity, Sick, Medical …)":"Périodes de congé (annuel, maternité, maladie, médical …)","Add Leave Period":"Ajouter un congé",
+        "Date Exceptions (single-day overrides)":"Exceptions de date (modifications d'un jour)","Add Date Exception":"Ajouter une exception","Uploaded Timetable PDFs":"PDF d'horaires téléversés",
+        "Save Schedule":"Enregistrer l'horaire","Day":"Jour","Night":"Nuit","Off":"Repos","Message to System Admin":"Message à l'administrateur système","Send to Admin":"Envoyer à l'admin","View My Messages":"Voir mes messages",
+        "General feedback":"Retour général","Feature request":"Demande de fonctionnalité","Improvement suggestion":"Suggestion d'amélioration","Bug / issue":"Bogue / problème","Subject *":"Objet *","Your message *":"Votre message *",
+        "My Profile Picture":"Ma photo de profil","Choose image":"Choisir une image","Remove":"Retirer","Save Picture":"Enregistrer la photo","Forget All":"Tout oublier","Save & Use":"Enregistrer et utiliser",
+        "Signature & Digital Certificate":"Signature et certificat numérique","Your Visual Signature (handwritten PNG)":"Votre signature visuelle (PNG manuscrit)","Digital Certificate (.pfx / .p12)":"Certificat numérique (.pfx / .p12)",
+        "PFX password":"Mot de passe PFX","No visual signature uploaded":"Aucune signature visuelle téléversée","No certificate loaded":"Aucun certificat chargé",
+        "PM Analysis Report":"Rapport d'analyse PM","Choose a period and department.":"Choisissez une période et un département.","Equipment Type":"Type d'équipement","Scope":"Portée","Generate Analysis PDF":"Générer le PDF d'analyse",
+        "Download PM Cards by Equipment ":"Télécharger les fiches PM par équipement","Choose an equipment and a date range.":"Choisissez un équipement et une période.","Equipment *":"Équipement *",
+        "Tasks Work Report":"Rapport de travail des tâches","Participant":"Participant","All participants":"Tous les participants","Download Tasks Report (PDF)":"Télécharger le rapport des tâches (PDF)",
+        "Monitoring Log History":"Historique des relevés de suivi","Add New Monitoring Unit":"Ajouter une unité de suivi","Edit Monitoring Unit":"Modifier l'unité de suivi","Select Unit *":"Sélectionner l'unité *",
+        "Equipment Category *":"Catégorie d'équipement *","Equipment Monitoring & Weekly Log":"Suivi des équipements et journal hebdomadaire","Monitoring Date *":"Date du relevé *","Save Monitoring Log":"Enregistrer le relevé",
+        "Fuel level (%)":"Niveau de carburant (%)","Coolant level":"Niveau de liquide de refroidissement","Oil level":"Niveau d'huile","Fluids & Operational Data":"Fluides et données opérationnelles",
+        "Visual & Mechanical":"Visuel et mécanique","Protection Systems":"Systèmes de protection","ATS / Transfer":"ATS / Transfert","Overall condition":"État général","Save Unit":"Enregistrer l'unité",
+        "Language":"Langue",
+
+        // ----- Messages shown in toasts / status -----
+        "Logged out.":"Déconnecté.","Are you sure you want to log out?":"Voulez-vous vraiment vous déconnecter ?","Log out":"Se déconnecter","Form has been reset":"Formulaire réinitialisé",
+        "Equipment saved to cloud.":"Équipement enregistré dans le cloud.","Equipment updated.":"Équipement mis à jour.","Equipment deleted.":"Équipement supprimé.","Select equipment first.":"Sélectionnez d'abord un équipement.",
+        "Signed off & saved to database.":"Validé et enregistré dans la base de données.","Saved locally — will sync when online.":"Enregistré localement — synchronisation dès la connexion.",
+        "Already saved for this date!":"Déjà enregistré pour cette date !","Approved.":"Approuvé.","Rejected.":"Rejeté.","Approval recorded.":"Approbation enregistrée.","Rejection recorded.":"Rejet enregistré.",
+        "Verified.":"Vérifié.","Task started.":"Tâche démarrée.","Job started.":"Travail démarré.","Job paused.":"Travail en pause.","Job resumed.":"Travail repris.","Task paused.":"Tâche en pause.","Task resumed.":"Tâche reprise.",
+        "Task created and assigned.":"Tâche créée et assignée.","Submitted for verification.":"Soumis pour vérification.","PDF generated.":"PDF généré.","PDF downloaded.":"PDF téléchargé.","Saved.":"Enregistré.",
+        "Cleared.":"Effacé.","Signature saved to cloud.":"Signature enregistrée dans le cloud.","Certificate loaded.":"Certificat chargé.","2FA enabled.":"2FA activée.","2FA disabled.":"2FA désactivée.",
+        "Message sent to admin.":"Message envoyé à l'admin.","Switching equipment will clear the checklist ticks from the previous equipment. Continue?":"Changer d'équipement effacera les cases cochées de l'équipement précédent. Continuer ?",
+        "Switch Equipment":"Changer d'équipement","Clear & Switch":"Effacer et changer","Restore Draft":"Restaurer le brouillon","Restore":"Restaurer","Incomplete checklist":"Liste incomplète","Sign off anyway":"Valider quand même",
+        "Equipment transferred successfully.":"Équipement transféré avec succès.","Your equipment list has been updated.":"Votre liste d'équipements a été mise à jour.",
+        "Please log in first to view the user guide.":"Veuillez d'abord vous connecter pour voir le guide d'utilisation.","Login first.":"Connectez-vous d'abord.","Please fill all required fields.":"Veuillez remplir tous les champs obligatoires.",
+        "No technician is available for this department. Ask the Manager to assign one manually.":"Aucun technicien disponible pour ce département. Demandez au Manager d'en assigner un manuellement.",
+        "Pick a technician.":"Choisissez un technicien.","Reason is required.":"Le motif est obligatoire.","Title is required.":"Le titre est obligatoire.","Description is required.":"La description est obligatoire.",
+        "Pick an assignee.":"Choisissez un responsable.","Pick a planned date.":"Choisissez une date prévue.","Describe the problem.":"Décrivez le problème.","Pick equipment.":"Choisissez un équipement.",
+        "Describe the work.":"Décrivez le travail.","Pick both dates.":"Choisissez les deux dates.","From must be before To.":"La date de début doit précéder la date de fin.","No records in this period.":"Aucun enregistrement sur cette période.",
+        "No PMs.":"Aucun PM.","No curative requests.":"Aucune demande curative.","No tasks in this filter.":"Aucune tâche dans ce filtre.","No jobs in this filter.":"Aucun travail dans ce filtre.",
+        "All Tags":"Toutes les étiquettes","SUN":"DIM","MON":"LUN","TUE":"MAR","WED":"MER","THU":"JEU","FRI":"VEN","SAT":"SAM"
+        };
+
+        const FR_LC = {};
+        Object.keys(FR).forEach(k => { FR_LC[k.trim().toLowerCase()] = FR[k]; });
+
+        const MONTHS = { Jan:'janv.', Feb:'févr.', Mar:'mars', Apr:'avr.', May:'mai', Jun:'juin', Jul:'juil.', Aug:'août', Sep:'sept.', Oct:'oct.', Nov:'nov.', Dec:'déc.' };
+        const DAYS = { Mon:'lun.', Tue:'mar.', Wed:'mer.', Thu:'jeu.', Fri:'ven.', Sat:'sam.', Sun:'dim.' };
+
+        /* Dynamic sentences (regex -> French) */
+        const PATTERNS = [
+            [/^Next PM due: (.*)$/, m => 'Prochain PM prévu : ' + m[1].replace('(quarterly)', '(trimestriel)').replace(/\((\d+) months\)/, '($1 mois)')],
+            [/^In-Charge: (.*)$/, m => 'Responsable : ' + m[1]],
+            [/^Owner: (.*)$/, m => 'Propriétaire : ' + m[1]],
+            [/^Welcome (.+)$/, m => 'Bienvenue ' + m[1]],
+            [/^just now$/, () => "à l'instant"],
+            [/^(\d+)m ago$/, m => 'il y a ' + m[1] + ' min'],
+            [/^(\d+)h ago$/, m => 'il y a ' + m[1] + ' h'],
+            [/^(\d+)d ago$/, m => 'il y a ' + m[1] + ' j'],
+            [/^(\d+) \/ (\d+) completed$/, m => m[1] + ' / ' + m[2] + ' terminés'],
+            [/^(\d+) \/ (\d+) done$/, m => m[1] + ' / ' + m[2] + ' faits'],
+            [/^(\d+) unit\(s\)$/, m => m[1] + ' unité(s)'],
+            [/^(\d+) user\(s\)$/, m => m[1] + ' utilisateur(s)'],
+            [/^(\d+) wrong attempts$/, m => m[1] + ' tentatives incorrectes'],
+            [/^Wrong PIN for (.+)\. Attempt (\d+)\/(\d+)\.$/, m => 'Code PIN incorrect pour ' + m[1] + '. Tentative ' + m[2] + '/' + m[3] + '.'],
+            [/^(\d+) record\(s\) synced\.$/, m => m[1] + ' enregistrement(s) synchronisé(s).'],
+            [/^(\d+) PM task\(s\) · (\d+) curative\(s\)$/, m => m[1] + ' tâche(s) PM · ' + m[2] + ' curatif(s)'],
+            [/^(\d+)d overdue$/, m => 'en retard de ' + m[1] + ' j'],
+            [/^(\d+)d left$/, m => m[1] + ' j restants'],
+            [/^Overdue by (\d+) days$/, m => 'En retard de ' + m[1] + ' jours'],
+            [/^(\d+) days$/, m => m[1] + ' jours'],
+            [/^Sent to (\d+) technician\(s\)\.$/, m => 'Envoyé à ' + m[1] + ' technicien(s).'],
+            [/^Delegated to (.+)\.$/, m => 'Délégué à ' + m[1] + '.'],
+            [/^Reassigned to (.+)\.$/, m => 'Réassigné à ' + m[1] + '.'],
+            [/^Escalated to (.+?) \(Manager\)\.$/, m => 'Escaladé à ' + m[1] + ' (Manager).'],
+            [/^Escalated to (.+?) \(In-Charge\)\.$/, m => 'Escaladé à ' + m[1] + ' (Responsable).'],
+            [/^Only (\d+) of (\d+) checklist items are ticked\. Sign off anyway\?$/, m => 'Seulement ' + m[1] + ' éléments sur ' + m[2] + ' sont cochés. Valider quand même ?'],
+            [/^A saved draft for (.+) was found\. Restore it\?$/, m => 'Un brouillon enregistré pour ' + m[1] + ' a été trouvé. Le restaurer ?'],
+            [/^Delete (.+)\? This cannot be undone\.$/, m => 'Supprimer ' + m[1] + ' ? Cette action est irréversible.']
+        ];
+
+        let lang = 'en';
+        try { lang = localStorage.getItem('chub_lang') || 'en'; } catch (e) { }
+        const missing = new Set();
+        let obs = null;
+
+        function dateFix(s) {
+            return s
+                .replace(/\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)(?=,? \d{1,2} )/g, d => DAYS[d])
+                .replace(/\b(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g, (x, n, mo) => n + ' ' + MONTHS[mo]);
+        }
+
+        function tr(s) {
+            if (!s || typeof s !== 'string') return s;
+            const m = s.match(/^([^\p{L}\p{N}(\[]*)([\s\S]*?)([^\p{L}\p{N})\]?!.]*)$/u);
+            if (!m) return dateFix(s);
+            let core = m[2].replace(/\s+/g, ' ');
+            if (!core) return s;
+            let out = FR[core];
+            if (out === undefined) out = FR_LC[core.toLowerCase()];
+            let suf = m[3];
+            if (out === undefined && /\.{3}$/.test(core)) {
+                const base = core.replace(/\.{3}$/, '');
+                const o2 = FR[base] !== undefined ? FR[base] : FR_LC[base.toLowerCase()];
+                if (o2 !== undefined) { out = o2; suf = '…' + suf; }
+            }
+            if (out === undefined) {
+                for (let i = 0; i < PATTERNS.length; i++) {
+                    const pm = core.match(PATTERNS[i][0]);
+                    if (pm) { out = PATTERNS[i][1](pm); break; }
+                }
+            }
+            if (out === undefined) {
+                const d = dateFix(s);
+                if (d === s && /\p{L}{3,}/u.test(core)) missing.add(core);
+                return d;
+            }
+            suf = suf.replace(/^:/, ' :');
+            return dateFix(m[1] + out + suf);
+        }
+
+        /* ---------- DOM translation ---------- */
+        const ATTRS = ['placeholder', 'title', 'aria-label', 'alt'];
+        function skip(el) {
+            if (!el || el.nodeType !== 1) return false;
+            const t = el.tagName;
+            if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEXTAREA' || t === 'NOSCRIPT') return true;
+            return !!(el.closest && el.closest('[data-no-i18n]'));
+        }
+        function procText(n) {
+            const p = n.parentNode;
+            if (!p || skip(p)) return;
+            const v = n.nodeValue;
+            if (!v || !v.trim()) return;
+            const st = n.__i18n;
+            if (st && v === st.fr) return;
+            const out = tr(v);
+            if (out !== v) { n.__i18n = { en: v, fr: out }; n.nodeValue = out; }
+            else if (st) delete n.__i18n;
+        }
+        function procEl(el) {
+            if (skip(el)) return;
+            ATTRS.forEach(a => {
+                const v = el.getAttribute(a);
+                if (!v) return;
+                const store = el.__i18nA || (el.__i18nA = {});
+                if (store[a] && store[a].fr === v) return;
+                const out = tr(v);
+                if (out !== v) { store[a] = { en: v, fr: out }; el.setAttribute(a, out); }
+            });
+        }
+        function walk(root) {
+            if (!root) return;
+            if (root.nodeType === 3) { procText(root); return; }
+            if (root.nodeType !== 1) return;
+            if (skip(root)) return;
+            procEl(root);
+            const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+            let n; while ((n = tw.nextNode())) procText(n);
+            root.querySelectorAll('[placeholder],[title],[aria-label],[alt]').forEach(procEl);
+        }
+        function restore() {
+            const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+            let n; while ((n = tw.nextNode())) {
+                if (n.__i18n && n.nodeValue === n.__i18n.fr) n.nodeValue = n.__i18n.en;
+                delete n.__i18n;
+            }
+            document.querySelectorAll('*').forEach(el => {
+                if (!el.__i18nA) return;
+                Object.keys(el.__i18nA).forEach(a => {
+                    if (el.getAttribute(a) === el.__i18nA[a].fr) el.setAttribute(a, el.__i18nA[a].en);
+                });
+                delete el.__i18nA;
+            });
+        }
+
+        function startObserver() {
+            if (obs) return;
+            obs = new MutationObserver(muts => {
+                obs.disconnect();
+                try {
+                    muts.forEach(m => {
+                        if (m.type === 'childList') m.addedNodes.forEach(walk);
+                        else if (m.type === 'characterData') procText(m.target);
+                        else if (m.type === 'attributes') procEl(m.target);
+                    });
+                } finally { observe(); }
+            });
+            observe();
+        }
+        function observe() {
+            obs.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+        }
+        function stopObserver() { if (obs) { obs.disconnect(); obs = null; } }
+
+        /* ---------- Switch language ---------- */
+        function setLang(l) {
+            lang = (l === 'fr') ? 'fr' : 'en';
+            try { localStorage.setItem('chub_lang', lang); } catch (e) { }
+            document.documentElement.lang = lang;
+            stopObserver();
+            if (lang === 'fr') { walk(document.body); startObserver(); }
+            else { restore(); }
+            document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('lang-active', b.getAttribute('data-lang') === lang));
+        }
+
+        /* alert / confirm / prompt also get translated (line by line) */
+        function trMsg(s) {
+            if (lang !== 'fr' || typeof s !== 'string') return s;
+            return s.split('\n').map(l => l.trim() ? tr(l) : l).join('\n');
+        }
+        const _alert = window.alert.bind(window), _confirm = window.confirm.bind(window), _prompt = window.prompt.bind(window);
+        window.alert = m => _alert(trMsg(m));
+        window.confirm = m => _confirm(trMsg(m));
+        window.prompt = (m, d) => _prompt(trMsg(m), d);
+
+        /* ---------- UI: modal + login link ---------- */
+        const css = document.createElement('style');
+        css.textContent = '.lang-opt{width:100%;padding:16px;font-size:1.05rem;font-weight:700;border-radius:16px}' +
+            '.lang-opt.lang-active{background:#e2f0e6;border-color:#1b6b3f;color:#1b6b3f}' +
+            '.lang-opt.lang-active::after{content:" ✓"}' +
+            'a[data-lang]{font-weight:700;color:#1e4a6d;text-decoration:none;padding:2px 6px;border-radius:8px}' +
+            'a[data-lang].lang-active{background:#e2f0e6;color:#1b6b3f}';
+        document.head.appendChild(css);
+
+        document.body.insertAdjacentHTML('beforeend',
+            '<div class="modal-overlay" id="languageModal" data-no-i18n>' +
+            '<div class="modal-box" style="max-width:400px;text-align:center;">' +
+            '<div style="font-size:2.4rem;margin-bottom:8px;">🌐</div>' +
+            '<h2 style="justify-content:center;">Language / Langue</h2>' +
+            '<p>Choose your language · Choisissez votre langue</p>' +
+            '<div style="display:flex;flex-direction:column;gap:12px;">' +
+            '<button type="button" class="btn-secondary lang-opt" data-lang="en">English</button>' +
+            '<button type="button" class="btn-secondary lang-opt" data-lang="fr">Français</button>' +
+            '</div>' +
+            '<div class="modal-actions" style="justify-content:center;"><button type="button" class="btn-cancel" id="langCloseBtn">Close / Fermer</button></div>' +
+            '</div></div>');
+
+        const loginBox = document.querySelector('#loginModal .modal-box');
+        if (loginBox) loginBox.insertAdjacentHTML('beforeend',
+            '<div data-no-i18n style="margin-top:14px;font-size:.88rem;">🌐 <a href="#" data-lang="en">English</a> · <a href="#" data-lang="fr">Français</a></div>');
+
+        window.openLanguageModal = function () {
+            document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('lang-active', b.getAttribute('data-lang') === lang));
+            document.getElementById('languageModal').classList.add('show');
+        };
+        document.getElementById('langCloseBtn').addEventListener('click', () => document.getElementById('languageModal').classList.remove('show'));
+        document.addEventListener('click', e => {
+            const b = e.target.closest('[data-lang]');
+            if (!b) return;
+            e.preventDefault();
+            setLang(b.getAttribute('data-lang'));
+            document.getElementById('languageModal').classList.remove('show');
+        });
+
+        /* Helpers for you */
+        window.T = tr;
+        window.i18nMissing = () => { console.log('Untranslated strings currently seen:'); console.table(Array.from(missing)); return Array.from(missing); };
+
+        setLang(lang);
+    })();
+    </script>
+    <!-- ===================== END LANGUAGE ENGINE ===================== -->
 
     <!-- Register Service Worker for PWA and Push Notifications -->
     <script>
