@@ -107,80 +107,48 @@ self.addEventListener('fetch', event => {
             })
     );
 });
-// ============================================================
-// ===== WEB PUSH EVENT LISTENERS (ADDED FOR BACKGROUND NOTIFICATIONS) =====
-// ============================================================
-
-// 1. Handle incoming push messages
-self.addEventListener('push', function(event) {
+// ===== PUSH NOTIFICATIONS (WhatsApp-style) =====
+self.addEventListener('push', (event) => {
   let data = {};
-  if (event.data) {
+  try { data = event.data ? event.data.json() : {}; }
+  catch (e) { data = { title: 'CHUB Maint Fleet', body: event.data ? event.data.text() : '' }; }
+
+  event.waitUntil((async () => {
+    // taskbar badge, even when the app is closed
     try {
-      data = event.data.json();
-    } catch (e) {
-      data = { title: 'New Notification', body: event.data.text() };
-    }
-  }
+      if (self.navigator && self.navigator.setAppBadge && data.unreadCount != null) {
+        if (data.unreadCount > 0) await self.navigator.setAppBadge(data.unreadCount);
+        else await self.navigator.clearAppBadge();
+      }
+    } catch (e) {}
 
-  const title = data.title || 'CHUB Maint Fleet';
-  const options = {
-    body: data.body || 'You have a new update.',
-    icon: data.icon || './icon-192.png',
-    badge: './icon-192.png', // Monochrome icon for the notification
-    data: {
-      url: data.url || '/', // URL to open when notification is clicked
-      ...data.data
-    },
-    // Optional: add actions
-    actions: [
-      { action: 'open', title: 'Open' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ]
-  };
+    // if the app is open AND focused, the app itself already shows it
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const focused = wins.some(w => w.focused && w.visibilityState === 'visible');
+    if (focused) { wins.forEach(w => w.postMessage({ type: 'push-received' })); return; }
 
-  // 2. Show the notification
-  event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
-
-  // 3. Update the app badge (WhatsApp-style numeric count)
-  // The badge API is available in the service worker.
-  if ('setAppBadge' in navigator) {
-    // You can pass a number if the push payload includes an unread count.
-    // If not, just set a dot (1) as a simple alert.
-    const unreadCount = data.unreadCount || 1; // Default to 1 if not provided
-    navigator.setAppBadge(unreadCount).catch(err => {
-      console.warn('Could not set app badge:', err);
+    await self.registration.showNotification(data.title || 'CHUB Maint Fleet', {
+      body: data.body || '',
+      icon: 'icon-192.png',
+      badge: 'icon-192.png',
+      tag: 'chub-' + (data.notifId || Date.now()),
+      renotify: true,
+      requireInteraction: data.priority === 'urgent',   // urgent broadcasts stay until clicked
+      data: { url: data.url || './', notifId: data.notifId || '' }
     });
-  }
+  })());
 });
 
-// 4. Handle notification click
-self.addEventListener('notificationclick', function(event) {
+self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-
-  const urlToOpen = event.notification.data?.url || '/';
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      // Check if a window with the target URL is already open
-      for (let i = 0; i < windowClients.length; i++) {
-        const client = windowClients[i];
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      // If not, open a new window
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
-  );
+  const d = event.notification.data || {};
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    if (wins.length) {
+      await wins[0].focus();
+      wins[0].postMessage({ type: 'notification-click', notifId: d.notifId });
+    } else {
+      await self.clients.openWindow(d.url || './');
+    }
+  })());
 });
-
-// 5. Handle notification close (optional: clear badge if no other notifications)
-self.addEventListener('notificationclose', function(event) {
-  // You might want to decrement the badge count here.
-  // For simplicity, we'll leave the badge until the app is opened.
-});
-
