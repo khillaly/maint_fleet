@@ -107,3 +107,80 @@ self.addEventListener('fetch', event => {
             })
     );
 });
+// ============================================================
+// ===== WEB PUSH EVENT LISTENERS (ADDED FOR BACKGROUND NOTIFICATIONS) =====
+// ============================================================
+
+// 1. Handle incoming push messages
+self.addEventListener('push', function(event) {
+  let data = {};
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: 'New Notification', body: event.data.text() };
+    }
+  }
+
+  const title = data.title || 'CHUB Maint Fleet';
+  const options = {
+    body: data.body || 'You have a new update.',
+    icon: data.icon || './icon-192.png',
+    badge: './icon-192.png', // Monochrome icon for the notification
+    data: {
+      url: data.url || '/', // URL to open when notification is clicked
+      ...data.data
+    },
+    // Optional: add actions
+    actions: [
+      { action: 'open', title: 'Open' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ]
+  };
+
+  // 2. Show the notification
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+
+  // 3. Update the app badge (WhatsApp-style numeric count)
+  // The badge API is available in the service worker.
+  if ('setAppBadge' in navigator) {
+    // You can pass a number if the push payload includes an unread count.
+    // If not, just set a dot (1) as a simple alert.
+    const unreadCount = data.unreadCount || 1; // Default to 1 if not provided
+    navigator.setAppBadge(unreadCount).catch(err => {
+      console.warn('Could not set app badge:', err);
+    });
+  }
+});
+
+// 4. Handle notification click
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+
+  const urlToOpen = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      // Check if a window with the target URL is already open
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If not, open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
+
+// 5. Handle notification close (optional: clear badge if no other notifications)
+self.addEventListener('notificationclose', function(event) {
+  // You might want to decrement the badge count here.
+  // For simplicity, we'll leave the badge until the app is opened.
+});
+
