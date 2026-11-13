@@ -14446,11 +14446,22 @@ techs[n] = {
                 if (!b) return;
                 CURRENT_NOTIFICATIONS = await fetchMyNotifications();
                 const u = CURRENT_NOTIFICATIONS.filter(n => !n.read).length;
-                if (u > 0) {
-                    b.textContent = u > 99 ? '99+' : String(u);
-                    b.classList.add('show');
-                    if (u >= 3) b.classList.add('pulse'); else b.classList.remove('pulse');
-                } else {
+if (u > 0) {
+    b.textContent = u > 99 ? '99+' : String(u);
+    b.classList.add('show');
+    if (u >= 3) b.classList.add('pulse'); else b.classList.remove('pulse');
+} else {
+    b.classList.remove('show', 'pulse');
+}
+
+// --- SYNC THE WINDOWS TASKBAR BADGE ---
+if ('setAppBadge' in navigator) {
+    if (u > 0) {
+        navigator.setAppBadge(u).catch(err => console.warn('Badge error:', err));
+    } else {
+        navigator.clearAppBadge().catch(err => console.warn('Badge clear error:', err));
+    }
+} else {
                     b.classList.remove('show', 'pulse');
                 }
                 const bell = document.getElementById('notifBell');
@@ -22563,6 +22574,18 @@ if (currentRole === 'incharge') {
     const _u = LIVE_USERS[p.name];
     currentInchargeDept = (_u && _u.dept) || p.dept || '';
 }
+// --- WEB PUSH HELPER ---
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+// --- END WEB PUSH HELPER ---
 
                     if (currentRole === 'technician') {
                         let found = false;
@@ -22614,6 +22637,7 @@ if (currentRole === 'incharge') {
                     }
 
                     initNotificationPoller();
+                    subscribeToPush().catch(() => {});
 
                     if (currentRole === 'incharge') {
                         currentInchargeDept = p.dept || inferDepartmentFromIncharge(p.name);
@@ -22959,6 +22983,7 @@ if (!r || (!userRecHasPermission(r, 'incharge') && !userRecHasPermission(r, 'hea
 
             logoutBtn.addEventListener('click', async () => {
                 if (await smartConfirm('Are you sure you want to log out?', { title: '🚪 Log out', icon: '🚪', okText: 'Log out', danger: false })) {
+                    await unsubscribePushForUser();
                     lockApp();
                     showStatus('Logged out.', true);
                 }
@@ -23523,7 +23548,50 @@ document.getElementById('delegateCurativeSaveBtn')?.addEventListener('click', sa
                     select.innerHTML = '<option value="">⚠️ ' + e.message + '</option>';
                 }
             }
+async function subscribeToPush() {
+    if (!currentLoggedInName) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    const VAPID_PUBLIC = 'BPvgBCdnaoSpLnkSwMkZ80Z1tAyYgjVWr5XbBewcfEAcRBriHA2cAIV-pz18Ge5lyXS-sdc9us5D_2bp9a-iaHE'; // ← your public key
+    const toKey = (s) => {
+        const pad = '='.repeat((4 - s.length % 4) % 4);
+        const raw = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
+        return Uint8Array.from(raw, c => c.charCodeAt(0));
+    };
+    try {
+        if (Notification.permission === 'default') await Notification.requestPermission();
+        if (Notification.permission !== 'granted') return;
 
+        const reg = await navigator.serviceWorker.ready;
+        const appKey = toKey(VAPID_PUBLIC);
+        let sub = await reg.pushManager.getSubscription();
+
+        // subscription made with a different key is useless → recreate
+        if (sub) {
+            const ek = sub.options && sub.options.applicationServerKey ? new Uint8Array(sub.options.applicationServerKey) : null;
+            const same = ek && ek.length === appKey.length && ek.every((b, i) => b === appKey[i]);
+            if (!same) { await sub.unsubscribe(); sub = null; }
+        }
+        if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: appKey });
+
+        // ALWAYS save/refresh the row for the CURRENT user (fixes shared PCs)
+        const j = sub.toJSON();
+        const { error } = await window.FB.supabase.from('push_subscriptions').upsert(
+            [{ user_id: currentLoggedInName, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }],
+            { onConflict: 'endpoint' }
+        );
+        if (error) throw error;
+        console.log('[push] subscribed as', currentLoggedInName);
+    } catch (e) { console.error('[push] subscribe failed', e); }
+}
+
+async function unsubscribePushForUser() {
+    try {
+        if (!('serviceWorker' in navigator)) return;
+        const reg = await navigator.serviceWorker.getRegistration();
+        const sub = reg && await reg.pushManager.getSubscription();
+        if (sub) await window.FB.supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+    } catch (e) {}
+}
             async function fetchTechnicianAssetsFromCloud(techName) {
                 try {
                     const cfg = await firestoreConfigGetAll();
@@ -24810,6 +24878,33 @@ bindUpsPhaseSync('editMonPhaseType', 'editMonChecklist');
                     console.warn('⚠️ [Storage] Could not auto-delete notifications:', e);
                 }
             }
+            let __rtChannel = null;
+function startRealtimeNotifications() {
+    try {
+        stopRealtimeNotifications();
+        if (!window.FB || !window.FB.supabase || !currentLoggedInName) return;
+        const me = currentLoggedInName;
+        __rtChannel = window.FB.supabase
+            .channel('notif-' + userDocId(me))
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, payload => {
+                const r = payload && payload.new;
+                if (r && normalizeText(r.recipient) === normalizeText(me)) pollNotifications();
+            })
+            .subscribe();
+        if ('serviceWorker' in navigator && !window.__swMsgBound) {
+            window.__swMsgBound = true;
+            navigator.serviceWorker.addEventListener('message', e => {
+                if (!e.data) return;
+                if (e.data.type === 'notification-click') { openNotifPanel(); pollNotifications(); }
+                if (e.data.type === 'push-received') pollNotifications();
+            });
+        }
+    } catch (e) { console.warn('[realtime]', e); }
+}
+function stopRealtimeNotifications() {
+    try { if (__rtChannel && window.FB && window.FB.supabase) window.FB.supabase.removeChannel(__rtChannel); } catch (e) {}
+    __rtChannel = null;
+}
             async function initNotificationPoller() {
                 if (__notifPollTimer) clearInterval(__notifPollTimer);
                 
@@ -24824,6 +24919,7 @@ bindUpsPhaseSync('editMonPhaseType', 'editMonChecklist');
     } catch (e) { }
     // Poll every 30s (was 5 min) — makes the bell feel live.
     __notifPollTimer = setInterval(pollNotifications, 30000);
+    startRealtimeNotifications();;
     // Also fire an immediate poll so any notification created in the last few
     // seconds (e.g., during the login animation) shows up right away.
     setTimeout(pollNotifications, 3000);
@@ -24842,7 +24938,7 @@ bindUpsPhaseSync('editMonPhaseType', 'editMonChecklist');
     // ✅ OPTIMIZATION: Do NOT clear the entire app cache just because a notification arrived.
     // Only the notifications list needs updating.
     invalidateCache('notifications');
-                        playNotificationSound();
+                        if (document.visibilityState === 'visible') playNotificationSound();
                         if ('Notification' in window && Notification.permission === 'granted') {
                             const latest = newOnes[0];
                             try {
@@ -24850,7 +24946,7 @@ bindUpsPhaseSync('editMonPhaseType', 'editMonChecklist');
                                     body: latest.message || '',
                                     icon: 'icon-192.png',
                                     badge: 'icon-192.png',
-                                    tag: latest._docId,
+                                    tag: 'chub-' + latest._docId,
                                     renotify: true
                                 });
                                 desktop.onclick = function () {
@@ -24867,6 +24963,7 @@ bindUpsPhaseSync('editMonPhaseType', 'editMonChecklist');
             }
 
             function stopNotificationPoller() {
+    stopRealtimeNotifications();
                 if (__notifPollTimer) { clearInterval(__notifPollTimer); __notifPollTimer = null; }
                 __seenNotifIds = new Set();
             }
