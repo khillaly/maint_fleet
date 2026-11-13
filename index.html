@@ -14455,15 +14455,15 @@ if (u > 0) {
 }
 
 // --- SYNC THE WINDOWS TASKBAR BADGE ---
-if ('setAppBadge' in navigator) {
+if (window.chubDesktop && window.chubDesktop.setBadge) {
+    window.chubDesktop.setBadge(u);
+} else if ('setAppBadge' in navigator) {
     if (u > 0) {
         navigator.setAppBadge(u).catch(err => console.warn('Badge error:', err));
     } else {
         navigator.clearAppBadge().catch(err => console.warn('Badge clear error:', err));
     }
-} else {
-                    b.classList.remove('show', 'pulse');
-                }
+}
                 const bell = document.getElementById('notifBell');
                 if (bell) {
                     const unread = CURRENT_NOTIFICATIONS.filter(n => !n.read);
@@ -24950,6 +24950,7 @@ function stopRealtimeNotifications() {
                                     renotify: true
                                 });
                                 desktop.onclick = function () {
+    if (window.chubDesktop) window.chubDesktop.show();
                                     window.focus();
                                     handleNotificationClick(latest);
                                     desktop.close();
