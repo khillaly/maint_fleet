@@ -3716,7 +3716,12 @@ body.theme-assets{
   --tbg1:#fff1f2; --tbg2:#ffe4e6;
   --tshadow:rgba(190,18,60,.3); --tglow:rgba(244,63,94,.18);
 }
-
+body.theme-duty{
+  --t1:#0e7490; --t2:#06b6d4; --t3:#67e8f9; --tdark:#164e63;
+  --tsoft:#ecfeff; --tborder:#a5f3fc; --tpop:#fb923c;
+  --tbg1:#ecfeff; --tbg2:#cffafe;
+  --tshadow:rgba(14,116,144,.35); --tglow:rgba(6,182,212,.18);
+}
 /* ---- Page + container ---- */
 body[class*="theme-"]{ background:linear-gradient(135deg,var(--tbg1) 0%,var(--tbg2) 100%); transition:background .4s; }
 body.dark[class*="theme-"]{ background:linear-gradient(135deg,#0f172a 0%,#1a2332 100%); }
@@ -5492,7 +5497,64 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
                 </div>
             </div>
         </div>
+<!-- ============ DUTY COORDINATOR SECTION ============ -->
+<div id="dutyCoordinatorSection" style="display:none;">
+    <div class="card" style="margin-bottom:24px;border:2px solid #0e7490;">
+        <div class="card-header" style="background:#ecfeff;color:#0e7490;">
+            <span>🚨</span> Curative Requests I Raised
+            <span id="dcCurativeCount" style="margin-left:auto;background:#0e7490;color:white;padding:3px 12px;border-radius:20px;font-size:.8rem;font-weight:700;">0</span>
+        </div>
+        <div class="card-body">
+            <p style="font-size:.88rem;color:#0e7490;margin-bottom:14px;">Report any fault in any department and assign it to any technician (Infrastructure or Biomedical).</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+                <button class="btn-primary" id="dcRaiseCurativeBtn" style="padding:12px 26px;font-size:.95rem;">🚨 Raise New Curative Request</button>
+                <button class="btn-secondary" id="dcRefreshCurativeBtn" style="padding:12px 22px;font-size:.9rem;">🔄 Refresh</button>
+            </div>
+            <div id="dcCurativeList"><div class="info-loading" style="text-align:center;padding:20px;color:#9cb9d0;">⏳ Loading…</div></div>
+        </div>
+    </div>
 
+    <div class="card" id="dcSchedCard" style="margin-bottom:24px;border:2px solid #0e7490;">
+    <div class="card-header" style="background:#ecfeff;color:#0e7490;">
+        <span>📅</span> Technician Weekly Schedules
+        <span id="dcSchedCount" style="margin-left:auto;background:#0e7490;color:white;padding:3px 12px;border-radius:20px;font-size:.8rem;font-weight:700;">0</span>
+    </div>
+    <div class="card-body">
+        <p style="font-size:.88rem;color:#0e7490;margin-bottom:12px;">Read-only view of every technician's shifts (Infrastructure and Biomedical), including leave and monthly imported codes.</p>
+        <div class="dash-toolbar">
+            <button class="btn-secondary" id="dcSchedPrev" style="padding:8px 14px;">◀ Prev week</button>
+            <label for="dcSchedWeek">Week of:</label>
+            <input type="date" id="dcSchedWeek" style="padding:8px 14px;border-radius:30px;border:1.5px solid #cfdfeb;font-weight:600;">
+            <button class="btn-secondary" id="dcSchedNext" style="padding:8px 14px;">Next week ▶</button>
+            <select id="dcSchedDept">
+                <option value="all">🏢 All departments</option>
+                <option value="Infrastructure">🏗️ Infrastructure</option>
+                <option value="Biomedical">🏥 Biomedical</option>
+            </select>
+            <button class="btn-secondary" id="dcSchedRefresh" style="padding:8px 14px;">🔄 Refresh</button>
+        </div>
+        <div style="overflow-x:auto;" id="dcSchedGrid"></div>
+        <div style="margin-top:10px;font-size:.78rem;color:#5b7b96;">☀️ Day · 🌙 Night · 😴 Off · 🏖️ Leave · ⚪ No schedule on file. Hover a cell for the reason. Letters are the imported shift codes (A, GN, R …).</div>
+    </div>
+</div>
+
+<div class="card" id="dcReportsCard" style="margin-bottom:24px;border:2px solid #0e7490;">
+        <div class="card-header" style="background:#ecfeff;color:#0e7490;"><span>📥</span> PDF Reports</div>
+        <div class="card-body">
+            <div class="dash-toolbar">
+                <label for="dcRepDept">🏢 Department:</label>
+                <select id="dcRepDept"><option value="all">All Departments</option></select>
+                <label for="dcRepQuarter">📅 Quarter:</label>
+                <select id="dcRepQuarter"><option value="all">All time</option></select>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn-pdf" id="dcCurativeReportBtn"><span>🚨</span> Curative Report (PDF)</button>
+                <button class="btn-pdf-all" id="dcPmAnalysisBtn" style="background:#0b6b3a;"><span>📊</span> PM Analysis (PDF)</button>
+            </div>
+            <p style="font-size:.82rem;color:#5b7b96;margin-top:12px;">The Monthly Activity Report (all staff) is available below on this page.</p>
+        </div>
+    </div>
+</div>
         <!-- ============ SUPERVISOR SECTION ============ -->
         <div id="supervisorSection" style="display:none;">
                         
@@ -6135,6 +6197,7 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
                     <option value="technician">👨‍🔧 Technician</option>
                     <option value="incharge">👔 In-Charge</option>
                     <option value="assetsmanager">🗑️ Assets Manager</option>
+                    <option value="dutycoordinator">📞 Duty Coordinator</option>
                     <!-- ✅ HIDDEN ADMIN OPTION -->
                     <option value="supervisor" id="adminRoleOption" style="display:none;">👑 Admin / Manager</option>
                 </select>
@@ -7726,11 +7789,167 @@ const AC_PM_INTERVAL_MONTHS = 6;
                 'lightning', 'access_control', 'equipment'
             ];
 
-            const TYPES_BY_CATEGORY = {
+            /* =====================================================================
+   BIOMEDICAL CATALOGUE — from "Functional & Operational Categories of Biomedical Devices"
+   ===================================================================== */
+const BIO_CATALOG = [
+ { id:'diagnostic', no:1, icon:'🔬', name:'Diagnostic Devices', risk:'medium',
+   purpose:"Identify, measure, or track a patient's medical condition without directly treating it.",
+   faults:['No image / image artifacts','Inaccurate or drifting readings','Calibration / QC failure','Probe, lead or sensor not detected','Error code at start-up','Display or printer not working'],
+   subs:[
+   { name:'Medical Imaging', devices:['X-ray machine','CT scanner','MRI unit','Ultrasound device'],
+     kw:['x-?ray','radiograph','\\bct\\b','ct scan','\\bmri\\b','ultrasound','sonograph','mammograph','fluoroscop','c-arm'],
+     chk:['Verify image quality with phantom / test pattern','Check exposure / radiation indicators and door interlocks','Check cooling system and gantry / table / arm movement','Inspect probes, transducers, detectors and cables','Check shielding, lead aprons and warning lights'] },
+   { name:'In Vitro Diagnostics (IVDs)', devices:['Blood glucose meter','PCR machine','Automated hematology analyzer'],
+     kw:['glucose','glucometer','\\bpcr\\b','thermal ?cycler','hematolog','haematolog','analy[sz]er','centrifuge','microscope','spectrophotometer','coagulat','\\bivd\\b'],
+     chk:['Run QC / control sample and confirm results are within range','Check calibration status and last calibration date','Check reagent / consumable levels and expiry','Clean probes, sample needles, optics and waste lines','Check incubation / block temperature accuracy'] },
+   { name:'Physiological Monitors', devices:['Electrocardiogram (ECG)','Electroencephalogram (EEG)','Pulse oximeter'],
+     kw:['\\becg\\b','\\bekg\\b','electrocardio','\\beeg\\b','electroenceph','oximeter','spo2','patient monitor','vital sign','cardiac monitor','multipara','fetal monitor','\\bctg\\b','blood pressure','\\bnibp\\b'],
+     chk:['Inspect leads, electrodes, cuffs and SpO2 sensors','Compare readings with a patient simulator / reference','Verify alarm limits and alarm sound','Check recorder paper / printer and trace quality','Check filters, time/date and display brightness'] } ] },
+ { id:'therapeutic', no:2, icon:'💉', name:'Therapeutic Devices', risk:'high',
+   purpose:'Actively treat, cure, or manage a disease, injury, or physiological condition.',
+   faults:['Occlusion / flow alarm','Wrong output or dose delivered','No power / will not start','Applicator, handpiece or accessory damaged','Overheating or abnormal noise','Fails self-test'],
+   subs:[
+   { name:'Drug Delivery Systems', devices:['Infusion pump','Insulin pen','Nebulizer'],
+     kw:['infusion','syringe pump','insulin','nebuli[sz]er','pca pump','feeding pump'],
+     chk:['Occlusion and air-in-line alarm test','Flow-rate / volume accuracy test','Check door, clamp and pole clamp','Check battery run-time and charger','Clean and inspect nebulizer compressor, filter and tubing'] },
+   { name:'Energy-Based Therapy', devices:['Surgical laser','Radiation therapy unit','Physical therapy ultrasound machine'],
+     kw:['laser','radiotherap','linac','cobalt','brachytherap','physiotherap','diathermy','shockwave','phototherap','infant warmer','electrotherap','\\btens\\b'],
+     chk:['Verify output / dose against test meter','Inspect applicator, fibre, handpiece, cables','Test interlocks and emergency stop','Check cooling and warning lights','Check protective eyewear / shielding available'] },
+   { name:'Rehabilitation & Assistive Devices', devices:['Prosthetic limb','Hearing aid','Motorized wheelchair'],
+     kw:['prosthe','orthosis','hearing aid','wheelchair','walker','crutch','exoskeleton'],
+     chk:['Inspect joints, frame, straps and wear parts','Check battery, charger and motor / drive','Test brakes and controls','Check fit, comfort and safety of patient contact surfaces'] } ] },
+ { id:'lifesupport', no:3, icon:'🫁', name:'Life-Support & Life-Sustaining Devices', risk:'critical',
+   purpose:'Replace or maintain vital organ functions when a patient cannot sustain them independently.',
+   faults:['Alarm cannot be cleared','Fails self-test / will not start','Pressure / flow / FiO2 out of range','Battery does not hold charge','No shock / no output delivered','Leak or blocked circuit'],
+   subs:[
+   { name:'Respiratory Support', devices:['Mechanical ventilator','CPAP machine'],
+     kw:['ventilator','\\bcpap\\b','bipap','oxygen concentrator','suction','respirator','\\bhfnc\\b'],
+     chk:['Circuit leak test and patient-circuit inspection','Calibrate O2 / flow / pressure sensors','Check filters, humidifier and exhalation valve','Verify pressure, volume and FiO2 accuracy','Test all alarms and internal battery'] },
+   { name:'Cardiovascular Support', devices:['Defibrillator','ECMO system','Heart-lung bypass machine'],
+     kw:['defib','ecmo','bypass','heart-?lung','\\baed\\b','cardiac assist','iabp'],
+     chk:['Defibrillator energy delivery test with analyzer','Inspect pads / paddles, cables and printer','Check battery capacity and charge time','Check pump heads, flow sensors, heater-cooler (ECMO / bypass)','Verify backup power and manual override'] },
+   { name:'Renal Support', devices:['Hemodialysis machine'],
+     kw:['dialysis','haemodialysis','hemodialysis','crrt'],
+     chk:['Run disinfection / rinse cycle and record result','Check conductivity, temperature and pressure sensors','Test blood pump calibration and air / bubble detector','Check water-treatment feed (RO) and filters','Test alarms and leak detector'] } ] },
+ { id:'surgical', no:4, icon:'🔪', name:'Surgical & Interventional Devices', risk:'high',
+   purpose:'Used during invasive or minimally invasive procedures to cut, repair, or inspect tissue.',
+   faults:['No image / poor light','Leak detected','Gas / flow reading incorrect','Instrument blunt, bent or corroded','Battery / motor failure','Cable or connector damaged'],
+   subs:[
+   { name:'Surgical Instruments', devices:['Scalpel','Forceps','Surgical stapler','Orthopedic drill'],
+     kw:['scalpel','forcep','stapler','orthop','bone drill','drill','electrosurg','cautery','retractor','surgical instrument'],
+     chk:['Inspect for corrosion, burrs, bent tips and sharpness','Check ratchets, hinges and locking mechanisms','Test drill / saw motor, chuck and battery','Verify instrument sets are complete and clean'] },
+   { name:'Minimally Invasive Systems', devices:['Endoscope','Laparoscope','Robotic surgical system'],
+     kw:['endoscop','laparoscop','arthroscop','hysteroscop','cystoscop','colonoscop','bronchoscop','robotic','da vinci','camera head','light source'],
+     chk:['Leak test on scopes','Check light source, fibre bundle and camera image','Inspect working channels, angulation and insufflator','Verify cables, couplers and monitor output'] },
+   { name:'Anesthesia Delivery', devices:['Anesthesia workstation','Airway gas monitor'],
+     kw:['anesthe','anaesthe','vaporiz','gas monitor','capnograph','scavenging'],
+     chk:['Machine leak and pressure test','Check vaporizers, O2 flush and flowmeters','Calibrate gas analyzer / O2 cell','Check scavenging, absorber and breathing circuit','Test alarms and ventilator module'] } ] },
+ { id:'implant', no:5, icon:'🫀', name:'Implantable Devices', risk:'high',
+   purpose:'Placed partially or entirely inside the body through surgery or medical intervention for long-term use.',
+   faults:['Programmer / interrogator will not connect','Stock past expiry or packaging damaged','Traceability record missing','Storage conditions out of range'],
+   subs:[
+   { name:'Active Implants', devices:['Cardiac pacemaker','Cochlear implant','Deep brain stimulator'],
+     kw:['pacemaker','cochlear','deep brain','neurostimulat','\\bicd\\b','implantable defib','programmer'],
+     chk:['Check programmer / interrogator and cables','Verify battery status of programmer and test equipment','Check implant stock, expiry and storage','Confirm patient traceability records are complete'] },
+   { name:'Passive Implants', devices:['Artificial hip joint','Artificial knee joint','Coronary stent','Intraocular lens'],
+     kw:['\\bhip\\b','\\bknee\\b','stent','intraocular','\\biol\\b','implant','bone plate','\\bscrew'],
+     chk:['Check sterile packaging integrity and expiry dates','Verify storage temperature / humidity','Confirm lot / serial traceability log','Check instrument trays and sizers are complete'] } ] },
+ { id:'hospital', no:6, icon:'🛏️', name:'Hospital Hardware & Support Equipment', risk:'medium',
+   purpose:'General clinical infrastructure supporting patient care, ergonomics, and facility hygiene.',
+   faults:['Cycle fails / will not reach temperature','Door seal leaking','Bed or table does not move','Light flickers or is dim','Brake not holding','Hand control not working'],
+   subs:[
+   { name:'Sterilization & Infection Control', devices:['Autoclave','UV disinfection unit'],
+     kw:['autoclave','steril','\\buv\\b','disinfect','washer','cssd'],
+     chk:['Inspect door gasket, chamber and drain','Test safety valve, pressure and temperature gauges','Run Bowie-Dick / biological indicator test','Check UV lamp hours and output (UV units)','Verify printout / cycle record'] },
+   { name:'Patient Handling & Furniture', devices:['Electric hospital bed','Surgical table','Examination light'],
+     kw:['hospital bed','electric bed','operating table','surgical table','exam(ination)? table','exam(ination)? light','surgical light','operating light','theatre light','stretcher'],
+     chk:['Test motors / actuators, hand control and limit switches','Check brakes, castors and side rails','Check hydraulic / lifting mechanism for leaks','Check lamp / LED output and arm balance (lights)'] } ] },
+ { id:'samd', no:7, icon:'💻', name:'Software as a Medical Device (SaMD)', risk:'low',
+   purpose:'Standalone software applications performing medical functions on general computing platforms without dedicated hardware.',
+   faults:['Application will not open','Wrong or missing results','Licence expired','Host PC incompatible after update'],
+   subs:[
+   { name:'Diagnostic & Triage Software', devices:['AI radiology tool','Symptom-analysis algorithm'],
+     kw:['\\bai\\b','radiology software','triage','algorithm','samd','\\bpacs\\b','decision support'],
+     chk:['Verify software version and licence validity','Check host PC specs, OS updates and cybersecurity patches','Verify backup of data and settings','Run a known test case and confirm expected output'] },
+   { name:'Digital Therapeutics (DTx)', devices:['Diabetes management software','Insomnia therapy software','Substance-use disorder software'],
+     kw:['digital therap','\\bdtx\\b','therapeutic app','cbt app'],
+     chk:['Verify app / software version and licence','Check account access and data synchronisation','Confirm backups and data-privacy settings'] } ] }
+];
+const BIO_ALL_DEVICES = (() => { const s = []; BIO_CATALOG.forEach(c => c.subs.forEach(sb => sb.devices.forEach(d => s.push(d)))); return s; })();
+
+function bioClassify(type) {
+    const s = String(type || '').toLowerCase().trim();
+    if (!s) return null;
+    let best = null, bestScore = 0;
+    BIO_CATALOG.forEach(c => c.subs.forEach(sub => {
+        let sc = 0;
+        sub.devices.forEach(d => {
+            const dl = d.toLowerCase();
+            if (s === dl) sc += 10;
+            else if (s.includes(dl) || (s.length > 3 && dl.includes(s))) sc += 6;
+        });
+        (sub.kw || []).forEach(k => { try { if (new RegExp(k, 'i').test(s)) sc += 3; } catch (e) { } });
+        if (sc > bestScore) { bestScore = sc; best = { cat: c, sub: sub }; }
+    }));
+    return best;
+}
+function bioClassLabel(type) {
+    const c = bioClassify(type);
+    return c ? c.cat.no + '. ' + c.cat.name + ' › ' + c.sub.name : '';
+}
+function bioClassBadge_(ref) {
+    if (!ref) return '';
+    if ((ref.equipCategory || getCategoryForType(ref.type)) !== 'biomedical') return '';
+    const c = bioClassify(ref.type);
+    return '<div style="font-size:.7rem;color:#5b7b96;font-weight:600;margin-top:2px;">🏥 ' +
+        (c ? escapeHtml(c.cat.name + ' › ' + c.sub.name) : 'Unclassified') + '</div>';
+}
+function bioSuggestChecklist(type) {
+    const c = bioClassify(type);
+    let out = '# Visual & Physical Inspection\n- Inspect casing, cables, connectors and accessories for damage\n- Clean exterior surfaces, vents and filters\n- Check asset tag, calibration / inspection sticker and labels\n' +
+        '# Electrical Safety\n- Inspect power cord, plug and strain relief\n- Earth / ground continuity test\n- Leakage current test (if analyzer available)\n' +
+        '# General Function\n- Power-on self-test completes without errors\n- Verify display, controls, indicators and alarms\n- Verify battery / backup operation (if applicable)';
+    if (c) out += '\n# ' + c.sub.name + ' - Specific Checks\n' + c.sub.chk.map(x => '- ' + x).join('\n');
+    out += '\n# Documentation\n- Record firmware / software version and error log\n- Record readings, parts replaced and next calibration due';
+    return out;
+}
+function bioRiskMeta(risk) {
+    return ({ critical: { c: '#8f2929', bg: '#fff5f5', t: 'CRITICAL — patient-life risk', pr: 'critical' },
+              high:     { c: '#b33a3a', bg: '#ffe6e6', t: 'HIGH risk', pr: 'high' },
+              medium:   { c: '#7a5300', bg: '#fff3cd', t: 'MEDIUM risk', pr: 'medium' },
+              low:      { c: '#1e4a6d', bg: '#e7f0f8', t: 'LOW risk', pr: 'low' } })[risk] || { c: '#1e4a6d', bg: '#e7f0f8', t: '', pr: 'medium' };
+}
+/* Re-builds the device-type dropdown into grouped sections (Category › Subcategory) */
+function bioRegroupTypeSelect(select, existing) {
+    const prev = select.value;
+    select.innerHTML = '<option value="" disabled selected>— Choose device type —</option>';
+    const placed = new Set();
+    BIO_CATALOG.forEach(c => c.subs.forEach(sb => {
+        const g = document.createElement('optgroup');
+        g.label = c.icon + ' ' + c.no + '. ' + c.name + ' › ' + sb.name;
+        sb.devices.forEach(d => {
+            const o = document.createElement('option'); o.value = d; o.textContent = d; g.appendChild(o);
+            placed.add(normalizeText(d));
+        });
+        select.appendChild(g);
+    }));
+    const rest = (existing || []).filter(t => !placed.has(normalizeText(t)));
+    if (rest.length) {
+        const g = document.createElement('optgroup'); g.label = '🗂️ Already in the fleet / custom';
+        rest.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; g.appendChild(o); });
+        select.appendChild(g);
+    }
+    const n = document.createElement('option'); n.value = '__NEW__'; n.textContent = '➕ Type a new equipment name…';
+    select.appendChild(n);
+    if (prev && Array.from(select.options).some(o => o.value === prev)) select.value = prev;
+}
+
+const TYPES_BY_CATEGORY = {
                 fridge: ['Fridge', 'Fridge-Freezer', 'Upright Freezer', 'Chest Freezer', 'Lab Fridge', 'Vaccine Fridge'],
                 ac: ['Split AC', 'Cassette AC', 'Portable AC'],
                 electrical: ['Lamp', 'Switch', 'Socket', 'Electrical Panel', 'Other Electrical'],
-                biomedical: ['Manual Entry'],
+                biomedical: BIO_ALL_DEVICES.slice(),
                 ups: ['UPS', 'Battery Backup', 'Inverter'],
                 laundry: ['Washing Machine', 'Dryer', 'Ironing Machine'],
                 compressor: ['Air Compressor', 'Piston Compressor', 'Screw Compressor'],
@@ -7827,6 +8046,7 @@ const AC_PM_INTERVAL_MONTHS = 6;
         newOpt.textContent = '➕ Type a new equipment name…';
         select.appendChild(newOpt);
 
+        if (category === 'biomedical') bioRegroupTypeSelect(select, existing);
         if (!merged.length) {
             select.value = '__NEW__';
             if (manualInput) { manualInput.style.display = 'block'; manualInput.focus(); }
@@ -8463,7 +8683,12 @@ function escapeHtml(s) {
                 { key: 'thermostat', label: '🌡️ Thermostat / controls / sensor', kw: ['thermostat', 'control', 'setting', 'display', 'panel', 'sensor', 'reading'] },
                 { key: 'alarm_light', label: '💡 Alarm / light / indicator', kw: ['alarm', 'beep', 'indicator', 'buzzer'] },
                 { key: 'physical', label: '🔨 Physical damage', kw: ['damage', 'broken', 'crack', 'dent', 'shelf', 'drawer', 'shattered'] },
-                { key: 'other', label: '📝 Other / unspecified', kw: [] }
+                { key: 'bio_sensor', label: '🩺 Probe / sensor / lead / calibration', kw: ['probe','sensor','lead','electrode','transducer','cuff','spo2','calibrat','inaccurate','drift','artifact','reading'] },
+    { key: 'bio_software', label: '💻 Software / firmware / error code', kw: ['software','firmware','error code','boot','freeze','frozen','hang','restart','self-test','self test','licen'] },
+    { key: 'bio_battery', label: '🔋 Battery / charging / backup', kw: ['battery','charging','charger','backup','low batt'] },
+    { key: 'bio_consumable', label: '🧰 Consumable / accessory / wear part', kw: ['filter','tubing','cartridge','reagent','blade','nozzle','hose','circuit','mask','paddle','pads','cable'] },
+    { key: 'bio_mechanical', label: '⚙️ Mechanical / motion / pump', kw: ['pump','motor','brake','wheel','gear','jam','stuck','occlusion','pressure','valve'] },
+    { key: 'other', label: '📝 Other / unspecified', kw: [] }
             ];
 
             function classifyCurativeRootCause(issueText, equipType, equipName) {
@@ -8473,7 +8698,8 @@ function escapeHtml(s) {
 
                 // AI Context: Detect what kind of equipment we are dealing with
                 const isElectricalEquip = ['lamp', 'switch', 'socket', 'panel', 'bulb', 'light', 'wire', 'electrical'].some(k => typeStr.includes(k) || nameStr.includes(k));
-                const isFridgeEquip = ['fridge', 'freezer', 'cold room', 'refrigerator', 'ac', 'air conditioner'].some(k => typeStr.includes(k) || nameStr.includes(k));
+                const isBioEquip = !!bioClassify(typeStr) || !!bioClassify(nameStr);
+                const isFridgeEquip = !isBioEquip && ['fridge', 'freezer', 'cold room', 'refrigerator', 'ac', 'air conditioner'].some(k => typeStr.includes(k) || nameStr.includes(k));
 
                 let bestCause = CURATIVE_ROOT_CAUSES[CURATIVE_ROOT_CAUSES.length - 1]; // Default to 'Other'
                 let maxScore = 0;
@@ -8487,6 +8713,7 @@ function escapeHtml(s) {
                     });
 
                     // 2. Contextual Boost (AI Logic)
+                    if (c.key.indexOf('bio_') === 0) score = isBioEquip ? (score > 0 ? score + 3 : 0) : 0;
                     if (isElectricalEquip) {
                         if (c.key === 'electrical') score += 3; // Strong bias for electrical faults
                     }
@@ -9062,6 +9289,7 @@ function escapeHtml(s) {
                 if (perms.head_biomedical) return 'head_biomedical';
                 if (perms.assetsmanager) return 'assetsmanager';
                 if (perms.incharge) return 'incharge';
+                if (perms.duty_coordinator) return 'duty_coordinator';
                 return 'technician';
             }
 
@@ -9548,7 +9776,7 @@ function equipIsBiomedical(item) {
     return (item.equipCategory || getCategoryForType(item.type)) === 'biomedical';
 }
 function equipVisibleToMe(item) {
-    if (currentRole === 'assetsmanager' || currentRole === 'infra_manager' || currentRole === 'supervisor') return true;
+    if (currentRole === 'assetsmanager' || currentRole === 'infra_manager' || currentRole === 'supervisor' || currentRole === 'duty_coordinator') return true;
     
     // 🔥 FIX: In-Charges must see ALL equipment located in their department 
     // (even Biomedical equipment like a defibrillator in the OT).
@@ -9723,6 +9951,14 @@ function getSelectedRefType(prefix) {
         if (ta.dataset.fromExisting === '1') ta.value = '';
         ta.dataset.fromExisting = '';
         hint.innerHTML = 'No checklist yet for this type. ' + _defaultHint;
+        if (selectedCat === 'biomedical' && (!ta.value.trim() || ta.dataset.fromSuggest === '1')) {
+            ta.value = bioSuggestChecklist(type);
+            ta.dataset.fromSuggest = '1';
+            ta.oninput = () => { ta.dataset.fromSuggest = ''; };
+            const _cl = bioClassLabel(type);
+            hint.innerHTML = '🤖 Smart checklist suggested for <strong>' + escapeHtml(type) + '</strong>' +
+                (_cl ? ' (' + escapeHtml(_cl) + ')' : ' (generic biomedical)') + '. Edit freely — it is saved for every unit of this type.';
+        }
     }
 }
 document.getElementById('newRefTypeManual')?.addEventListener('input', () => {
@@ -9736,6 +9972,95 @@ document.getElementById('newRefType')?.addEventListener('change', () => {
     window.__bioTmr = setTimeout(() => refreshBioChecklistBlock(false), 300);
 });
 
+/* ===== SMART HINT: detected biomedical category while adding / editing ===== */
+function updateBioClassHint(p) {
+    const manual = document.getElementById(p + 'TypeManual');
+    if (!manual) return;
+    let el = document.getElementById(p + 'BioClassHint');
+    if (!el) {
+        el = document.createElement('div'); el.id = p + 'BioClassHint';
+        el.style.cssText = 'margin-top:6px;font-size:.8rem;';
+        manual.parentNode.appendChild(el);
+    }
+    const cat = document.getElementById(p + 'Category')?.value;
+    const t = getSelectedRefType(p);
+    if (cat !== 'biomedical' || !t) { el.innerHTML = ''; return; }
+    const c = bioClassify(t);
+    if (!c) {
+        el.innerHTML = '<div style="background:#fff3cd;border:1px solid #f4d97a;border-radius:10px;padding:8px 12px;color:#7a5300;">⚠️ Not recognised in the standard biomedical catalogue — a generic biomedical checklist will be suggested.</div>';
+        return;
+    }
+    const r = bioRiskMeta(c.cat.risk);
+    el.innerHTML = `<div style="background:#f0fdf4;border:1px solid #b8dfc3;border-radius:10px;padding:8px 12px;color:#155231;line-height:1.5;">
+        🤖 <strong>${c.cat.icon} ${c.cat.no}. ${escapeHtml(c.cat.name)}</strong> › ${escapeHtml(c.sub.name)}<br>
+        <span style="opacity:.85;">${escapeHtml(c.cat.purpose)}</span><br>
+        <span style="display:inline-block;margin-top:4px;padding:2px 10px;border-radius:20px;background:${r.bg};color:${r.c};font-weight:800;font-size:.72rem;">${r.t}</span></div>`;
+}
+['newRef', 'editRef'].forEach(p => {
+    document.getElementById(p + 'Type')?.addEventListener('change', () => updateBioClassHint(p));
+    document.getElementById(p + 'TypeManual')?.addEventListener('input', () => updateBioClassHint(p));
+    document.getElementById(p + 'Category')?.addEventListener('change', () => setTimeout(() => updateBioClassHint(p), 450));
+});
+
+/* ===== SMART CURATIVE (Biomedical): filters, risk alert, fault shortcuts ===== */
+function ensureCurativeBioUi() {
+    let box = document.getElementById('curativeBioBox');
+    if (box) { box.style.display = 'block'; return; }
+    const wrap = document.getElementById('curativeEquipWrap');
+    if (!wrap) return;
+    box = document.createElement('div'); box.id = 'curativeBioBox'; box.className = 'field-group';
+    box.innerHTML = `<label for="curativeBioGroup">🏥 Biomedical category</label>
+        <select id="curativeBioGroup"><option value="all">All categories</option>${BIO_CATALOG.map(c => `<option value="${c.id}">${c.icon} ${c.no}. ${escapeHtml(c.name)}</option>`).join('')}</select>
+        <input type="text" id="curativeBioSearch" placeholder="🔍 Search device, tag, brand…" style="margin-top:8px;">
+        <div id="curativeBioAlert" style="margin-top:8px;"></div>`;
+    wrap.parentNode.insertBefore(box, wrap);
+    document.getElementById('curativeBioGroup').addEventListener('change', () => reloadCurativeEquipmentList());
+    document.getElementById('curativeBioSearch').addEventListener('input', () => {
+        clearTimeout(window.__cbT); window.__cbT = setTimeout(() => reloadCurativeEquipmentList(), 250);
+    });
+}
+function hideCurativeBioUi() {
+    const b = document.getElementById('curativeBioBox'); if (b) b.style.display = 'none';
+    const f = document.getElementById('curativeFaultChips'); if (f) f.innerHTML = '';
+}
+function onCurativeEquipChosen() {
+    const sel = document.getElementById('curativeEquipSelect');
+    const isBioCat = document.getElementById('curativeCategory')?.value === 'Biomedical';
+    const ref = (sel && sel._list && sel.value !== '') ? sel._list[sel.value] : null;
+    const alertEl = document.getElementById('curativeBioAlert');
+    let chips = document.getElementById('curativeFaultChips');
+    if (!chips) {
+        chips = document.createElement('div'); chips.id = 'curativeFaultChips';
+        chips.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;';
+        document.getElementById('curativeIssue').parentNode.appendChild(chips);
+    }
+    chips.innerHTML = '';
+    const c = (isBioCat && ref) ? bioClassify(ref.type) : null;
+    if (alertEl) alertEl.innerHTML = '';
+    if (!c) return;
+    const r = bioRiskMeta(c.cat.risk);
+    if (alertEl) alertEl.innerHTML = `<div style="background:${r.bg};border-left:4px solid ${r.c};border-radius:10px;padding:8px 12px;color:${r.c};font-size:.82rem;font-weight:700;">
+        ${c.cat.icon} ${escapeHtml(c.cat.name)} › ${escapeHtml(c.sub.name)} — ${r.t}${c.cat.risk === 'critical' ? '<br>⚠️ Priority set automatically. Patient may be at risk — notify the ward.' : ''}</div>`;
+    // auto priority
+    const radio = document.querySelector('#curativePriorityGroup input[value="' + r.pr + '"]');
+    if (radio) {
+        radio.checked = true;
+        document.querySelectorAll('#curativePriorityGroup label').forEach(l => l.classList.remove('selected'));
+        radio.closest('label').classList.add('selected');
+    }
+    // fault shortcuts
+    chips.innerHTML = '<span style="font-size:.75rem;color:#5b7b96;font-weight:700;width:100%;">⚡ Common faults (tap to add):</span>' +
+        c.cat.faults.map(f => `<button type="button" class="btn-secondary" data-fault="${escapeHtml(f)}" style="padding:4px 12px;font-size:.75rem;">${escapeHtml(f)}</button>`).join('');
+    chips.querySelectorAll('[data-fault]').forEach(b => b.addEventListener('click', () => {
+        const ta = document.getElementById('curativeIssue');
+        ta.value = (ta.value ? ta.value.replace(/\s+$/, '') + '\n' : '') + '• ' + b.getAttribute('data-fault');
+    }));
+}
+document.getElementById('curativeEquipSelect')?.addEventListener('change', onCurativeEquipChosen);
+document.getElementById('curativeCategory')?.addEventListener('change', function () {
+    if (this.value !== 'Biomedical') hideCurativeBioUi();
+});
+
 /* PM form: build tick list for the selected biomedical unit */
 async function renderBioChecklistForRef(ref) {
     const block = document.getElementById('bioChecklistBlock');
@@ -9746,7 +10071,8 @@ async function renderBioChecklistForRef(ref) {
     if (!ref) { block.style.display = 'none'; box.innerHTML = ''; return; }
     block.style.display = 'block';
     const safeTitle = (ref.type && ref.type !== 'def') ? ref.type : 'Biomedical Equipment';
-    document.getElementById('bioChecklistTitle').textContent = 'PM Checklist — ' + safeTitle;
+    document.getElementById('bioChecklistTitle').textContent = 'PM Checklist — ' + safeTitle +
+        (bioClassLabel(ref.type) ? '  [' + bioClassLabel(ref.type) + ']' : '');
     box.innerHTML = '<div class="info-loading">⏳ Loading checklist…</div>';
     const cl = await fetchBioChecklist(ref.type);
 console.log("🔍 DEBUG: Checking checklist for type:", ref.type, "Found:", cl); // ADD THIS
@@ -9764,6 +10090,7 @@ console.log("🔍 DEBUG: Checking checklist for type:", ref.type, "Found:", cl);
         box.innerHTML = `<div style="font-size:.88rem;color:#7a5300;margin-bottom:8px;">No checklist defined yet for <strong>${escapeHtml(ref.type)}</strong>. Type one item per line. Use <code style="background:#eef6fc;padding:1px 6px;border-radius:4px;"># Section Name</code> at the start of a line to group items into sections.</div>
             <textarea id="bioNewChecklistText" class="remark-input" rows="8" placeholder="# Visual Inspection&#10;- Check power cable and plug&#10;- Clean exterior and filters&#10;# Electrical Safety&#10;- Ground continuity test&#10;- Check alarms and indicators"></textarea>
             <button type="button" class="btn-primary" id="bioSaveChecklistBtn" style="margin-top:10px;padding:10px 22px;font-size:.9rem;">💾 Save checklist</button>`;
+        { const _ta = document.getElementById('bioNewChecklistText'); if (_ta && !_ta.value) _ta.value = bioSuggestChecklist(ref.type); }
         document.getElementById('bioSaveChecklistBtn').onclick = async () => {
             const parsed = parseStructuredChecklist(document.getElementById('bioNewChecklistText').value);
             if (!parsed.flatItems.length) { toast('Enter at least one item.', 'warn'); return; }
@@ -11506,6 +11833,7 @@ window.__ckOwner = '';
                 let isIM  = currentRole === 'infra_manager'   || userHasPermission('infra_manager');
                 let isBio = currentRole === 'head_biomedical' || userHasPermission('head_biomedical');
                 let isTech = currentRole === 'technician'     || userHasPermission('technician');
+                let isDC = currentRole === 'duty_coordinator' || userHasPermission('duty_coordinator');
 
                 // Mask the views based on the switcher
                 if (isDual) {
@@ -11522,12 +11850,14 @@ window.__ckOwner = '';
 const _themeKey = (isSup || isIM || isBio) ? 'admin'
                 : isAM ? 'assets'
                 : isIC ? 'incharge'
+                : isDC ? 'duty'
                 : 'tech';
 const _themeMeta = {
     tech:     { label: 'Technician',     icon: '🔧', color: '#047857' },
     incharge: { label: 'In-Charge',      icon: '👔', color: '#b45309' },
     admin:    { label: 'Manager',        icon: '👑', color: '#4338ca' },
-    assets:   { label: 'Assets Manager', icon: '🗑️', color: '#be123c' }
+    assets:   { label: 'Assets Manager', icon: '🗑️', color: '#be123c' },
+    duty:     { label: 'Duty Coordinator', icon: '📞', color: '#0e7490' }
 }[_themeKey];
 document.body.classList.remove('manager-theme', 'theme-tech', 'theme-incharge', 'theme-admin', 'theme-assets');
 document.body.classList.add('theme-' + _themeKey);
@@ -11542,6 +11872,7 @@ document.querySelector('meta[name="theme-color"]')?.setAttribute('content', _the
                 document.getElementById('supervisorSection').style.display = (isSup || isBio || isIM) ? 'block' : 'none';
                 document.getElementById('assetsManagerSection').style.display = isAM ? 'block' : 'none';
                 document.getElementById('infraManagerSection').style.display = isIM ? 'block' : 'none';
+                document.getElementById('dutyCoordinatorSection').style.display = isDC ? 'block' : 'none';
                 document.getElementById('technicianActionButtons').style.display = isTech ? 'flex' : 'none';
                 
                 // ✅ EQUIPMENT MONITORING VISIBILITY LOGIC
@@ -11575,7 +11906,7 @@ if (false) {
                 // ✅ Show Monthly Report ONLY to Technicians and In-Charges (Infra & Bio), NEVER to the Manager
                 const monthlyCard = document.getElementById('monthlyReportCard');
                 if (monthlyCard) {
-                    monthlyCard.style.display = (isTech || isIC || isBio) ? 'block' : 'none';
+                    monthlyCard.style.display = (isTech || isIC || isBio || isDC) ? 'block' : 'none';
                 }
 
                 // ✅ NEW: Hide the "Manage Departments" card from everyone except the Manager (Supervisor)
@@ -11611,6 +11942,7 @@ if (false) {
                 else if (isIC) { ic.textContent = '👔'; rl.textContent = 'In-Charge:'; }
                 else if (isAM) { ic.textContent = '🗑️'; rl.textContent = 'Assets Manager:'; }
                 else if (isIM) { ic.textContent = '🏗️'; rl.textContent = 'Infra Manager:'; }
+                else if (isDC && !isTech) { ic.textContent = '📞'; rl.textContent = 'Duty Coordinator:'; }
                 else { ic.textContent = '👨‍🔧'; rl.textContent = 'Technician:'; }
                 
                 closeNotifPanel();
@@ -11724,6 +12056,11 @@ const icTaskCard = document.getElementById('icMyTasksCard');
                 }
                 if (isIC || isSup) {
                     setTimeout(() => refreshMyTasksForRole(isIC ? 'incharge' : 'supervisor'), 800);
+                }
+                                if (isDC) {
+                    populateDcReportFilters();
+                    setTimeout(() => refreshDutyCurative(), 600);
+                    setTimeout(() => renderDcSchedules(), 700);
                 }
                 if (isTech) {
                     setTimeout(() => refreshTechnicianCurative(), 800);
@@ -13640,7 +13977,7 @@ Object.keys(DEPARTMENTS).forEach(d => {
                 Object.keys(users).forEach(n => {
                     const u = users[n];
                     if (userRecHasPermission(u, 'technician') || userRecHasPermission(u, 'supervisor') ||
-                        userRecHasPermission(u, 'assetsmanager') || userRecHasPermission(u, 'infra_manager')) {
+                        userRecHasPermission(u, 'assetsmanager') || userRecHasPermission(u, 'infra_manager') || userRecHasPermission(u, 'duty_coordinator')) {
                         // AFTER
 techs[n] = {
     role: u.role,
@@ -13667,6 +14004,7 @@ techs[n] = {
                     const roleTag = r.role === 'supervisor' ? ' · 👑 Manager'
                         : r.role === 'assetsmanager' ? ' · 🗑️ Assets Mgr'
                             : r.role === 'infra_manager' ? ' · 🏗️ Infra Mgr'
+: r.role === 'duty_coordinator' ? ' · 📞 Duty Coord.'
                                 : '';
                     const row = document.createElement('div');
                     row.className = 'dept-editor-row';
@@ -13710,7 +14048,8 @@ techs[n] = {
                         <label class="perm-chip"><input type="checkbox" class="tech-perm-input" data-perm="infra_manager" ${p.infra_manager ? 'checked' : ''}> 🏗️ Infra Manager</label>
                         <label class="perm-chip"><input type="checkbox" class="tech-perm-input" data-perm="head_biomedical" ${p.head_biomedical ? 'checked' : ''}> 🏥 Head Biomedical</label>
                         <label class="perm-chip"><input type="checkbox" class="tech-perm-input" data-perm="supervisor" ${p.supervisor ? 'checked' : ''}> 👑 Supervisor</label>
-                    </div>
+                    <label class="perm-chip"><input type="checkbox" class="tech-perm-input" data-perm="duty_coordinator" ${p.duty_coordinator ? 'checked' : ''}> 📞 Duty Coordinator</label>
+                        </div>
                 </div>`;
             })()}
         </div><div class="actions">
@@ -15551,7 +15890,7 @@ return true;
                             const serial = (r.ref.serial || '').toLowerCase();
                             const model = (r.ref.model || '').toLowerCase();
                             const name = (r.ref.equipName || '').toLowerCase();
-                            return tag.includes(q) || serial.includes(q) || model.includes(q) || name.includes(q);
+                            return tag.includes(q) || serial.includes(q) || model.includes(q) || name.includes(q) || (bioClassLabel(r.ref.type) || '').toLowerCase().includes(q);
                         });
                     }
 
@@ -15580,7 +15919,7 @@ return true;
                             else daysHtml = `${r.daysLeft}d`;
                         }
                         return `<tr>
-                            <td>${wb} <strong>${escapeHtml(ref.equipName || '—')}</strong></td>
+                            <td>${wb} <strong>${escapeHtml(ref.equipName || '—')}</strong>${bioClassBadge_(ref)}</td>
                             <td>${escapeHtml(ref.tag)}</td>
                             <td>${escapeHtml(ref.loc)}</td>
                             <td>${r.lastPm ? formatDateOnly(r.lastPm) : '—'}</td>
@@ -15898,7 +16237,14 @@ bindCurativeButtons(wrap, all, { canVerify: _canVerify });
                 document.getElementById('curativeEquipWrap').style.display = 'block';
                 document.getElementById('curativeFreeTextWrap').style.display = 'none';
                 const _catSel = document.getElementById('curativeCategory');
-                if (_catSel) _catSel.value = 'Refrigeration';
+                if (_catSel) {
+                    const _bio = isBiomedicalUser();
+                    Array.from(_catSel.options).forEach(o => { o.hidden = _bio && (o.value === 'Refrigeration' || o.value === 'AirConditioner'); });
+                    _catSel.value = _bio ? 'Biomedical' : 'Refrigeration';
+                    _catSel.dispatchEvent(new Event('change'));
+                }
+                const _fc = document.getElementById('curativeFaultChips'); if (_fc) _fc.innerHTML = '';
+                const _ba = document.getElementById('curativeBioAlert'); if (_ba) _ba.innerHTML = '';
 
                 const med = document.querySelector('#curativePriorityGroup input[value="medium"]');
                 if (med) med.checked = true;
@@ -15917,7 +16263,7 @@ bindCurativeButtons(wrap, all, { canVerify: _canVerify });
                         const ds = Array.isArray(u.depts) ? u.depts : (u.dept ? [u.dept] : []);
                         return ds.length === 0 || ds.some(d => normalizeText(d) === normalizeText(dept));
                     });
-                    const techsToShow = deptTechs.length > 0 ? deptTechs : allTechs;
+                    const techsToShow = (currentRole === 'duty_coordinator') ? allTechs : (deptTechs.length > 0 ? deptTechs : allTechs);
                     if (techsToShow.length === 0) {
                         const o = document.createElement('option');
                         o.value = '';
@@ -15946,6 +16292,10 @@ bindCurativeButtons(wrap, all, { canVerify: _canVerify });
                 if (!issue) { errorEl.textContent = '⚠️ Describe the problem.'; return; }
                 const prio = (document.querySelector('#curativePriorityGroup input:checked') || {}).value || 'medium';
                 const assignTo = (document.getElementById('curativeAssignTo').value || '').trim();
+                if (currentRole === 'duty_coordinator' && !assignTo) {
+    errorEl.textContent = '⚠️ Choose the technician (Infrastructure or Biomedical) for this job.';
+    return;
+}
                 const _ao = document.getElementById('curativeAssignTo').selectedOptions[0];
                 if (assignTo && _ao && _ao.dataset.off === '1' &&
                     !await smartConfirm(assignTo + ' is OFF DUTY today. Assign anyway?', { title: '⛔ Technician Off Duty', icon: '⛔', okText: 'Assign anyway', danger: true })) return;
@@ -15988,6 +16338,7 @@ bindCurativeButtons(wrap, all, { canVerify: _canVerify });
                     equipName = freeText;
                     equipType = category;
                     dept = currentInchargeDept || inferDepartmentFromIncharge(currentLoggedInName) || '';
+                    if (currentRole === 'duty_coordinator') dept = userWorkDepts_(assignTo)[0] || INFRA_DEPT_NAME;
                 }
                 const btn = document.getElementById('curativeRaiseSaveBtn');
                 const o = btn.innerHTML;
@@ -16038,7 +16389,8 @@ if (!recs.length) { errorEl.textContent = '⚠️ No technician is available for
                     }
                     showStatus('🚨 Sent to ' + (recs.length || 0) + ' technician(s).', true);
                     document.getElementById('raiseCurativeModal').classList.remove('show');
-                    await refreshInchargeCurative();
+                    if (currentRole === 'duty_coordinator') await refreshDutyCurative();
+                    else await refreshInchargeCurative();
                     await renderNotificationBell();
                 } catch (e) {
                     errorEl.textContent = '⚠️ ' + (e.message || 'Failed.');
@@ -18094,6 +18446,29 @@ const dim = sigDims[_techKey];
                 }
                 y += 6;
 
+                // ✅ Biomedical by functional category (PDF catalogue)
+                {
+                    const bm = {};
+                    BIO_CATALOG.forEach(c => { bm[c.id] = { label: c.no + '. ' + c.name, equip: 0, pms: 0 }; });
+                    bm.other = { label: 'Unclassified biomedical', equip: 0, pms: 0 };
+                    deptInv.filter(a => (a.equipCategory || getCategoryForType(a.type)) === 'biomedical')
+                        .forEach(a => { const c = bioClassify(a.type); bm[c ? c.cat.id : 'other'].equip++; });
+                    records.filter(r => r.checklistType === 'biomedical')
+                        .forEach(r => { const c = bioClassify(r.refType || r['Type']); bm[c ? c.cat.id : 'other'].pms++; });
+                    const bRows = Object.values(bm).filter(x => x.equip > 0 || x.pms > 0);
+                    if (bRows.length) {
+                        if (y > pH - 60) { doc.addPage(); y = drawChubSlimHeader(doc, { title: contTitle, ref: 'CHUB/FRG/ANA' }); }
+                        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(18, 64, 94);
+                        doc.text('BIOMEDICAL EQUIPMENT BY FUNCTIONAL CATEGORY', mL, y); y += 3;
+                        doc.autoTable({
+                            startY: y, margin: { left: mL, right: mR },
+                            head: [includeZeroPm ? ['Category', 'Equipment', 'PMs'] : ['Category', 'PMs']],
+                            body: bRows.map(x => includeZeroPm ? [pdfSanitize(x.label), x.equip, x.pms] : [pdfSanitize(x.label), x.pms]),
+                            theme: 'striped', styles: { fontSize: 8 }, headStyles: { fillColor: [27, 107, 63], textColor: 255 }
+                        });
+                        y = doc.lastAutoTable.finalY + 8;
+                    }
+                }
                 // ---- Breakdown by Equipment (with 0-PM equipment merged in) ----
                 if (y > pH - 60) { doc.addPage(); y = drawChubSlimHeader(doc, { title: contTitle, ref: 'CHUB/FRG/ANA' }); }
                 doc.setFillColor(238, 246, 252);
@@ -19932,6 +20307,83 @@ function renderTeamAvailabilityCard(name, av) {
             }
             document.getElementById('supAvailRefreshBtn')?.addEventListener('click', renderSupTeamAvailability);
             document.getElementById('supAvailDate')?.addEventListener('change', renderSupTeamAvailability);
+            /* ===== DUTY COORDINATOR: all technicians' weekly schedules (read-only) ===== */
+function dcWeekMonday_(d) {
+    const x = new Date(d); x.setHours(0, 0, 0, 0);
+    const dow = x.getDay();
+    x.setDate(x.getDate() - (dow === 0 ? 6 : dow - 1));
+    return x;
+}
+function dcCell_(av) {
+    let ic = '⚪', bg = '#e7f0f8', fg = '#5b7b96', lbl = '?';
+    if (!av.available) {
+        const leave = av.source === 'leave';
+        ic = leave ? '🏖️' : '😴'; bg = '#ffe6e6'; fg = '#b33a3a'; lbl = leave ? 'Leave' : 'Off';
+    } else if (av.unknown) {
+        ic = '⚪'; lbl = '—';
+    } else if (av.shift === 'night') {
+        ic = '🌙'; bg = '#e8def8'; fg = '#5d3578'; lbl = 'Night';
+    } else {
+        ic = '☀️'; bg = '#e2f0e6'; fg = '#1b6b3f'; lbl = 'Day';
+    }
+    const code = String(av.reason || '').match(/Bulk Import: (\w+)/);
+    return `<td title="${escapeHtml(av.reason || lbl)}" style="text-align:center;background:${bg};color:${fg};padding:6px 4px;font-weight:700;min-width:62px;">
+        <div style="font-size:1.05rem;">${ic}</div><div style="font-size:.68rem;">${code ? escapeHtml(code[1]) : lbl}</div></td>`;
+}
+async function renderDcSchedules() {
+    const wrap = document.getElementById('dcSchedGrid');
+    const inp = document.getElementById('dcSchedWeek');
+    if (!wrap || !inp) return;
+    if (!inp.value) inp.value = toIsoDate_(dcWeekMonday_(new Date()));
+    const monday = dcWeekMonday_(parseToDate(inp.value) || new Date());
+    const days = [];
+    for (let i = 0; i < 7; i++) { const d = new Date(monday); d.setDate(monday.getDate() + i); days.push(d); }
+    const todayIso = toIsoDate_(new Date());
+    const deptF = document.getElementById('dcSchedDept')?.value || 'all';
+    renderSkeletons(wrap, 4, 'row');
+    try {
+        const users = await loadUsersFromFirestore();
+        let techs = Object.keys(users).filter(n =>
+            users[n].role === 'technician' || userRecHasPermission(users[n], 'technician'));
+        if (deptF !== 'all') {
+            techs = techs.filter(n => {
+                const u = users[n];
+                const ds = (Array.isArray(u.depts) && u.depts.length) ? u.depts : (u.dept ? [u.dept] : []);
+                return ds.some(d => normalizeText(d) === normalizeText(deptF));
+            });
+        }
+        techs.sort();
+        const cnt = document.getElementById('dcSchedCount'); if (cnt) cnt.textContent = techs.length;
+        if (!techs.length) { wrap.innerHTML = '<div style="text-align:center;padding:18px;color:#9cb9d0;font-style:italic;">No technicians found.</div>'; return; }
+        const scheds = await Promise.all(techs.map(n => fetchScheduleFor(n)));
+        const DL = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        let h = '<table class="inv-table"><thead><tr><th style="min-width:190px;">Technician</th>' +
+            days.map((d, i) => {
+                const iso = toIsoDate_(d);
+                return `<th style="text-align:center;${iso === todayIso ? 'background:#fff3cd;' : ''}">${DL[i]}<br><span style="font-weight:600;font-size:.72rem;">${String(d.getDate()).padStart(2, '0')} ${MONTHS_SHORT[d.getMonth()]}</span></th>`;
+            }).join('') + '</tr></thead><tbody>';
+        techs.forEach((n, ti) => {
+            const u = users[n];
+            const ds = (Array.isArray(u.depts) && u.depts.length) ? u.depts : (u.dept ? [u.dept] : []);
+            h += `<tr><td><strong>${escapeHtml(n)}</strong><div style="font-size:.72rem;color:#5b7b96;">${escapeHtml(ds.join(', ') || '—')}${scheds[ti] ? '' : ' · <em>no schedule</em>'}</div></td>` +
+                days.map(d => dcCell_(computeAvailability(scheds[ti], toIsoDate_(d)))).join('') + '</tr>';
+        });
+        wrap.innerHTML = h + '</tbody></table>';
+    } catch (e) {
+        wrap.innerHTML = '<div class="info-error">⚠️ ' + escapeHtml(e.message) + '</div>';
+    }
+}
+document.getElementById('dcSchedWeek')?.addEventListener('change', renderDcSchedules);
+document.getElementById('dcSchedDept')?.addEventListener('change', renderDcSchedules);
+document.getElementById('dcSchedRefresh')?.addEventListener('click', renderDcSchedules);
+document.getElementById('dcSchedPrev')?.addEventListener('click', () => {
+    const i = document.getElementById('dcSchedWeek'); const d = dcWeekMonday_(parseToDate(i.value) || new Date());
+    d.setDate(d.getDate() - 7); i.value = toIsoDate_(d); renderDcSchedules();
+});
+document.getElementById('dcSchedNext')?.addEventListener('click', () => {
+    const i = document.getElementById('dcSchedWeek'); const d = dcWeekMonday_(parseToDate(i.value) || new Date());
+    d.setDate(d.getDate() + 7); i.value = toIsoDate_(d); renderDcSchedules();
+});
 
             /* ============================================================
                TASKS / ACTIVITIES SYSTEM
@@ -22434,7 +22886,10 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                     techs = Object.keys(users)
                         .filter(n => userRecHasPermission(users[n], 'assetsmanager'))
                         .sort();
-                       } else if (loginRole === 'supervisor') {
+                       } else if (loginRole === 'dutycoordinator') {
+    if (deptSel) deptSel.style.display = 'none';
+    techs = Object.keys(users).filter(n => userRecHasPermission(users[n], 'duty_coordinator')).sort();
+} else if (loginRole === 'supervisor') {
     if (deptSel) deptSel.style.display = 'none';
     techs = Object.keys(users).filter(n => userRecHasPermission(users[n], 'supervisor')).sort();
 }
@@ -22569,6 +23024,7 @@ else if (p.name === INFRA_MANAGER_NAME) currentRole = 'infra_manager';
 else if (p.name === BIOMEDICAL_MANAGER_NAME) currentRole = 'head_biomedical';
 else currentRole = _freshRole || p.role || 'technician';
 currentLoggedInName = p.name;
+if (currentRole === 'duty_coordinator') currentInchargeDept = '';
 
 if (currentRole === 'incharge') {
     const _u = LIVE_USERS[p.name];
@@ -22607,6 +23063,7 @@ function urlBase64ToUint8Array(base64String) {
                             : currentRole === 'assetsmanager' ? ' (Assets Mgr)'
                             : currentRole === 'infra_manager' ? ' (Infra Mgr)'
                             : currentRole === 'head_biomedical' ? ' (Head of Biomedical)'
+: currentRole === 'duty_coordinator' ? ' (Duty Coordinator)'
                             : '');
                     loggedInUserName.textContent = p.name + sfx;
                     lockedTechName.textContent = p.name;
@@ -22671,6 +23128,9 @@ function urlBase64ToUint8Array(base64String) {
                         REF_INVENTORY = [];
                         fetchInchargeSignatureFromCloud(p.name).then(s => { if (s) currentInchargeSignature = s; });
                         showStatus('🏥 Welcome ' + p.name, true);
+                    } else if (currentRole === 'duty_coordinator') {
+                        REF_INVENTORY = [];
+                        showStatus('📞 Welcome ' + p.name, true);
                     } else {
                         REF_INVENTORY = [];
                         renderRefSelector();
@@ -22738,7 +23198,7 @@ function urlBase64ToUint8Array(base64String) {
                 }
             }
             function lockApp() {
-                document.body.classList.remove('theme-tech', 'theme-incharge', 'theme-admin', 'theme-assets', 'manager-theme');
+                document.body.classList.remove('theme-tech', 'theme-incharge', 'theme-admin', 'theme-assets', 'theme-duty', 'manager-theme');
                 // Clear any legacy PFX data sitting in sessionStorage
                 try {
                     if (currentLoggedInName) {
@@ -22790,7 +23250,7 @@ if (_ugBtn) _ugBtn.style.display = 'none';
                 document.getElementById('sidebarToggle')?.classList.remove('show');
                 const _sm = document.getElementById('sidebarMenu'); if (_sm) _sm.innerHTML = '';
                 document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
-                ['technicianSection','inchargeSection','supervisorSection','assetsManagerSection','infraManagerSection',
+                ['technicianSection','inchargeSection','supervisorSection','assetsManagerSection','infraManagerSection','dutyCoordinatorSection',
                  'monthlyReportCard','technicianActionButtons'].forEach(id => {
                     const s = document.getElementById(id); if (s) s.style.display = 'none';
                 });
@@ -22821,7 +23281,7 @@ if (_ugBtn) _ugBtn.style.display = 'none';
                         try { LIVE_USERS = await loadUsersFromFirestore(); } catch (e) { }
                     }
 
-                    if (role === 'technician' || role === 'assetsmanager' || role === 'supervisor') {
+                    if (role === 'technician' || role === 'assetsmanager' || role === 'supervisor' || role === 'dutycoordinator') {
                         const n = loginTechSelect.value;
                         if (!n) { loginError.textContent = 'Select your name.'; return; }
                         const r = LIVE_USERS[n];
@@ -23390,6 +23850,78 @@ const t = _pd ? _pd.getTime() : NaN;
             });
 
             document.getElementById('raiseCurativeBtn')?.addEventListener('click', openRaiseCurativeModal);
+            /* ===== DUTY COORDINATOR ===== */
+document.getElementById('dcRaiseCurativeBtn')?.addEventListener('click', openRaiseCurativeModal);
+document.getElementById('dcRefreshCurativeBtn')?.addEventListener('click', refreshDutyCurative);
+
+function populateDcReportFilters() {
+    const d = document.getElementById('dcRepDept');
+    const q = document.getElementById('dcRepQuarter');
+    if (d) {
+        const c = d.value || 'all';
+        d.innerHTML = '<option value="all">🏢 All Departments</option>';
+        Object.keys(DEPARTMENTS).forEach(x => { const o = document.createElement('option'); o.value = x; o.textContent = x; d.appendChild(o); });
+        d.value = c;
+    }
+    if (q) {
+        const c = q.value || 'all';
+        q.innerHTML = '<option value="all">All time</option>';
+        listQuarters(8).forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = quarterLabelOf(k); q.appendChild(o); });
+        q.value = c;
+    }
+}
+
+async function refreshDutyCurative() {
+    const wrap = document.getElementById('dcCurativeList');
+    const cnt = document.getElementById('dcCurativeCount');
+    if (!wrap) return;
+    renderSkeletons(wrap, 3, 'card');
+    try {
+        const all = await fetchCurativeRequests({ forceRefresh: true });
+        const mine = all.filter(c => normalizeText(c.reportedBy) === normalizeText(currentLoggedInName));
+        if (cnt) cnt.textContent = mine.length;
+        if (!mine.length) {
+            wrap.innerHTML = '<div style="text-align:center;padding:18px;color:#9cb9d0;font-style:italic;">📭 You have not raised any curative request yet.</div>';
+            return;
+        }
+        wrap.innerHTML = mine.map(c => renderCurativeCard(c, {})).join('');
+        bindCurativeButtons(wrap, mine, {});
+    } catch (e) {
+        wrap.innerHTML = '<div class="info-error">⚠️ ' + escapeHtml(e.message) + '</div>';
+    }
+}
+
+document.getElementById('dcCurativeReportBtn')?.addEventListener('click', async function () {
+    const btn = this, o = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = '⏳ …';
+    try {
+        const dept = document.getElementById('dcRepDept').value || 'all';
+        const qk = document.getElementById('dcRepQuarter').value || 'all';
+        const list = await fetchCurativeRequests({ forceRefresh: true, dept: dept, quarterKey: qk });
+        if (!list.length) { showStatus('📭 No curative jobs for this filter.', false); }
+        else {
+            await generateCurativeAnalyticsPDF(list, dept === 'all' ? 'All Departments' : dept, qk);
+            showStatus('📄 Curative report downloaded.', true);
+        }
+    } catch (e) { showStatus('⚠️ ' + e.message, false); }
+    btn.disabled = false; btn.innerHTML = o;
+});
+
+document.getElementById('dcPmAnalysisBtn')?.addEventListener('click', async function () {
+    const btn = this, o = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = '⏳ …';
+    try {
+        const dept = document.getElementById('dcRepDept').value || 'all';
+        const recs = await fetchAllLogs();
+        const f = dept === 'all' ? recs : recs.filter(r => normalizeText(r['Department'] || r.refDept) === normalizeText(dept));
+        if (!f.length) { showStatus('📭 No PM records.', false); }
+        else {
+            await generateAnalysisPDF(f, dept === 'all' ? 'All Departments' : dept);
+            showStatus('📊 PM analysis downloaded.', true);
+        }
+    } catch (e) { showStatus('⚠️ ' + e.message, false); }
+    btn.disabled = false; btn.innerHTML = o;
+});
             document.getElementById('curativeRaiseCancel')?.addEventListener('click',
                 () => document.getElementById('raiseCurativeModal').classList.remove('show'));
             document.getElementById('curativeRaiseSaveBtn')?.addEventListener('click', saveCurativeRequest);
@@ -23526,6 +24058,17 @@ document.getElementById('delegateCurativeSaveBtn')?.addEventListener('click', sa
                         });
                     }
 
+                    if (catVal === 'Biomedical') {
+                        ensureCurativeBioUi();
+                        const _g = document.getElementById('curativeBioGroup').value;
+                        const _q = (document.getElementById('curativeBioSearch').value || '').toLowerCase().trim();
+                        mine = mine.filter(a => {
+                            const c = bioClassify(a.type);
+                            if (_g !== 'all' && (!c || c.cat.id !== _g)) return false;
+                            if (_q && !((a.equipName || '') + ' ' + a.tag + ' ' + a.type + ' ' + a.brand + ' ' + a.model + ' ' + a.loc + ' ' + a.dept).toLowerCase().includes(_q)) return false;
+                            return true;
+                        });
+                    } else hideCurativeBioUi();
                     const catLabel = catVal === 'Refrigeration' ? 'fridge / freezer'
                                    : catVal === 'AirConditioner' ? 'air conditioner'
                                    : 'biomedical equipment';
@@ -23540,7 +24083,8 @@ document.getElementById('delegateCurativeSaveBtn')?.addEventListener('click', sa
                         const o = document.createElement('option');
                         o.value = i;
                         o.textContent = (ref.equipName ? ref.equipName + ' — ' : '')
-                                      + ref.tag + ' | ' + ref.loc + ' | ' + ref.brand;
+                                      + ref.tag + ' | ' + ref.dept + ' | ' + ref.loc + ' | ' + ref.brand
+                                      + ((catVal === 'Biomedical' && bioClassify(ref.type)) ? ' | ' + bioClassify(ref.type).cat.icon + ' ' + bioClassify(ref.type).sub.name : '');
                         select.appendChild(o);
                     });
                     select._list = mine;
@@ -25699,6 +26243,15 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
                     { view: 'sup-reports',  icon: '📊', label: 'Download Reports' }
                 ]}
             ],
+            duty_coordinator: () => [
+    { group: 'Operations', items: [
+        { view: 'dc-curative', icon: '🚨', label: 'Raise Curative', badge: 'dcCurativeCount' },
+        { view: 'dc-schedules', icon: '📅', label: 'Technician Schedules' }
+    ]},
+    { group: 'Reports', items: [
+        { view: 'dc-reports', icon: '📥', label: 'PDF Reports' }
+    ]}
+],
             assetsmanager: () => [
                 { group: 'Operations', items: [
                     { view: 'am-disposals', icon: '🗑️', label: 'Disposal Approvals', badge: 'amDisposalCount' },
@@ -25708,7 +26261,7 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
         };
 
         /* Union of all the user's permissions (not only the primary role) */
-        const ROLE_ORDER = ['supervisor', 'infra_manager', 'head_biomedical', 'incharge', 'assetsmanager', 'technician'];
+        const ROLE_ORDER = ['supervisor', 'infra_manager', 'head_biomedical', 'incharge', 'assetsmanager', 'duty_coordinator', 'technician'];
                function buildMenuGroups() {
             // ✅ STRICT DUAL CHECK
             const hasIncharge = userHasPermission('incharge');
@@ -25848,6 +26401,11 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
             ]);
 
             // This card lives OUTSIDE #supervisorSection in your HTML
+            wrapGroup('dutyCoordinatorSection', [
+    { view: 'dc-curative', selectors: ['#dcCurativeCount'] },
+    { view: 'dc-schedules', selectors: ['#dcSchedCard'] },
+    { view: 'dc-reports',  selectors: ['#dcReportsCard'] }
+]);
             wrapStandalone('manageDepartmentsCard', 'sup-departments');
         }
 
@@ -25893,7 +26451,7 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
 
             const allowed = groups.flatMap(g => g.items.map(i => i.view));
             const defaults = {
-                technician: 'tech-pm', incharge: 'ic-approvals', supervisor: 'sup-analytics',
+                technician: 'tech-pm', incharge: 'ic-approvals', supervisor: 'sup-analytics', duty_coordinator: 'dc-curative',
                 head_biomedical: 'ic-approvals', assetsmanager: 'am-disposals', infra_manager: 'im-dashboard'
             };
             let initial = allowed.includes(defaults[currentRole]) ? defaults[currentRole] : allowed[0];
@@ -25941,16 +26499,17 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
             });
 
             // Standalone cards that live outside the sections
-            const canMonthly = ['technician', 'incharge', 'head_biomedical'].some(r => currentRole === r || userHasPermission(r));
+            const canMonthly = ['technician', 'incharge', 'head_biomedical', 'duty_coordinator'].some(r => currentRole === r || userHasPermission(r));
             const monthlyCard = document.getElementById('monthlyReportCard');
             if (monthlyCard) monthlyCard.style.display =
-                (canMonthly && (viewId === 'tech-pm' || viewId === 'ic-downloads')) ? 'block' : 'none';
+                (canMonthly && (viewId === 'tech-pm' || viewId === 'ic-downloads' || viewId === 'dc-reports')) ? 'block' : 'none';
             const actionBtns = document.getElementById('technicianActionButtons');
             if (actionBtns) actionBtns.style.display = (viewId === 'tech-pm') ? 'flex' : 'none';
             // In-Charge PM Status: refresh live when the view is opened
             if (viewId === 'ic-pm-status' && typeof renderInchargePmStatus === 'function') {
                 renderInchargePmStatus();
             }
+            if (viewId === 'dc-schedules') renderDcSchedules();
             if (viewId === 'sup-user-activity' && typeof renderUserActivityDashboard === 'function') {
                 renderUserActivityDashboard();
             }
@@ -25994,7 +26553,8 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
                 ['supTaskCount','supTaskCount'],
                 ['escalatedCount','escalatedCount'],
                 ['amDisposalCount','amDisposalCount'],
-                ['userFeedbackCount','userFeedbackCount']
+               ['userFeedbackCount','userFeedbackCount'],
+['dcCurativeCount','dcCurativeCount']
             ];
             pairs.forEach(([sidebarId, srcId]) => {
                 const badge = document.getElementById('sbBadge_' + sidebarId);
