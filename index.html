@@ -4975,7 +4975,7 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
             <!-- ✅ NEW EXPANDABLE PM PROGRESS TRACKER -->
             <div class="card collapsible-card collapsed" id="technicianPmProgressCard" style="margin-top:26px;border:2px solid #2a6b96;display:none;">
                 <div class="card-header" style="background:#e6f0fa;color:#1e4a6d;">
-                    <span>📊</span> My PM Progress (This Month)
+                    <span>📊</span> My PM Progress
                     <span class="collapse-caret">▼</span>
                 </div>
                 <div class="card-body">
@@ -7813,8 +7813,8 @@ const BIO_CATALOG = [
    { name:'Drug Delivery Systems', devices:['Infusion pump','Insulin pen','Nebulizer'],
      kw:['infusion','syringe pump','insulin','nebuli[sz]er','pca pump','feeding pump'],
      chk:['Occlusion and air-in-line alarm test','Flow-rate / volume accuracy test','Check door, clamp and pole clamp','Check battery run-time and charger','Clean and inspect nebulizer compressor, filter and tubing'] },
-   { name:'Energy-Based Therapy', devices:['Surgical laser','Radiation therapy unit','Physical therapy ultrasound machine'],
-     kw:['laser','radiotherap','linac','cobalt','brachytherap','physiotherap','diathermy','shockwave','phototherap','infant warmer','electrotherap','\\btens\\b'],
+   { name:'Energy-Based Therapy', devices:['Surgical laser','Radiation therapy unit','Physical therapy ultrasound machine','Infant incubator','Infant warmer','Phototherapy unit'],
+     kw:['laser','radiotherap','linac','cobalt','brachytherap','physiotherap','diathermy','shockwave','phototherap','infant warmer','infant incubator','neonatal','electrotherap','\\btens\\b'],
      chk:['Verify output / dose against test meter','Inspect applicator, fibre, handpiece, cables','Test interlocks and emergency stop','Check cooling and warning lights','Check protective eyewear / shielding available'] },
    { name:'Rehabilitation & Assistive Devices', devices:['Prosthetic limb','Hearing aid','Motorized wheelchair'],
      kw:['prosthe','orthosis','hearing aid','wheelchair','walker','crutch','exoskeleton'],
@@ -9961,6 +9961,36 @@ function getSelectedRefType(prefix) {
         }
     }
 }
+/* ===== EQUIPMENT AUTO-SUGGEST (type + name) ===== */
+async function buildEquipSuggestions() {
+    let dl = document.getElementById('equipSuggestList');
+    if (!dl) {
+        dl = document.createElement('datalist');
+        dl.id = 'equipSuggestList';
+        document.body.appendChild(dl);
+    }
+    const names = new Set();
+    Object.values(TYPES_BY_CATEGORY).forEach(arr => arr.forEach(n => names.add(n)));
+    try {
+        const inv = await fetchAllInventory();
+        inv.forEach(i => { if (i.type) names.add(i.type); if (i.equipName) names.add(i.equipName); });
+    } catch (e) { }
+    try { (await fetchExistingCustomTypes('biomedical')).forEach(n => names.add(n)); } catch (e) { }
+    names.delete('Other');
+    dl.innerHTML = Array.from(names).sort().map(n => `<option value="${escapeHtml(n)}">`).join('');
+}
+['newRefTypeManual', 'editRefTypeManual', 'newRefEquipName', 'editRefEquipName'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.setAttribute('list', 'equipSuggestList'); el.setAttribute('autocomplete', 'off'); }
+});
+/* Auto-fill "Equipment Name" from the chosen type if it is still empty */
+['newRefTypeManual', 'newRefType'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', () => {
+        const nameEl = document.getElementById('newRefEquipName');
+        const t = getSelectedRefType('newRef');
+        if (nameEl && !nameEl.value.trim() && t && t !== '__NEW__') nameEl.value = t;
+    });
+});
 document.getElementById('newRefTypeManual')?.addEventListener('input', () => {
     clearTimeout(window.__bioTmr);
     window.__bioTmr = setTimeout(() => refreshBioChecklistBlock(false), 450);
@@ -10497,9 +10527,36 @@ updateWorkDateDisplay();
 
                 REF_FILTERED = filtered;
             }
+                   window.__recentPmTags = null;
+            window.__recentPmLoading = false;
+            async function loadRecentPmTags_() {
+                const s = new Set();
+                try {
+                    const logs = await fetchAllLogs();
+                    const cutoff = Date.now() - 30 * 86400000;
+                    logs.forEach(r => {
+                        if (safeStr(r.inchargeReviewStatus) === 'rejected') return;
+                        const t = new Date(r.timestamp || r.Timestamp).getTime();
+                        if (!isNaN(t) && t >= cutoff) s.add(normalizeText(r.refTag || r['Ref Tag']));
+                    });
+                } catch (e) { }
+                window.__recentPmTags = s;
+            }
             function renderRefSelector() {
                 refSelect.innerHTML = '';
                 applyRefFilter();
+                if (window.__recentPmTags === null && !window.__recentPmLoading && currentRole === 'technician') {
+                    window.__recentPmLoading = true;
+                    loadRecentPmTags_().then(() => {
+                        window.__recentPmLoading = false;
+                        const keep = (REF_FILTERED[refSelect.value] || {}).tag;
+                        renderRefSelector();
+                        if (keep) {
+                            const i = REF_FILTERED.findIndex(r => r.tag === keep);
+                            if (i >= 0) { refSelect.value = i; updateRefBanner(); }
+                        }
+                    });
+                }
                 if (REF_FILTERED.length === 0) {
                     const o = document.createElement('option');
                     o.value = '';
@@ -10525,14 +10582,12 @@ updateWorkDateDisplay();
 
                 REF_FILTERED.forEach((ref, i) => {
                     const ws = ref.workingStatus || 'Working';
-                    const nextPm = parseToDate(ref.nextPmDate);
-                    let status = 'never';
-                    
-                    if (nextPm) {
-                        const diff = (nextPm - today) / (1000 * 60 * 60 * 24);
-                        if (diff < 0) status = 'overdue';
-                        else if (diff <= 30) status = 'pending';
-                        else status = 'maintained';
+                    let status = computeRefStatus(ref, [], today).status;
+                    // PM already submitted recently (and not rejected) -> Maintained
+                    if (ws !== 'Not Working' && window.__recentPmTags &&
+                        window.__recentPmTags.has(normalizeText(ref.tag)) &&
+                        status !== 'maintained') {
+                        status = 'maintained';
                     }
                     if (ws === 'Not Working') status = 'overdue'; // Force overdue if broken
 
@@ -10582,6 +10637,51 @@ updateWorkDateDisplay();
                 return false;
             }
 
+            window.__wdTok = 0;
+            function applyDueWorkDate_(ref) {
+                const t = new Date();
+                const today = toIsoDate_(t);
+                const minD = new Date(t); minD.setDate(t.getDate() - 7);
+                const defMin = toIsoDate_(minD);
+                const token = ++window.__wdTok;
+
+                const due  = ref ? parseToDate(ref.nextPmDate) : null;
+                const last = ref ? parseToDate(ref.lastPmDate) : null;
+                const dueIso  = due  ? toIsoDate_(due)  : '';
+                const lastIso = last ? toIsoDate_(last) : '';
+
+                workDateInput.max = today;
+
+                const useDate = (iso) => {
+                    workDateInput.min = iso < defMin ? iso : defMin;
+                    workDateInput.value = iso;
+                    updateWorkDateDisplay();
+                };
+
+                // 1) Next PM already overdue -> use that date
+                if (dueIso && dueIso < today) { useDate(dueIso); return; }
+
+                // 2) default = today (shown immediately)
+                workDateInput.min = defMin;
+                if (!workDateInput.value || workDateInput.value < defMin || workDateInput.value > today) {
+                    workDateInput.value = today;
+                }
+                updateWorkDateDisplay();
+
+                // 3) Late PM: Last PM date in the equipment info is in the past
+                //    and no PM log exists yet for that date -> use that date
+                if (lastIso && lastIso < today && ref && ref.tag) {
+                    const queued = getQueue().some(q =>
+                        normalizeText(q.refTag) === normalizeText(ref.tag) &&
+                        normalizeDateForCompare(q.workDate) === lastIso);
+                    if (queued) return;
+                    checkRemoteDuplicate(ref.tag, lastIso).then(r => {
+                        if (token !== window.__wdTok) return;                 // user changed equipment meanwhile
+                        if (r && r.checked && !r.duplicate) useDate(lastIso); // no log for that date yet
+                    }).catch(() => { });
+                }
+            }
+
             function updateRefBanner() {
                 const idx = refSelect.value;
                 if (idx === '' || !REF_FILTERED[idx]) {
@@ -10595,6 +10695,7 @@ updateWorkDateDisplay();
                     return;
                 }
                 const ref = REF_FILTERED[idx];
+                applyDueWorkDate_(ref);
                 refTitle.textContent = `${ref.equipName ? ref.equipName + ' — ' : ''}${ref.tag} — ${ref.loc}`;
                 refSub.textContent = `${ref.equipName ? ref.equipName + ' · ' : ''}${ref.dept} · ${ref.type} · ${ref.brand} · ${ref.model} · SN: ${ref.serial || 'N/A'}`;
                 updateNextPmDisplay();
@@ -10793,13 +10894,17 @@ updateWorkDateDisplay();
                 const g = document.getElementById(p + 'WorkingGroup');
                 if (g) g.addEventListener('change', () => syncWorkingGroupUI(p));
             });
-            document.getElementById('newRefLastPm')?.addEventListener('change', function () {
-                const n = getNextRefPmDate_(this.value);
-                if (n) document.getElementById('newRefNextPm').value = toIsoDate_(n);
-            });
-            document.getElementById('editRefLastPm')?.addEventListener('change', function () {
-                const n = getNextRefPmDate_(this.value);
-                if (n) document.getElementById('editRefNextPm').value = toIsoDate_(n);
+            function autoNextPm_(prefix, lastVal) {
+                if (!lastVal) return;
+                const cat = document.getElementById(prefix + 'Category')?.value || 'fridge';
+                const n = (cat === 'ac')
+                    ? addMonths(lastVal, AC_PM_INTERVAL_MONTHS)
+                    : getNextRefPmDate_(lastVal, 45);
+                if (n) document.getElementById(prefix + 'NextPm').value = toIsoDate_(n);
+            }
+            ['newRef', 'editRef'].forEach(p => {
+                document.getElementById(p + 'LastPm')?.addEventListener('change', function () { autoNextPm_(p, this.value); });
+                document.getElementById(p + 'Category')?.addEventListener('change', () => autoNextPm_(p, document.getElementById(p + 'LastPm').value));
             });
 
             /* ============================================================
@@ -10909,6 +11014,7 @@ filterOwnerSelectForDomain(document.getElementById('newRefOwner'));
                 const inp = document.getElementById('newRefPhotoInput');
                 if (inp) inp.value = '';
                 addRefModal.classList.add('show');
+                buildEquipSuggestions();
             });
             document.getElementById('addRefCancel').addEventListener('click',
                 () => addRefModal.classList.remove('show'));
@@ -11398,12 +11504,16 @@ if (!_known) {
 }).catch(() => { });
 if (_ref && _ref._docId) {
     const _nd = getNextPmDateByType_(_ref.type, data.workDate);
+    _ref.lastPmDate = data.workDate;
+    _ref.nextPmDate = _nd ? toIsoDate_(_nd) : '';
     window.FB.updateDoc(window.FB.doc(window.FB.db, 'equipment', _ref._docId), {
         lastPmDate: data.workDate, nextPmDate: _nd ? toIsoDate_(_nd) : '',
         updatedAt: window.FB.serverTimestamp()
     }).then(() => { invalidateCache('equipment'); }).catch(() => { });
 }
-setTimeout(() => resetForm(false), 1500);
+window.__recentPmTags = window.__recentPmTags || new Set();
+window.__recentPmTags.add(normalizeText(data.refTag));
+setTimeout(() => { resetForm(false); renderRefSelector(); }, 1500);
 setTimeout(() => updateTechProgress(currentLoggedInName), 1600);
                 }
             });
@@ -11427,6 +11537,7 @@ window.__ckOwner = '';
                 updateRefBanner();
                 updateTechnicianDisplay();
                 setAutoWorkDate();
+                updateRefBanner();
                 updateChecklistProgress();
                 setChecklistView('preview');
                 
@@ -13056,6 +13167,16 @@ return false;
                         refModel: r['Model'] || r.refModel
                     }) === id
                 ).sort((a, b) => recordTime(b) - recordTime(a));
+                if (ref.lastPmDate || ref.nextPmDate) {
+                    let nd = parseToDate(ref.nextPmDate);
+                    if (!nd && ref.lastPmDate) nd = getNextPmDateByType_(ref.type || 'Fridge', ref.lastPmDate);
+                    let st = 'never';
+                    if (nd) {
+                        const du = Math.round((nd - now) / 86400000);
+                        st = du < 0 ? 'overdue' : (du <= 30 ? 'pending' : 'maintained');
+                    }
+                    return { status: st, lastPm: ref.lastPmDate || '', nextPm: nd ? toIsoDate_(nd) : '', source: 'inventory' };
+                }
                 if (recs.length) {
                     const last = safeStr(recs[0]['Work Date'] || recs[0].workDate);
                     const nd = getNextPmDateByType_(ref.type || 'Fridge', last);
@@ -22087,15 +22208,34 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                     let done = 0, pending = 0, rejected = 0;
                     const monthPms = [];
                     
+                    const inThisMonth = (v) => {
+                        const d = parseToDate(v);
+                        return !!d && d.getMonth() === month && d.getFullYear() === year;
+                    };
                     mine.forEach(r => {
-                        const d = parseToDate(r.workDate || r['Work Date']);
-                        if (!d || d.getMonth() !== month || d.getFullYear() !== year) return;
-                        
-                        let st = 'pending';
-                        if (safeStr(r.inchargeReviewStatus) === 'rejected') { rejected++; st = 'rejected'; }
-                        else if (safeStr(r['In-Charge Signed At'] || r.inchargeSignedAt).trim()) { done++; st = 'done'; }
-                        else { pending++; }
-                        
+                        const signedAt = safeStr(r['In-Charge Signed At'] || r.inchargeSignedAt).trim();
+                        const isRejected = safeStr(r.inchargeReviewStatus) === 'rejected';
+
+                        let st;
+                        if (isRejected) st = 'rejected';
+                        else if (signedAt) st = 'done';
+                        else st = 'pending';
+
+                        // Pending / rejected: ALWAYS show until handled (even for late, back-dated PMs).
+                        // Done: show if the work date, submission date or signature date is this month.
+                        if (st === 'done') {
+                            const relevant = inThisMonth(r.workDate || r['Work Date'])
+                                          || inThisMonth(r.timestamp || r.Timestamp)
+                                          || inThisMonth(signedAt);
+                            if (!relevant) return;
+                            done++;
+                        } else if (st === 'rejected') {
+                            if (r.technicianAcknowledgedRejection === true && !inThisMonth(r.workDate || r['Work Date']) && !inThisMonth(r.timestamp || r.Timestamp)) return;
+                            rejected++;
+                        } else {
+                            pending++;
+                        }
+
                         monthPms.push({ ...r, _localStatus: st });
                     });
                     
@@ -23212,6 +23352,7 @@ function urlBase64ToUint8Array(base64String) {
                 clearSession();
                 REF_INVENTORY = [];
                 REF_FILTERED = [];
+                window.__recentPmTags = null;
                 currentLoggedInName = '';
                 renderRefSelector();
                 loginModal.classList.add('show');
