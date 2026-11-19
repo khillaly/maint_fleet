@@ -6198,6 +6198,7 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
                     <option value="incharge">👔 In-Charge</option>
                     <option value="assetsmanager">🗑️ Assets Manager</option>
                     <option value="dutycoordinator">📞 Duty Coordinator</option>
+                    <option value="logistics">📦 Logistics / Store</option>
                     <!-- ✅ HIDDEN ADMIN OPTION -->
                     <option value="supervisor" id="adminRoleOption" style="display:none;">👑 Admin / Manager</option>
                 </select>
@@ -9290,6 +9291,9 @@ function escapeHtml(s) {
                 if (perms.assetsmanager) return 'assetsmanager';
                 if (perms.incharge) return 'incharge';
                 if (perms.duty_coordinator) return 'duty_coordinator';
+if (perms.storekeeper) return 'storekeeper';
+if (perms.logistics_officer) return 'logistics_officer';
+if (perms.logistics_director) return 'logistics_director';
                 return 'technician';
             }
 
@@ -11195,7 +11199,7 @@ if (_isBioDept && _catChosen !== 'biomedical' && _catChosen !== 'equipment') {
             async function openEditRefModal(ref) {
                 populateEditRefDeptSelect();
                 document.getElementById('editRefTag').value = ref.tag || '';
-document.getElementById('editRefTag').readOnly = !(currentRole === 'supervisor' || currentRole === 'assetsmanager');
+document.getElementById('editRefTag').readOnly = false;
                 document.getElementById('editRefDept').value = ref.dept || Object.keys(DEPARTMENTS)[0] || '';
                 populateEditRefServiceSelect();
                 document.getElementById('editRefLocation').value = ref.loc || '';
@@ -12054,6 +12058,7 @@ if (false) {
                 else if (isAM) { ic.textContent = '🗑️'; rl.textContent = 'Assets Manager:'; }
                 else if (isIM) { ic.textContent = '🏗️'; rl.textContent = 'Infra Manager:'; }
                 else if (isDC && !isTech) { ic.textContent = '📞'; rl.textContent = 'Duty Coordinator:'; }
+else if (['storekeeper','logistics_officer','logistics_director'].includes(currentRole)) { ic.textContent = '📦'; rl.textContent = 'Logistics:'; }
                 else { ic.textContent = '👨‍🔧'; rl.textContent = 'Technician:'; }
                 
                 closeNotifPanel();
@@ -13966,6 +13971,9 @@ Object.keys(DEPARTMENTS).forEach(d => {
                         <label class="perm-chip"><input type="checkbox" class="ic-perm-input" data-perm="infra_manager" ${p.infra_manager ? 'checked' : ''}> 🏗️ Infra Manager</label>
                         <label class="perm-chip"><input type="checkbox" class="ic-perm-input" data-perm="head_biomedical" ${p.head_biomedical ? 'checked' : ''}> 🏥 Head Biomedical</label>
                         <label class="perm-chip"><input type="checkbox" class="ic-perm-input" data-perm="supervisor" ${p.supervisor ? 'checked' : ''}> 👑 Supervisor</label>
+<label class="perm-chip"><input type="checkbox" class="ic-perm-input" data-perm="storekeeper" ${p.storekeeper ? 'checked' : ''}> 🏬 Store Keeper</label>
+<label class="perm-chip"><input type="checkbox" class="ic-perm-input" data-perm="logistics_officer" ${p.logistics_officer ? 'checked' : ''}> 📋 Logistics Officer</label>
+<label class="perm-chip"><input type="checkbox" class="ic-perm-input" data-perm="logistics_director" ${p.logistics_director ? 'checked' : ''}> 🎖️ Logistics Director</label>
                     </div>
                 </div>`;
             })()}
@@ -14098,7 +14106,8 @@ Object.keys(DEPARTMENTS).forEach(d => {
                 Object.keys(users).forEach(n => {
                     const u = users[n];
                     if (userRecHasPermission(u, 'technician') || userRecHasPermission(u, 'supervisor') ||
-                        userRecHasPermission(u, 'assetsmanager') || userRecHasPermission(u, 'infra_manager') || userRecHasPermission(u, 'duty_coordinator')) {
+                        userRecHasPermission(u, 'assetsmanager') || userRecHasPermission(u, 'infra_manager') || userRecHasPermission(u, 'duty_coordinator') ||
+                        userRecHasPermission(u, 'storekeeper') || userRecHasPermission(u, 'logistics_officer') || userRecHasPermission(u, 'logistics_director')) {
                         // AFTER
 techs[n] = {
     role: u.role,
@@ -14170,6 +14179,9 @@ techs[n] = {
                         <label class="perm-chip"><input type="checkbox" class="tech-perm-input" data-perm="head_biomedical" ${p.head_biomedical ? 'checked' : ''}> 🏥 Head Biomedical</label>
                         <label class="perm-chip"><input type="checkbox" class="tech-perm-input" data-perm="supervisor" ${p.supervisor ? 'checked' : ''}> 👑 Supervisor</label>
                     <label class="perm-chip"><input type="checkbox" class="tech-perm-input" data-perm="duty_coordinator" ${p.duty_coordinator ? 'checked' : ''}> 📞 Duty Coordinator</label>
+<label class="perm-chip"><input type="checkbox" class="tech-perm-input" data-perm="storekeeper" ${p.storekeeper ? 'checked' : ''}> 🏬 Store Keeper</label>
+<label class="perm-chip"><input type="checkbox" class="tech-perm-input" data-perm="logistics_officer" ${p.logistics_officer ? 'checked' : ''}> 📋 Logistics Officer</label>
+<label class="perm-chip"><input type="checkbox" class="tech-perm-input" data-perm="logistics_director" ${p.logistics_director ? 'checked' : ''}> 🎖️ Logistics Director</label>
                         </div>
                 </div>`;
             })()}
@@ -14885,7 +14897,7 @@ techs[n] = {
                 showStatus('🗑️ Cleared.', true);
             }
             function notifIcon(t) {
-                return ({ pm_cosigned: '✅', pm_rejected: '❌', curative_request: '🚨', equipment_transferred_out: '🔄', equipment_transferred_in: '🔄', curative_started: '🔧', curative_completed: '📸', curative_verified: '🎉', curative_rejected: '↩️', curative_escalated: '⚠️', curative_reassigned: '🔁', disposal_requested: '🗑️', disposal_incharge_approved: '👔', disposal_am_approved: '✅', disposal_rejected: '❌', task_assigned: '📋', task_started: '🔧', task_completed: '📸', task_verified: '🎉', task_rejected: '↩️', task_delegated: '🔁', task_escalated: '⚠️', task_delegated_info: 'ℹ️', pm_submitted: '📝', broadcast_info: '📢', broadcast_important: '⚠️', broadcast_urgent: '🚨', user_feedback: '📬', user_feedback_reply: '✉️' })[t] || '🔔';
+                return ({ pm_cosigned: '✅', pm_rejected: '❌', curative_request: '🚨', equipment_transferred_out: '🔄', equipment_transferred_in: '🔄', curative_started: '🔧', curative_completed: '📸', curative_verified: '🎉', curative_rejected: '↩️', curative_escalated: '⚠️', curative_reassigned: '🔁', disposal_requested: '🗑️', disposal_incharge_approved: '👔', disposal_am_approved: '✅', disposal_rejected: '❌', task_assigned: '📋', task_started: '🔧', task_completed: '📸', task_verified: '🎉', task_rejected: '↩️', task_delegated: '🔁', task_escalated: '⚠️', task_delegated_info: 'ℹ️', pm_submitted: '📝', broadcast_info: '📢', broadcast_important: '⚠️', broadcast_urgent: '🚨', user_feedback: '📬', user_feedback_reply: '✉️', req_new: '📦', req_turn: '✍️', req_progress: '➡️', req_done: '✅', req_rejected: '❌' })[t] || '🔔';
             }
             function notifColor(t) {
                 return ({ pm_cosigned: '#1b6b3f', pm_rejected: '#b33a3a', curative_request: '#b33a3a', equipment_transferred_out: '#7a5300', equipment_transferred_in: '#1b6b3f', curative_started: '#1e4a6d', curative_completed: '#0b3d91', curative_verified: '#1b6b3f', curative_rejected: '#b33a3a', curative_escalated: '#b33a3a', curative_reassigned: '#1e4a6d', disposal_requested: '#7a5300', disposal_incharge_approved: '#1b6b3f', disposal_am_approved: '#1b6b3f', disposal_rejected: '#b33a3a', user_feedback: '#7a4c9c', user_feedback_reply: '#1b6b3f' })[t] || '#1e4a6d';
@@ -14962,6 +14974,7 @@ if (window.chubDesktop && window.chubDesktop.setBadge) {
             async function handleNotificationClick(n) {
                 closeNotifPanel();
 if (!n) return;
+if (n.type && n.type.startsWith('req_')) { showView('req-main'); return; }
 ['pmLogs', 'curative', 'tasks'].forEach(invalidateCache);
 
 if (n.type === 'user_feedback') {
@@ -23029,6 +23042,10 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                        } else if (loginRole === 'dutycoordinator') {
     if (deptSel) deptSel.style.display = 'none';
     techs = Object.keys(users).filter(n => userRecHasPermission(users[n], 'duty_coordinator')).sort();
+} else if (loginRole === 'logistics') {
+    if (deptSel) deptSel.style.display = 'none';
+    techs = Object.keys(users).filter(n =>
+        ['storekeeper', 'logistics_officer', 'logistics_director'].some(p => userRecHasPermission(users[n], p))).sort();
 } else if (loginRole === 'supervisor') {
     if (deptSel) deptSel.style.display = 'none';
     techs = Object.keys(users).filter(n => userRecHasPermission(users[n], 'supervisor')).sort();
@@ -23204,6 +23221,9 @@ function urlBase64ToUint8Array(base64String) {
                             : currentRole === 'infra_manager' ? ' (Infra Mgr)'
                             : currentRole === 'head_biomedical' ? ' (Head of Biomedical)'
 : currentRole === 'duty_coordinator' ? ' (Duty Coordinator)'
+: currentRole === 'storekeeper' ? ' (Store Keeper)'
+: currentRole === 'logistics_officer' ? ' (Logistics Officer)'
+: currentRole === 'logistics_director' ? ' (Logistics Director)'
                             : '');
                     loggedInUserName.textContent = p.name + sfx;
                     lockedTechName.textContent = p.name;
@@ -23422,7 +23442,7 @@ if (_ugBtn) _ugBtn.style.display = 'none';
                         try { LIVE_USERS = await loadUsersFromFirestore(); } catch (e) { }
                     }
 
-                    if (role === 'technician' || role === 'assetsmanager' || role === 'supervisor' || role === 'dutycoordinator') {
+                    if (role === 'technician' || role === 'assetsmanager' || role === 'supervisor' || role === 'dutycoordinator' || role === 'logistics') {
                         const n = loginTechSelect.value;
                         if (!n) { loginError.textContent = 'Select your name.'; return; }
                         const r = LIVE_USERS[n];
@@ -26436,7 +26456,9 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
             });
         });
     });
-    // ⚙️ Configuration group — shown to every role, always last
+    if (['storekeeper', 'logistics_officer', 'logistics_director'].includes(currentRole)) out.length = 0;   // logistics staff only see their own menus
+{ const _ri = reqMenuItems_(); if (_ri.length) out.push({ group: 'Requests & Stock', items: _ri }); }
+// ⚙️ Configuration group — shown to every role, always last
     out.push({ group: 'Configuration', items: [
         { view: '__security',  icon: '🔐', label: 'Security (2FA)' },
         { view: '__signature', icon: '🖊️', label: 'Signature & Certificate' },
@@ -26548,6 +26570,10 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
     { view: 'dc-reports',  selectors: ['#dcReportsCard'] }
 ]);
             wrapStandalone('manageDepartmentsCard', 'sup-departments');
+ensureReqDom();
+wrapStandalone('reqMainCard', 'req-main');
+wrapStandalone('reqStoreCard', 'req-store');
+wrapStandalone('reqCardsCard', 'req-cards');
         }
 
         /* ---------- Render sidebar ---------- */
@@ -26651,6 +26677,9 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
                 renderInchargePmStatus();
             }
             if (viewId === 'dc-schedules') renderDcSchedules();
+if (viewId === 'req-main') renderRequests();
+if (viewId === 'req-store') renderStore();
+if (viewId === 'req-cards') renderFuelCards();
             if (viewId === 'sup-user-activity' && typeof renderUserActivityDashboard === 'function') {
                 renderUserActivityDashboard();
             }
@@ -26717,7 +26746,714 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
             document.getElementById('mainSidebar')?.classList.remove('open');
             document.getElementById('sidebarOverlay')?.classList.remove('show');
         });
+        /* ============================================================
+   📦 REQUESTS · STORE STOCK · FUEL CARDS
+   ============================================================ */
+const REQ_TABLE = 'stockRequests', STOCK_TABLE = 'stockItems', CARD_TABLE = 'fuelCards';
+const DEFAULT_DIESEL_PRICE = 2938;
+const REQ_STEP_LABELS = { incharge: 'Dept In-Charge', infra_manager: 'Infrastructure Manager', storekeeper: 'Store Keeper', logistics_officer: 'Logistics Officer', logistics_director: 'Logistics Director' };
+const REQ_STEP_ICONS = { incharge: '👔', infra_manager: '🏗️', storekeeper: '🏬', logistics_officer: '📋', logistics_director: '🎖️' };
+let REQ_FILTER = 'open', REQ_CACHE = [], STOCK_CACHE = [], CARDS_CACHE = [];
 
+const gv_ = id => (document.getElementById(id) || {}).value || '';
+const fmtN_ = n => Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const cardId_ = n => 'card_' + userDocId(n);
+
+/* ---------- who is who ---------- */
+function isLogisticsUser_() { return ['storekeeper', 'logistics_officer', 'logistics_director'].some(p => userHasPermission(p)); }
+function isStorekeeper_() { return userHasPermission('storekeeper'); }
+function canUseRequests_() {
+    return !!currentLoggedInName && (isInfrastructureUser() || isBiomedicalUser() || isLogisticsUser_() || currentRole === 'supervisor');
+}
+function canInitiate_() { return (isInfrastructureUser() || isBiomedicalUser()) && currentRole !== 'supervisor' && !isLogisticsUser_(); }
+function canInitiateFuel_() {
+    return isInfrastructureUser() && !isBiomedicalUser() && currentRole !== 'supervisor' && !isLogisticsUser_();
+ }
+function reqMenuItems_() {
+    const it = [];
+    if (!canUseRequests_()) return it;
+    it.push({ view: 'req-main', icon: '📦', label: 'Requests', badge: 'reqBadge' });
+    it.push({ view: 'req-store', icon: '🏬', label: 'Store Stock' });
+    if (isInfrastructureUser() || isLogisticsUser_() || currentRole === 'supervisor') it.push({ view: 'req-cards', icon: '⛽', label: 'Fuel Cards' });
+    return it;
+}
+function usersWith_(kind, dept) {
+    return Object.keys(LIVE_USERS).filter(n => {
+        const u = LIVE_USERS[n];
+        if (kind === 'infra_manager') return n === INFRA_MANAGER_NAME;
+        if (kind === 'incharge') {
+            if (n === INFRA_MANAGER_NAME) return false;
+            const isIC = userRecHasPermission(u, 'incharge') || userRecHasPermission(u, 'head_biomedical') || n === BIOMEDICAL_MANAGER_NAME;
+            return isIC && userInDept_(n, dept);
+        }
+        return userRecHasPermission(u, kind);
+    });
+}
+function buildChain_(kind, requester, dept) {
+    const kinds = ['incharge', 'infra_manager', 'storekeeper', 'logistics_officer'];
+    if (kind === 'fuel') kinds.push('logistics_director');
+    const chain = kinds.map(k => ({ kind: k, label: REQ_STEP_LABELS[k], status: 'waiting', by: '', at: '', comment: '' }));
+    const now = new Date().toISOString();
+    for (const s of chain) {
+        const skip = (s.kind === 'incharge' && usersWith_('incharge', dept).includes(requester)) ||
+                     (s.kind === 'infra_manager' && requester === INFRA_MANAGER_NAME);
+        if (!skip) break;
+        Object.assign(s, { status: 'approved', by: requester, at: now, comment: 'Initiator (auto)' });
+    }
+    return chain;
+}
+function canAct_(r, me) {
+    if (!r || r.status !== 'pending') return false;
+    const s = r.chain[r.currentStep]; if (!s) return false;
+    if (normalizeText(me) === normalizeText(r.requestedBy)) return false;
+    return usersWith_(s.kind, r.requesterDept).some(n => normalizeText(n) === normalizeText(me));
+}
+function isInvolved_(r, me) {
+    if (normalizeText(r.requestedBy) === normalizeText(me) || currentRole === 'supervisor') return true;
+    return r.chain.some(s => usersWith_(s.kind, r.requesterDept).some(n => normalizeText(n) === normalizeText(me)));
+}
+function everyoneOf_(r) {
+    const s = new Set([r.requestedBy]);
+    r.chain.forEach(st => usersWith_(st.kind, r.requesterDept).forEach(n => s.add(n)));
+    return s;
+}
+function waitingNames_(r) { const s = r.chain[r.currentStep]; return s ? usersWith_(s.kind, r.requesterDept) : []; }
+function chainText_(r) {
+    return r.chain.map((s, i) => (i + 1) + '. ' + REQ_STEP_ICONS[s.kind] + ' ' + s.label + (s.status === 'approved' ? ' ✅' : '')).join(' → ');
+}
+async function notifyMany_(names, r, type, title, message) {
+    const me = normalizeText(currentLoggedInName);
+    await Promise.all(Array.from(names).filter(n => n && normalizeText(n) !== me).map(n =>
+        createNotification({ recipient: n, type, title, message, relatedDocId: r.id, relatedTag: r.requestNo, relatedDept: r.requesterDept })));
+}
+function normReq_(r) {
+    const p = v => { if (typeof v === 'string') { try { return JSON.parse(v); } catch (e) { return []; } } return Array.isArray(v) ? v : []; };
+    r.chain = p(r.chain); r.items = p(r.items); return r;
+}
+
+/* ---------- data ---------- */
+async function fetchReqs_() {
+    const snap = await window.FB.getDocs(window.FB.query(window.FB.collection(window.FB.db, REQ_TABLE),
+        window.FB.orderBy('createdAt', 'desc'), window.FB.limit(200)));
+    return snap.docs.map(d => normReq_(d.data()));
+}
+async function fetchStock_() {
+    const snap = await window.FB.getDocs(window.FB.query(window.FB.collection(window.FB.db, STOCK_TABLE), window.FB.limit(1000)));
+    return snap.docs.map(d => d.data()).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+}
+async function fetchCards_() {
+    const snap = await window.FB.getDocs(window.FB.collection(window.FB.db, CARD_TABLE));
+    return snap.docs.map(d => d.data());
+}
+const cardOf_ = name => CARDS_CACHE.find(c => normalizeText(c.generatorName) === normalizeText(name));
+async function generatorNames_() {
+    const s = new Set(GENERATOR_UNITS);   // same list the Monitoring page uses
+    try { (await fetchAllInventory()).filter(i => (i.equipCategory || getCategoryForType(i.type)) === 'generator').forEach(i => s.add(i.equipName || i.tag)); } catch (e) { }
+    return Array.from(s).filter(Boolean).sort();
+}
+async function latestGenLog_(name) {
+    try {
+        const snap = await window.FB.getDocs(window.FB.query(window.FB.collection(window.FB.db, 'equipmentMonitoring'), window.FB.where('unit', '==', name)));
+        return snap.docs.map(d => d.data()).filter(x => x.category === 'generator')
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0] || null;
+    } catch (e) { return null; }
+}
+
+/* ---------- generic modal ---------- */
+function reqModal_(title, html, onSave, opts) {
+    opts = opts || {};
+    const m = document.getElementById('reqGenModal');
+    m.querySelector('h2').textContent = title;
+    document.getElementById('reqGenBody').innerHTML = html;
+    const err = document.getElementById('reqGenErr'); err.textContent = '';
+    m.querySelector('.modal-box').style.maxWidth = opts.width || '560px';
+    const save = document.getElementById('reqGenSave');
+    save.textContent = opts.okText || '💾 Save';
+    save.onclick = async () => {
+        err.textContent = ''; save.disabled = true;
+        try {
+            const res = await onSave();
+            if (res === true) m.classList.remove('show'); else if (res) err.textContent = '⚠️ ' + res;
+        } catch (e) { err.textContent = '⚠️ ' + e.message; }
+        save.disabled = false;
+    };
+    document.getElementById('reqGenCancel').onclick = () => m.classList.remove('show');
+    m.classList.add('show');
+}
+
+/* ---------- DOM (created once) ---------- */
+function ensureReqDom() {
+    if (document.getElementById('reqMainCard')) return;
+    const host = document.querySelector('.app-main'); if (!host) return;
+    const mk = (id, html) => { const d = document.createElement('div'); d.id = id; d.className = 'card'; d.style.cssText = 'margin-bottom:24px;'; d.innerHTML = html; host.appendChild(d); };
+    const bdg = 'margin-left:auto;background:#1e4a6d;color:#fff;padding:3px 12px;border-radius:20px;font-size:.8rem;font-weight:700;';
+    mk('reqMainCard', `
+      <div class="card-header"><span>📦</span> Requests — Stock &amp; Diesel <span id="reqCount" style="${bdg}">0</span></div>
+      <div class="card-body">
+        <p style="font-size:.88rem;color:#5b7b96;margin-bottom:12px;">Every request follows a fixed approval order. Everyone in the chain is notified when it starts and can see who must sign next.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+          <button class="btn-primary" id="reqNewStockBtn">📦 New Stock Request</button>
+          <button class="btn-primary" id="reqNewFuelBtn" style="background:#b45309;">⛽ New Diesel Request</button>
+          <button class="btn-secondary" id="reqRefreshBtn">🔄 Refresh</button>
+        </div>
+        <div class="filter-selector" id="reqFilterBar">
+          <div class="filter-chip" data-f="waiting">✍️ Waiting for me</div>
+          <div class="filter-chip active" data-f="open">⏳ Open</div>
+          <div class="filter-chip" data-f="mine">👤 My requests</div>
+          <div class="filter-chip" data-f="approved">✅ Approved</div>
+          <div class="filter-chip" data-f="rejected">❌ Rejected</div>
+          <div class="filter-chip" data-f="all">📋 All</div>
+        </div>
+        <div id="reqList"></div>
+      </div>`);
+    mk('reqStoreCard', `
+      <div class="card-header"><span>🏬</span> Store Stock — remaining items <span id="storeCount" style="${bdg}">0</span></div>
+      <div class="card-body">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+          <input type="text" id="storeSearch" placeholder="🔍 Search item…" style="flex:1;min-width:200px;padding:10px 16px;border-radius:30px;border:1.5px solid #cfdfeb;font-family:inherit;">
+          <button class="btn-add" id="storeAddBtn" style="display:none;">➕ Add item</button>
+          <button class="btn-secondary" id="storeRefreshBtn">🔄 Refresh</button>
+        </div>
+        <div style="overflow-x:auto;"><table class="inv-table"><thead><tr>
+          <th>Item</th><th>Category</th><th>In store</th><th>Min</th><th>Location</th><th>Status</th><th>Actions</th>
+        </tr></thead><tbody id="storeBody"></tbody></table></div>
+      </div>`);
+    mk('reqCardsCard', `
+      <div class="card-header"><span>⛽</span> Generator Fuel Cards — remaining balance <button class="btn-secondary" id="cardsRefreshBtn" style="margin-left:auto;padding:6px 14px;font-size:.8rem;">🔄 Refresh</button></div>
+      <div class="card-body"><div id="cardsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;"></div></div>`);
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal-overlay" id="reqGenModal"><div class="modal-box">
+        <h2></h2><div id="reqGenBody"></div>
+        <div id="reqGenErr" style="color:#b33a3a;font-size:.85rem;min-height:18px;margin-top:8px;"></div>
+        <div class="modal-actions"><button class="btn-cancel" id="reqGenCancel">Cancel</button><button class="btn-go" id="reqGenSave">💾 Save</button></div>
+      </div></div>`);
+
+    document.getElementById('reqNewStockBtn').onclick = openStockForm_;
+    document.getElementById('reqNewFuelBtn').onclick = openFuelForm_;
+    document.getElementById('reqRefreshBtn').onclick = renderRequests;
+    document.querySelectorAll('#reqFilterBar .filter-chip').forEach(c => c.onclick = function () {
+        document.querySelectorAll('#reqFilterBar .filter-chip').forEach(x => x.classList.remove('active'));
+        this.classList.add('active'); REQ_FILTER = this.dataset.f; renderRequests();
+    });
+    document.getElementById('reqList').addEventListener('click', onReqListClick_);
+    document.getElementById('storeSearch').oninput = renderStoreTable_;
+    document.getElementById('storeAddBtn').onclick = () => openItemModal_();
+    document.getElementById('storeRefreshBtn').onclick = renderStore;
+    document.getElementById('storeBody').addEventListener('click', onStoreClick_);
+    document.getElementById('cardsGrid').addEventListener('click', onCardClick_);
+    document.getElementById('cardsRefreshBtn').onclick = renderFuelCards;
+}
+
+/* ---------- REQUEST LIST ---------- */
+function reqCardHtml_(r) {
+    const me = currentLoggedInName, act = canAct_(r, me);
+    const st = r.status === 'approved' ? '<span class="status-badge maintained">✅ Approved</span>'
+        : r.status === 'rejected' ? '<span class="status-badge overdue">❌ Rejected</span>'
+        : '<span class="status-badge pending">⏳ In approval</span>';
+    const stepper = r.chain.map((s, i) => {
+        const cur = r.status === 'pending' && i === r.currentStep && s.status !== 'approved';
+        let bg = '#f3f6f9', bc = '#cfdfeb', tx = '#5b7b96', line;
+        if (s.status === 'approved') { bg = '#e2f0e6'; bc = '#1b6b3f'; tx = '#1b6b3f'; line = '✅ ' + escapeHtml(s.by) + ' · ' + formatDateOnly(s.at) + (s.comment ? '<br><em>' + escapeHtml(s.comment) + '</em>' : ''); }
+        else if (s.status === 'rejected') { bg = '#ffe6e6'; bc = '#b33a3a'; tx = '#b33a3a'; line = '❌ ' + escapeHtml(s.by) + ' · ' + formatDateOnly(s.at) + '<br><em>' + escapeHtml(s.comment) + '</em>'; }
+        else {
+            const names = usersWith_(s.kind, r.requesterDept).map(escapeHtml).join(', ') || '<em>no user set up yet</em>';
+            if (cur) { bg = '#fff3cd'; bc = '#f4a300'; tx = '#7a5300'; line = '⏳ <strong>WAITING</strong> — ' + names; } else line = '· ' + names;
+        }
+        return `<div style="flex:1;min-width:150px;background:${bg};border:2px solid ${bc};color:${tx};border-radius:12px;padding:8px 10px;font-size:.78rem;line-height:1.35;">
+            <div style="font-weight:800;">${i + 1}. ${REQ_STEP_ICONS[s.kind]} ${escapeHtml(s.label)}</div>${line}</div>`;
+    }).join('<div style="align-self:center;color:#9cb9d0;">→</div>');
+
+    let detail = '';
+    if (r.kind === 'fuel') {
+        const c = cardOf_(r.generatorName), bal = c ? Number(c.balanceLitres || 0) : null;
+        detail = `<div class="info-row"><span class="k">Generator</span><span class="v">${escapeHtml(r.generatorName)}</span></div>
+          <div class="info-row"><span class="k">Needed fuel</span><span class="v">${fmtN_(r.litresRequested)} L × ${fmtN_(r.unitPrice)} = <strong>${fmtN_(r.totalAmount)} RWF</strong></span></div>
+          <div class="info-row"><span class="k">Tank / hours</span><span class="v">${r.tankPercent != null ? r.tankPercent + '%' : '—'} · ${escapeHtml(r.hoursAtRequest || '—')}</span></div>
+          <div class="info-row"><span class="k">Drums / last bought / used / remaining</span><span class="v">${fmtN_(r.drumLitres)} / ${fmtN_(r.lastPurchasedLitres)} / ${fmtN_(r.usedLitres)} / ${fmtN_(r.remainingLitres)} L</span></div>
+          <div class="info-row"><span class="k">Card balance now</span><span class="v">${bal == null ? '—' : fmtN_(bal) + ' L'}</span></div>`;
+    } else {
+        detail = '<div style="font-size:.85rem;">' + r.items.map(i => {
+            const s = i.itemId ? STOCK_CACHE.find(x => x.id === i.itemId) : null;
+            const av = s ? (Number(s.qty) >= Number(i.qty) ? ' <span style="color:#1b6b3f;">🟢 in store: ' + fmtN_(s.qty) + '</span>' : ' <span style="color:#b33a3a;">🔴 only ' + fmtN_(s.qty) + ' in store</span>') : ' <span style="color:#7a5300;">(not in store list)</span>';
+            return '• <strong>' + escapeHtml(i.name) + '</strong> — ' + fmtN_(i.qty) + ' ' + escapeHtml(i.unit || '') + (r.status === 'pending' ? av : '');
+        }).join('<br>') + '</div>';
+    }
+    const actions = act ? `<div style="margin-top:12px;padding-top:10px;border-top:1px dashed #e2eaf1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input type="text" class="remark-input req-comment" placeholder="Comment (required to reject)" style="flex:1;min-width:200px;margin:0;">
+        <button class="btn-approve" data-req-ok="${escapeHtml(r.id)}">✅ Approve &amp; sign</button>
+        <button class="btn-remove" data-req-no="${escapeHtml(r.id)}">❌ Reject</button></div>` : '';
+    return `<div class="task-card req-card priority-${r.priority || 'medium'}" style="border-left-color:${r.kind === 'fuel' ? '#b45309' : '#1e4a6d'};">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div><div class="tc-title">${r.kind === 'fuel' ? '⛽' : '📦'} ${escapeHtml(r.title)}</div>
+          <div class="tc-meta">${escapeHtml(r.requestNo)} · 👤 ${escapeHtml(r.requestedBy)} (${escapeHtml(r.requesterDept)}) · 📅 ${formatDateOnly(r.createdAt)} · <span class="priority-badge ${r.priority || 'medium'}">${escapeHtml(r.priority || 'medium')}</span></div></div>
+        <div>${st}</div></div>
+      <div class="tc-desc" style="margin-top:8px;">${escapeHtml(r.justification || '')}</div>
+      ${detail}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${stepper}</div>
+      ${actions}
+      <div style="margin-top:10px;"><button class="btn-secondary" data-req-pdf="${escapeHtml(r.id)}" style="padding:6px 14px;font-size:.82rem;">📄 PDF</button></div>
+    </div>`;
+}
+async function renderRequests() {
+    ensureReqDom();
+    const wrap = document.getElementById('reqList'); if (!wrap) return;
+    document.getElementById('reqNewStockBtn').style.display = canInitiate_() ? '' : 'none';
+    document.getElementById('reqNewFuelBtn').style.display = canInitiateFuel_() ? '' : 'none';
+    renderSkeletons(wrap, 3, 'card');
+    try {
+        if (!Object.keys(LIVE_USERS).length) LIVE_USERS = await loadUsersFromFirestore();
+        const me = currentLoggedInName;
+        const [reqs, stock, cards] = await Promise.all([fetchReqs_(), fetchStock_().catch(() => []), fetchCards_().catch(() => [])]);
+        STOCK_CACHE = stock; CARDS_CACHE = cards;
+        REQ_CACHE = reqs.filter(r => isInvolved_(r, me));
+        document.getElementById('reqCount').textContent = REQ_CACHE.filter(r => canAct_(r, me)).length + ' for me';
+        let f = REQ_CACHE;
+        if (REQ_FILTER === 'waiting') f = f.filter(r => canAct_(r, me));
+        else if (REQ_FILTER === 'open') f = f.filter(r => r.status === 'pending');
+        else if (REQ_FILTER === 'mine') f = f.filter(r => normalizeText(r.requestedBy) === normalizeText(me));
+        else if (REQ_FILTER === 'approved') f = f.filter(r => r.status === 'approved');
+        else if (REQ_FILTER === 'rejected') f = f.filter(r => r.status === 'rejected');
+        wrap.innerHTML = f.length ? f.map(reqCardHtml_).join('') : '<div style="text-align:center;padding:18px;color:#9cb9d0;font-style:italic;">📭 No requests here.</div>';
+        updateReqBadge_(REQ_CACHE);
+    } catch (e) { wrap.innerHTML = '<div class="info-error">⚠️ ' + escapeHtml(e.message) + '<br>Did you run the SQL for the request tables?</div>'; }
+}
+function updateReqBadge_(list) {
+    const b = document.getElementById('sbBadge_reqBadge'); if (!b) return;
+    const n = (list || []).filter(r => canAct_(r, currentLoggedInName)).length;
+    b.textContent = n; b.classList.toggle('show', n > 0);
+}
+setInterval(async () => {
+    if (!currentLoggedInName || !canUseRequests_() || document.hidden) return;
+    try { if (!Object.keys(LIVE_USERS).length) return; updateReqBadge_((await fetchReqs_()).filter(r => isInvolved_(r, currentLoggedInName))); } catch (e) { }
+}, 45000);
+
+async function onReqListClick_(e) {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.reqPdf) {
+        const r = REQ_CACHE.find(x => x.id === b.dataset.reqPdf); if (!r) return;
+        const o = b.innerHTML; b.disabled = true; b.innerHTML = '⏳';
+        try { await downloadReqPdf_(r); } catch (er) { toast(er.message, 'error'); }
+        b.disabled = false; b.innerHTML = o; return;
+    }
+    const id = b.dataset.reqOk || b.dataset.reqNo; if (!id) return;
+    const approve = !!b.dataset.reqOk;
+    const cm = (b.closest('.req-card').querySelector('.req-comment').value || '').trim();
+    b.disabled = true;
+    try { await actReq_(id, approve, cm); } catch (er) { toast(er.message, 'error'); }
+    renderRequests();
+}
+
+/* ---------- SUBMIT ---------- */
+async function submitReq_(p) {
+    const me = currentLoggedInName;
+    if (!Object.keys(LIVE_USERS).length) LIVE_USERS = await loadUsersFromFirestore();
+    const dept = userWorkDepts_(me)[0] || currentInchargeDept || '';
+    const chain = buildChain_(p.kind, me, dept);
+    const missing = chain.filter(s => s.status !== 'approved' && !usersWith_(s.kind, dept).length).map(s => s.label);
+    if (missing.length && !await smartConfirm('No user is set up yet for: ' + missing.join(', ') + '. The request will wait until they exist. Submit anyway?',
+        { title: 'Missing approvers', icon: '⚠️', okText: 'Submit anyway', danger: false })) return false;
+    const now = new Date().toISOString();
+    const rec = Object.assign({}, p, {
+        requestNo: (p.kind === 'fuel' ? 'FUEL-' : 'STK-') + now.slice(0, 10).replace(/-/g, '') + '-' + Math.floor(1000 + Math.random() * 9000),
+        requestedBy: me, requesterDept: dept, requesterRole: currentRole,
+        chain, currentStep: chain.findIndex(s => s.status !== 'approved'), status: 'pending', createdAt: now, updatedAt: now
+    });
+    const res = await window.FB.addDoc(window.FB.collection(window.FB.db, REQ_TABLE), rec);
+    const r = Object.assign({}, rec, { id: res.id });
+    try { await sealApproval_('req', res.id, 'requester', 'submitted', { no: rec.requestNo, title: rec.title }); } catch (e) { }
+    const w = waitingNames_(r);
+    await notifyMany_(everyoneOf_(r), r, 'req_new',
+        (p.kind === 'fuel' ? '⛽ New diesel request ' : '📦 New stock request ') + r.requestNo,
+        me + ' — ' + p.title + '. Order: ' + chainText_(r) + '. Waiting for: ' + (w.join(', ') || chain[r.currentStep].label) + '.');
+    if (w.length) await notifyMany_(w, r, 'req_turn', '✍️ Your signature is needed — ' + r.requestNo, p.title + ' (from ' + me + ')');
+    showStatus('✅ Request ' + r.requestNo + ' submitted.', true);
+    renderRequests();
+    return true;
+}
+
+/* ---------- APPROVE / REJECT ---------- */
+async function actReq_(id, approve, comment) {
+    const snap = await window.FB.getDoc(window.FB.doc(window.FB.db, REQ_TABLE, id));
+    if (!snap.exists()) throw new Error('Request not found.');
+    const r = normReq_(snap.data()); r.id = id;
+    if (!canAct_(r, currentLoggedInName)) { toast('It is not your turn to sign (or already processed).', 'warn'); return; }
+    if (!approve && !comment) { toast('Please write a comment to reject.', 'warn'); return; }
+    if (approve) {
+    // asks the PFX password if this user has a certificate attached, and stores the seal
+    const _sr = await sealApproval_('req', id, r.chain[r.currentStep].kind, 'approved',
+        { no: r.requestNo, title: r.title, comment: comment });
+    if (!_sr.ok) return;
+}
+    const now = new Date().toISOString(), me = currentLoggedInName, s = r.chain[r.currentStep];
+    Object.assign(s, { status: approve ? 'approved' : 'rejected', by: me, at: now, comment });
+    let status = 'pending', cur = r.currentStep;
+    if (!approve) status = 'rejected';
+    else { cur = r.chain.findIndex(x => x.status !== 'approved'); if (cur === -1) { status = 'approved'; cur = r.chain.length - 1; } }
+    await window.FB.updateDoc(window.FB.doc(window.FB.db, REQ_TABLE, id),
+        { chain: r.chain, currentStep: cur, status, updatedAt: now, completedAt: status !== 'pending' ? now : null });
+    r.currentStep = cur; r.status = status;
+    if (status === 'approved') { try { await applyFinal_(r); } catch (e) { toast('Approved, but stock/card update failed: ' + e.message, 'warn'); } }
+    const all = everyoneOf_(r);
+    if (status === 'rejected')
+        await notifyMany_(all, r, 'req_rejected', '❌ Request rejected — ' + r.requestNo, me + ' (' + s.label + '): ' + comment);
+    else if (status === 'approved')
+        await notifyMany_(all, r, 'req_done', '✅ Request fully approved — ' + r.requestNo, 'Final approval by ' + me + ' (' + s.label + ').');
+    else {
+        const nxt = waitingNames_(r);
+        await notifyMany_(new Set([r.requestedBy, ...all]), r, 'req_progress', '➡️ ' + r.requestNo + ' signed by ' + s.label,
+            me + ' approved. Now waiting for ' + (nxt.join(', ') || r.chain[cur].label) + '.');
+        await notifyMany_(nxt, r, 'req_turn', '✍️ Your signature is needed — ' + r.requestNo, r.title);
+    }
+    showStatus(approve ? '✅ Signed.' : '❌ Rejected.', approve);
+}
+async function applyFinal_(r) {
+    const now = new Date().toISOString();
+    if (r.kind === 'stock') {
+        for (const i of r.items) {
+            if (!i.itemId) continue;
+            const d = await window.FB.getDoc(window.FB.doc(window.FB.db, STOCK_TABLE, i.itemId));
+            if (!d.exists()) continue;
+            await window.FB.updateDoc(window.FB.doc(window.FB.db, STOCK_TABLE, i.itemId),
+                { qty: Math.max(0, Number(d.data().qty || 0) - Number(i.qty || 0)), updatedBy: currentLoggedInName, updatedAt: now });
+        }
+    } else {
+        const id = cardId_(r.generatorName), d = await window.FB.getDoc(window.FB.doc(window.FB.db, CARD_TABLE, id));
+        if (!d.exists()) return;
+        const c = d.data(), after = Math.max(0, Number(c.balanceLitres || 0) - Number(r.litresRequested || 0));
+        const h = Array.isArray(c.history) ? c.history.slice() : [];
+        h.push({ at: now, by: currentLoggedInName, delta: -Number(r.litresRequested), note: 'Request ' + r.requestNo, balanceAfter: after });
+        await window.FB.updateDoc(window.FB.doc(window.FB.db, CARD_TABLE, id), { balanceLitres: after, history: h.slice(-30), updatedBy: currentLoggedInName, updatedAt: now });
+    }
+}
+
+/* ---------- STOCK REQUEST FORM ---------- */
+function rqRowHtml_() {
+    return `<div class="rq-row" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:8px;align-items:start;">
+      <div><select class="rq-sel" style="width:100%;padding:10px;border-radius:12px;border:1.5px solid #cfdfeb;">
+        <option value="">— Not in store list (type the name) —</option>
+        ${STOCK_CACHE.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)} — ${fmtN_(s.qty)} ${escapeHtml(s.unit || '')} in store</option>`).join('')}
+      </select><input class="rq-name remark-input" placeholder="Item name" style="margin-top:6px;"></div>
+      <input type="number" min="0" step="any" class="rq-qty remark-input" placeholder="Qty" style="margin:0;">
+      <div><input class="rq-unit remark-input" placeholder="Unit" style="margin:0;"><div class="rq-avail" style="font-size:.75rem;margin-top:4px;"></div></div></div>`;
+}
+function rqRefresh_(row) {
+    const s = STOCK_CACHE.find(x => x.id === row.querySelector('.rq-sel').value);
+    const q = parseFloat(row.querySelector('.rq-qty').value) || 0, av = row.querySelector('.rq-avail');
+    av.innerHTML = !s ? '' : (Number(s.qty) >= q ? '<span style="color:#1b6b3f;">🟢 ' + fmtN_(s.qty) + ' available</span>'
+        : '<span style="color:#b33a3a;">🔴 only ' + fmtN_(s.qty) + ' in store</span>');
+}
+async function openStockForm_() {
+    STOCK_CACHE = await fetchStock_().catch(() => []);
+    reqModal_('📦 New Stock Request', `
+      <div class="field-group"><label>Title *</label><input type="text" id="rqTitle" placeholder="e.g. Electrical consumables for Theatre 2"></div>
+      <div class="field-group"><label>Priority</label><select id="rqPrio"><option value="low">🟦 Low</option><option value="medium" selected>🟨 Medium</option><option value="high">🟧 High</option><option value="critical">🟥 Critical</option></select></div>
+      <div class="field-group"><label>Items * <span style="font-weight:500;color:#5b7b96;">(pick from the store list to see what is available)</span></label>
+        <div id="rqItems"></div><button type="button" class="btn-secondary" id="rqAddItem" style="padding:8px 16px;font-size:.85rem;">➕ Add item</button></div>
+      <div class="field-group"><label>Justification *</label><textarea id="rqWhy" class="remark-input" rows="3"></textarea></div>`,
+        async () => {
+            const items = Array.from(document.querySelectorAll('#rqItems .rq-row')).map(row => ({
+                itemId: row.querySelector('.rq-sel').value, name: row.querySelector('.rq-name').value.trim(),
+                qty: parseFloat(row.querySelector('.rq-qty').value), unit: row.querySelector('.rq-unit').value.trim()
+            })).filter(i => i.name && i.qty > 0);
+            const title = gv_('rqTitle').trim(), why = gv_('rqWhy').trim();
+            if (!title) return 'Enter a title.'; if (!items.length) return 'Add at least one item with a quantity.'; if (!why) return 'Enter a justification.';
+            items.forEach(i => { const s = STOCK_CACHE.find(x => x.id === i.itemId); i.availableAtRequest = s ? Number(s.qty) : null; });
+            return await submitReq_({ kind: 'stock', title, priority: gv_('rqPrio'), justification: why, items });
+        }, { width: '680px', okText: '📤 Submit request' });
+    const box = document.getElementById('rqItems');
+    const add = () => box.insertAdjacentHTML('beforeend', rqRowHtml_());
+    add();
+    document.getElementById('rqAddItem').onclick = add;
+    const onCh = e => {
+        const row = e.target.closest('.rq-row'); if (!row) return;
+        if (e.target.classList.contains('rq-sel')) {
+            const s = STOCK_CACHE.find(x => x.id === e.target.value), nm = row.querySelector('.rq-name'), un = row.querySelector('.rq-unit');
+            if (s) { nm.value = s.name; nm.readOnly = true; un.value = s.unit || ''; } else { nm.readOnly = false; }
+        }
+        rqRefresh_(row);
+    };
+    box.addEventListener('change', onCh); box.addEventListener('input', onCh);
+}
+
+/* ---------- DIESEL REQUEST FORM ---------- */
+async function openFuelForm_() {
+    if (!canInitiateFuel_()) { toast('Diesel requests are only for the Infrastructure department.', 'warn'); return; }
+    const [gens, cards] = await Promise.all([generatorNames_(), fetchCards_().catch(() => [])]);
+    CARDS_CACHE = cards;
+    if (!gens.length) { toast('No generators found. Add them in Equipment Monitoring → Generators first.', 'warn'); return; }
+    const two = 'display:grid;grid-template-columns:1fr 1fr;gap:12px;';
+    reqModal_('⛽ New Diesel Request', `
+      <div class="field-group"><label>Generator *</label><select id="fqGen"></select></div>
+      <div id="fqInfo" style="background:#fff9ec;border:1.5px solid #f4d97a;border-radius:12px;padding:10px 14px;font-size:.85rem;color:#7a5300;margin-bottom:12px;"></div>
+      <div style="${two}"><div class="field-group"><label>Tank level (%)</label><input type="number" id="fqTank"></div>
+        <div class="field-group"><label>Operating hours</label><input type="text" id="fqHours" placeholder="e.g. 684h17"></div></div>
+      <div style="${two}"><div class="field-group"><label>Diesel reserved in drums (L)</label><input type="number" id="fqDrums" value="0"></div>
+        <div class="field-group"><label>Last purchased fuel (L)</label><input type="number" id="fqLast"></div></div>
+      <div style="${two}"><div class="field-group"><label>Used fuel (L)</label><input type="number" id="fqUsed"></div>
+        <div class="field-group"><label>Remaining fuel (L)</label><input type="number" id="fqRem" value="0"></div></div>
+      <div style="${two}"><div class="field-group"><label>Needed fuel (L) *</label><input type="number" id="fqNeed"></div>
+        <div class="field-group"><label>Price per litre (RWF)</label><input type="number" id="fqPrice" value="${DEFAULT_DIESEL_PRICE}"></div></div>
+      <div id="fqTotal" style="font-weight:800;color:#12405e;margin-bottom:6px;"></div>
+      <div class="field-group"><label>Priority</label><select id="fqPrio"><option value="medium">🟨 Medium</option><option value="high">🟧 High</option><option value="critical">🟥 Critical</option><option value="low">🟦 Low</option></select></div>
+      <div class="field-group"><label>Reason *</label><textarea id="fqWhy" class="remark-input" rows="2">Fuel for generator used as electrical power back-up energy in CHUB</textarea></div>`,
+        async () => {
+            const g = gv_('fqGen'), need = parseFloat(gv_('fqNeed')), price = parseFloat(gv_('fqPrice')) || DEFAULT_DIESEL_PRICE, why = gv_('fqWhy').trim();
+            if (!g) return 'Choose a generator.'; if (!(need > 0)) return 'Enter the litres needed.'; if (!why) return 'Enter a reason.';
+            const c = cardOf_(g), num = id => { const v = parseFloat(gv_(id)); return isNaN(v) ? null : v; };
+            return await submitReq_({
+                kind: 'fuel', title: 'Diesel for ' + g + ' — ' + need + ' L', priority: gv_('fqPrio'), justification: why, items: [],
+                generatorName: g, litresRequested: need, unitPrice: price, totalAmount: need * price,
+                cardBalanceAtRequest: c ? Number(c.balanceLitres || 0) : null,
+                tankPercent: num('fqTank'), hoursAtRequest: gv_('fqHours'), drumLitres: num('fqDrums'),
+                lastPurchasedLitres: num('fqLast'), usedLitres: num('fqUsed'), remainingLitres: num('fqRem')
+            });
+        }, { width: '640px', okText: '📤 Submit request' });
+    const sel = document.getElementById('fqGen'); gens.forEach(g => sel.add(new Option(g, g)));
+    sel.onchange = fuelGenChanged_;
+    ['fqNeed', 'fqPrice', 'fqLast', 'fqUsed'].forEach(id => document.getElementById(id).oninput = fuelCalc_);
+    fuelGenChanged_();
+}
+async function fuelGenChanged_() {
+    const g = gv_('fqGen'), c = cardOf_(g), info = document.getElementById('fqInfo');
+    window.__fqBal = c ? Number(c.balanceLitres || 0) : null;
+    const price = c ? (Number(c.pricePerLitre) || DEFAULT_DIESEL_PRICE) : DEFAULT_DIESEL_PRICE;
+    document.getElementById('fqPrice').value = price;
+    info.innerHTML = '⏳ Checking card and last monitoring log…';
+    const log = await latestGenLog_(g);
+    if (gv_('fqGen') !== g) return;
+    if (log) {
+        document.getElementById('fqTank').value = log.fuelLevel || '';
+        document.getElementById('fqHours').value = log.runHours ? log.runHours + 'h' + (log.runMins || '') : '';
+    }
+    info.innerHTML = (c ? '⛽ Card <strong>' + escapeHtml(c.cardNumber || '') + '</strong> balance: <strong>' + fmtN_(window.__fqBal) + ' L</strong> (≈ ' + fmtN_(window.__fqBal * price) + ' RWF)'
+        : '⚠️ No fuel card set up for this generator yet (the Store Keeper must create it).')
+        + (log ? '<br>📊 Last monitoring ' + formatDateOnly(log.date) + ': tank ' + (log.fuelLevel || '—') + '%, ' + (log.runHours || '—') + ' h' : '<br>📊 No monitoring log found for this generator.');
+    fuelCalc_();
+}
+function fuelCalc_() {
+    const need = parseFloat(gv_('fqNeed')) || 0, price = parseFloat(gv_('fqPrice')) || 0;
+    const last = parseFloat(gv_('fqLast')), used = parseFloat(gv_('fqUsed'));
+    if (!isNaN(last) || !isNaN(used)) document.getElementById('fqRem').value = Math.max(0, (last || 0) - (used || 0));
+    let t = 'Total: ' + fmtN_(need * price) + ' RWF';
+    if (window.__fqBal != null && need > window.__fqBal) t += ' <span style="color:#b33a3a;">⚠️ exceeds the card balance by ' + fmtN_(need - window.__fqBal) + ' L</span>';
+    document.getElementById('fqTotal').innerHTML = t;
+}
+
+/* ---------- STORE STOCK ---------- */
+async function renderStore() {
+    ensureReqDom();
+    document.getElementById('storeAddBtn').style.display = isStorekeeper_() ? '' : 'none';
+    try { STOCK_CACHE = await fetchStock_(); } catch (e) { document.getElementById('storeBody').innerHTML = '<tr><td colspan="7" style="color:#b33a3a;padding:14px;">⚠️ ' + escapeHtml(e.message) + '</td></tr>'; return; }
+    renderStoreTable_();
+}
+function renderStoreTable_() {
+    const q = (gv_('storeSearch') || '').toLowerCase().trim(), sk = isStorekeeper_();
+    const rows = STOCK_CACHE.filter(s => !q || (s.name + ' ' + (s.category || '') + ' ' + (s.location || '')).toLowerCase().includes(q));
+    document.getElementById('storeCount').textContent = rows.length;
+    document.getElementById('storeBody').innerHTML = rows.length ? rows.map(s => {
+        const low = Number(s.qty) <= Number(s.minQty || 0);
+        return `<tr><td><strong>${escapeHtml(s.name)}</strong></td><td>${escapeHtml(s.category || '—')}</td>
+          <td><strong>${fmtN_(s.qty)}</strong> ${escapeHtml(s.unit || '')}</td><td>${fmtN_(s.minQty)}</td><td>${escapeHtml(s.location || '—')}</td>
+          <td>${Number(s.qty) <= 0 ? '<span class="status-badge overdue">Out of stock</span>' : low ? '<span class="status-badge pending">Low</span>' : '<span class="status-badge maintained">OK</span>'}</td>
+          <td>${sk ? `<button class="btn-dl-row" data-si-adj="${escapeHtml(s.id)}">± Qty</button>
+            <button class="btn-dl-row" data-si-edit="${escapeHtml(s.id)}" style="background:#7a4c9c;">✏️</button>
+            <button class="btn-danger" data-si-del="${escapeHtml(s.id)}">🗑️</button>` : '—'}</td></tr>`;
+    }).join('') : '<tr><td colspan="7" style="text-align:center;color:#9cb9d0;padding:14px;">No items.</td></tr>';
+}
+function openItemModal_(item) {
+    item = item || {};
+    reqModal_(item.id ? '✏️ Edit item' : '➕ Add stock item', `
+      <div class="field-group"><label>Item name *</label><input type="text" id="siName" value="${escapeHtml(item.name || '')}"></div>
+      <div class="field-group"><label>Category</label><input type="text" id="siCat" value="${escapeHtml(item.category || '')}" placeholder="Electrical, Plumbing, Tools…"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div class="field-group"><label>Unit</label><input type="text" id="siUnit" value="${escapeHtml(item.unit || '')}" placeholder="pcs, m, L"></div>
+        <div class="field-group"><label>Quantity *</label><input type="number" id="siQty" value="${item.qty != null ? item.qty : 0}"></div>
+        <div class="field-group"><label>Minimum</label><input type="number" id="siMin" value="${item.minQty != null ? item.minQty : 0}"></div></div>
+      <div class="field-group"><label>Shelf / location</label><input type="text" id="siLoc" value="${escapeHtml(item.location || '')}"></div>`,
+        async () => {
+            const name = gv_('siName').trim(); if (!name) return 'Item name is required.';
+            const d = { name, category: gv_('siCat').trim(), unit: gv_('siUnit').trim(), qty: parseFloat(gv_('siQty')) || 0, minQty: parseFloat(gv_('siMin')) || 0, location: gv_('siLoc').trim(), updatedBy: currentLoggedInName, updatedAt: new Date().toISOString() };
+            if (item.id) await window.FB.updateDoc(window.FB.doc(window.FB.db, STOCK_TABLE, item.id), d);
+            else await window.FB.addDoc(window.FB.collection(window.FB.db, STOCK_TABLE), d);
+            renderStore(); return true;
+        });
+}
+async function onStoreClick_(e) {
+    const b = e.target.closest('button'); if (!b || !isStorekeeper_()) return;
+    const id = b.dataset.siAdj || b.dataset.siEdit || b.dataset.siDel, s = STOCK_CACHE.find(x => x.id === id); if (!s) return;
+    if (b.dataset.siEdit) return openItemModal_(s);
+    if (b.dataset.siDel) {
+        if (!await smartConfirm('Delete "' + s.name + '" from the store?', { danger: true, okText: '🗑️ Delete' })) return;
+        await window.FB.deleteDoc(window.FB.doc(window.FB.db, STOCK_TABLE, id)); return renderStore();
+    }
+    const v = parseFloat(prompt('Quantity to ADD to "' + s.name + '" (use a negative number to remove):', '0'));
+    if (!v) return;
+    await window.FB.updateDoc(window.FB.doc(window.FB.db, STOCK_TABLE, id), { qty: Math.max(0, Number(s.qty) + v), updatedBy: currentLoggedInName, updatedAt: new Date().toISOString() });
+    renderStore();
+}
+
+/* ---------- FUEL CARDS ---------- */
+async function renderFuelCards() {
+    ensureReqDom();
+    const grid = document.getElementById('cardsGrid'); renderSkeletons(grid, 3, 'card');
+    try {
+        const [gens, cards] = await Promise.all([generatorNames_(), fetchCards_()]);
+        CARDS_CACHE = cards;
+        const sk = isStorekeeper_();
+        grid.innerHTML = gens.map(g => {
+            const c = cardOf_(g);
+            if (!c) return `<div class="info-card"><h2>⛽ ${escapeHtml(g)}</h2><div style="color:#9cb9d0;font-style:italic;">No card set up yet.</div>
+              ${sk ? `<button class="btn-primary" data-card-edit="${escapeHtml(g)}" style="margin-top:10px;padding:8px 16px;font-size:.85rem;">➕ Set up card</button>` : ''}</div>`;
+            const bal = Number(c.balanceLitres || 0), p = Number(c.pricePerLitre) || DEFAULT_DIESEL_PRICE;
+            const h = (Array.isArray(c.history) ? c.history : []).slice(-3).reverse().map(x =>
+                `<div style="font-size:.72rem;color:#5b7b96;">${formatDateOnly(x.at)} · ${x.delta > 0 ? '+' : ''}${fmtN_(x.delta)} L · ${escapeHtml(x.note || '')}</div>`).join('');
+            return `<div class="info-card" style="border:2px solid ${bal <= 0 ? '#b33a3a' : '#b45309'};"><h2>⛽ ${escapeHtml(g)}</h2>
+              <div style="font-size:.78rem;color:#5b7b96;">Card ${escapeHtml(c.cardNumber || '—')}</div>
+              <div style="font-size:1.8rem;font-weight:800;color:${bal <= 0 ? '#b33a3a' : '#12405e'};margin:6px 0;">${fmtN_(bal)} L</div>
+              <div style="font-size:.82rem;color:#3a6583;">≈ ${fmtN_(bal * p)} RWF @ ${fmtN_(p)} RWF/L</div>
+              <div style="margin-top:8px;">${h}</div>
+              ${sk ? `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+                <button class="btn-approve" data-card-top="${escapeHtml(g)}" style="padding:6px 14px;font-size:.82rem;">➕ Top-up</button>
+                <button class="btn-secondary" data-card-edit="${escapeHtml(g)}" style="padding:6px 14px;font-size:.82rem;">✏️ Edit</button></div>` : ''}</div>`;
+        }).join('') || '<div style="color:#9cb9d0;font-style:italic;">No generators found.</div>';
+    } catch (e) { grid.innerHTML = '<div class="info-error">⚠️ ' + escapeHtml(e.message) + '</div>'; }
+}
+async function onCardClick_(e) {
+    const b = e.target.closest('button'); if (!b || !isStorekeeper_()) return;
+    const name = b.dataset.cardTop || b.dataset.cardEdit, c = cardOf_(name) || {};
+    const id = cardId_(name);
+    if (b.dataset.cardTop) {
+        const v = parseFloat(prompt('Litres added to the card of ' + name + ':', '0')); if (!(v > 0)) return;
+        const after = Number(c.balanceLitres || 0) + v, h = Array.isArray(c.history) ? c.history.slice() : [];
+        h.push({ at: new Date().toISOString(), by: currentLoggedInName, delta: v, note: 'Top-up', balanceAfter: after });
+        await window.FB.setDoc(window.FB.doc(window.FB.db, CARD_TABLE, id), { generatorName: name, balanceLitres: after, history: h.slice(-30), updatedBy: currentLoggedInName, updatedAt: new Date().toISOString() }, { merge: true });
+        return renderFuelCards();
+    }
+    reqModal_('✏️ Fuel card — ' + name, `
+      <div class="field-group"><label>Card number</label><input type="text" id="fcNo" value="${escapeHtml(c.cardNumber || '')}"></div>
+      <div class="field-group"><label>Balance (litres)</label><input type="number" id="fcBal" value="${c.balanceLitres != null ? c.balanceLitres : 0}"></div>
+      <div class="field-group"><label>Price per litre (RWF)</label><input type="number" id="fcPrice" value="${c.pricePerLitre || DEFAULT_DIESEL_PRICE}"></div>`,
+        async () => {
+            const bal = parseFloat(gv_('fcBal')) || 0, h = Array.isArray(c.history) ? c.history.slice() : [];
+            if (bal !== Number(c.balanceLitres || 0)) h.push({ at: new Date().toISOString(), by: currentLoggedInName, delta: bal - Number(c.balanceLitres || 0), note: 'Manual correction', balanceAfter: bal });
+            await window.FB.setDoc(window.FB.doc(window.FB.db, CARD_TABLE, id), { generatorName: name, cardNumber: gv_('fcNo').trim(), balanceLitres: bal, pricePerLitre: parseFloat(gv_('fcPrice')) || DEFAULT_DIESEL_PRICE, history: h.slice(-30), updatedBy: currentLoggedInName, updatedAt: new Date().toISOString() }, { merge: true });
+            renderFuelCards(); return true;
+        });
+}
+
+/* ---------- PDF ---------- */
+async function downloadReqPdf_(r) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pW = 210, pH = 297, m = 16, cW = pW - m * 2;
+    let y = drawChubHeader(doc, {
+        title: r.kind === 'fuel' ? 'DIESEL FUEL REQUEST' : 'STOCK / CONSUMABLES REQUEST',
+        subtitle: 'Ref ' + r.requestNo + '   |   ' + formatDateOnly(r.createdAt), ref: r.requestNo, date: new Date().toLocaleDateString('en-GB')
+    });
+    const rows = [['Request no', r.requestNo], ['Date', formatDateOnly(r.createdAt)], ['Requested by', r.requestedBy], ['Department', r.requesterDept],
+        ['Priority', (r.priority || '').toUpperCase()], ['Status', (r.status || '').toUpperCase()]];
+    if (r.kind === 'fuel') rows.push(['Generator', r.generatorName], ['Tank level', (r.tankPercent != null ? r.tankPercent + '%' : '-')], ['Operating hours', r.hoursAtRequest || '-'],
+        ['Diesel in drums (L)', fmtN_(r.drumLitres)], ['Last purchased fuel (L)', fmtN_(r.lastPurchasedLitres)], ['Used fuel (L)', fmtN_(r.usedLitres)],
+        ['Remaining fuel (L)', fmtN_(r.remainingLitres)], ['Needed fuel (L)', fmtN_(r.litresRequested)], ['Unit price (RWF/L)', fmtN_(r.unitPrice)],
+        ['TOTAL AMOUNT (RWF)', fmtN_(r.totalAmount)], ['Card balance at request (L)', r.cardBalanceAtRequest == null ? '-' : fmtN_(r.cardBalanceAtRequest)]);
+    rows.push(['Reason', r.justification || '-']);
+    doc.autoTable({ startY: y, margin: { left: m, right: m }, head: [['Request', '']], body: rows.map(x => [x[0], pdfSanitize(String(x[1]))]),
+        theme: 'striped', styles: { fontSize: 8.5, cellPadding: 1.8 }, headStyles: { fillColor: [30, 74, 109], textColor: 255 }, columnStyles: { 0: { cellWidth: 52, fontStyle: 'bold' } } });
+    y = doc.lastAutoTable.finalY + 5;
+    if (r.kind === 'stock') {
+        doc.autoTable({ startY: y, margin: { left: m, right: m }, head: [['Item', 'Qty', 'Unit', 'In store at request']],
+            body: r.items.map(i => [pdfSanitize(i.name), fmtN_(i.qty), pdfSanitize(i.unit || ''), i.availableAtRequest == null ? '-' : fmtN_(i.availableAtRequest)]),
+            theme: 'striped', styles: { fontSize: 8.5 }, headStyles: { fillColor: [27, 107, 63], textColor: 255 } });
+        y = doc.lastAutoTable.finalY + 5;
+    }
+    // ===== APPROVAL TABLE: every row followed by the signer's signature + digital seal =====
+    const entries = [{ label: 'Requested by', kind: 'requester', name: r.requestedBy, decision: 'SUBMITTED', at: r.createdAt, comment: '-', signed: true }]
+        .concat(r.chain.map((s, i) => ({
+            label: (i + 1) + '. ' + s.label, kind: s.kind, name: s.by || '-',
+            decision: s.status === 'waiting' ? 'PENDING' : s.status.toUpperCase(),
+            at: s.at, comment: s.comment || '-', signed: s.status === 'approved'
+        })));
+
+    for (const e of entries) {
+        e.sig = null; e.seal = null;
+        if (e.signed && e.name && e.name !== '-') {
+            try { e.sig = await getDisposalSignerSig(e.name); } catch (x) { }
+            try { e.seal = await fetchSeal_('req', r.id, e.kind); } catch (x) { }
+        }
+    }
+
+    const cols = { step: m + 2, who: m + 44, dec: m + 88, date: m + 112, com: m + 136 };
+    const drawHead = () => {
+        doc.setFillColor(122, 83, 0); doc.rect(m, y, cW, 7, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(255, 255, 255);
+        doc.text('Step', cols.step, y + 4.8); doc.text('Approver', cols.who, y + 4.8);
+        doc.text('Decision', cols.dec, y + 4.8); doc.text('Date', cols.date, y + 4.8); doc.text('Comment', cols.com, y + 4.8);
+        y += 7;
+    };
+    const newPage = () => { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'REQUEST (cont.)', ref: r.requestNo }); drawHead(); };
+    if (y + 40 > pH - 22) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'REQUEST (cont.)', ref: r.requestNo }); }
+    drawHead();
+
+    for (let i = 0; i < entries.length; i++) {
+        const e = entries[i];
+        const rowH = 10, sigH = e.signed ? 20 : 0;
+        if (y + rowH + sigH > pH - 24) newPage();
+
+        doc.setFillColor(i % 2 ? 249 : 255, i % 2 ? 252 : 255, 255);
+        doc.setDrawColor(226, 234, 241); doc.rect(m, y, cW, rowH, 'FD');
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(31, 60, 84);
+        doc.text(doc.splitTextToSize(pdfSanitize(e.label), 40).slice(0, 2), cols.step, y + 4);
+        doc.text(doc.splitTextToSize(pdfSanitize(e.name), 42).slice(0, 2), cols.who, y + 4);
+        doc.setFont('helvetica', 'bold');
+        const good = e.decision === 'APPROVED' || e.decision === 'SUBMITTED';
+        if (good) doc.setTextColor(27, 107, 63);
+        else if (e.decision === 'REJECTED') doc.setTextColor(179, 58, 58);
+        else doc.setTextColor(122, 83, 0);
+        doc.text(e.decision, cols.dec, y + 4);
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(31, 60, 84);
+        doc.text(e.at ? formatDateOnly(e.at) : '-', cols.date, y + 4);
+        doc.text(doc.splitTextToSize(pdfSanitize(e.comment), 40).slice(0, 2), cols.com, y + 4);
+        y += rowH;
+
+        if (e.signed) {
+            doc.setFillColor(240, 246, 252); doc.setDrawColor(207, 224, 238);
+            doc.rect(m, y, cW, sigH, 'FD');
+            doc.setFont('helvetica', 'italic'); doc.setFontSize(6); doc.setTextColor(91, 123, 150);
+            doc.text('Signature', m + 2, y + 3.5);
+            if (e.sig && e.sig.url) {
+                try {
+                    let w = 50, h = 15;
+                    if (e.sig.dims && e.sig.dims.width && e.sig.dims.height) {
+                        const a = e.sig.dims.width / e.sig.dims.height; h = w / a; if (h > 15) { h = 15; w = h * a; }
+                    }
+                    doc.addImage(e.sig.url, getImageFormat(e.sig.url), m + 4, y + 4 + (15 - h) / 2, w, h);
+                } catch (x) { }
+            } else {
+                doc.setFontSize(6.5); doc.text('(no handwritten signature on file)', m + 4, y + 11);
+            }
+            if (e.seal) drawSealStamp_(doc, m + 70, y + 1.5, cW - 72, e.seal);
+            else {
+                doc.setFont('helvetica', 'italic'); doc.setFontSize(6.5); doc.setTextColor(150, 150, 150);
+                doc.text('No digital certificate attached', m + 74, y + 11);
+            }
+            y += sigH;
+        }
+    }
+    y += 6;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(91, 123, 150);
+    doc.text('Request ID: ' + pdfSanitize(r.id || '-') + '  |  Downloaded by ' + pdfSanitize(currentLoggedInName || '-') + ' on ' + new Date().toLocaleString('en-GB'), m, y);
+
+    const tp = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= tp; p++) { doc.setPage(p); drawChubFooter(doc, p, tp); }
+
+    const fname = 'CHUB_' + r.requestNo + '.pdf';
+    if (currentLoggedInName && !isCertLoaded()) { try { await ensurePfxLoadedFor(currentLoggedInName); } catch (x) { } }
+    const bytes = doc.output('arraybuffer');
+    const sb = isCertLoaded() ? await signPdfBytes(bytes, {
+        placements: [{ page: tp - 1, yFromTopMm: Math.min(y + 18, pH - 22), xMm: m }]
+    }) : null;
+    if (sb) downloadBytes(sb, fname); else doc.save(fname);
+} 
         // ===== NEW: INFRA IN-CHARGE TEAM TRACKING & GLOBAL ANALYSIS =====
         let IC_TEAM_STATUS_FILTER = 'all';
 
