@@ -3680,7 +3680,54 @@ window.setupPushNotifications = async function(userName) {
         body.dark::before { color: rgba(203, 228, 247, .05); }
         body.dark .toast { background: #1e293b; color: #e2e8f0; }
         body.dark .skeleton { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; }
+        /* ===== LOGIN SCREEN BACKGROUND IMAGE ===== */
+       
+                /* Background photo: fully visible, no dark overlay */
+        #loginModal {
+            background: url('login-bg.png') center center / cover no-repeat;
+            z-index: 9000;
+            padding: 10px;
+        }
 
+        /* Transparent "glass" card */
+        #loginModal .modal-box {
+            background: rgba(10, 30, 50, .28);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            border: 1px solid rgba(255, 255, 255, .35);
+            box-shadow: 0 20px 50px -15px rgba(0, 0, 0, .5);
+            max-height: 96vh;
+        }
+        body.dark #loginModal .modal-box {
+            background: rgba(10, 30, 50, .28);
+        }
+
+        /* Words: white with a dark outline so they show on any background */
+        #loginModal .modal-box,
+        #loginModal .modal-box h2,
+        #loginModal .modal-box p,
+        #loginModal .modal-box label,
+        #loginModal .field-group label {
+            color: #ffffff !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, .95), 0 0 8px rgba(0, 0, 0, .7);
+            font-weight: 700;
+        }
+
+        /* Fields stay readable: light glass with dark text */
+        #loginModal select,
+        #loginModal input[type="text"],
+        #loginModal input[type="password"] {
+            background: rgba(255, 255, 255, .82) !important;
+            color: #0a2a3f !important;
+            text-shadow: none !important;
+            border: 1.5px solid rgba(255, 255, 255, .8);
+        }
+        #loginModal input::placeholder { color: #5b7b96; }
+
+        /* Error message + language links */
+        #loginModal #loginError { color: #ffd0d0 !important; text-shadow: 0 1px 3px #000; font-weight: 700; }
+        #loginModal a[data-lang] { color: #ffffff; text-shadow: 0 1px 3px #000; }
+        #loginModal a[data-lang].lang-active { background: rgba(255, 255, 255, .25); color: #fff; }
         /* Force 2FA modal to sit above the Login modal */
         #twoFactorVerifyModal {
             z-index: 5000 !important;
