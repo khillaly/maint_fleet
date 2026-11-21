@@ -7103,12 +7103,14 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
             <div class="field-group">
                 <label for="curativeCategory">Category *</label>
                 <select id="curativeCategory">
-                    <option value="Refrigeration">🧊 Refrigeration (fridge / freezer)</option>
-                    <option value="AirConditioner">❄️ Air Conditioner (AC)</option>
-                    <option value="Biomedical">🏥 Biomedical Equipment (BMET)</option>
-                    <option value="Electrical">⚡ Electrical (lamp, switch, socket, panel)</option>
-                    <option value="Other">📝 Other</option>
-                </select>
+    <option value="Refrigeration">🧊 Refrigeration (fridge / freezer)</option>
+    <option value="AirConditioner">❄️ Air Conditioner (AC)</option>
+    <option value="Biomedical">🏥 Biomedical Equipment (BMET)</option>
+    <option value="Electrical">⚡ Electrical (lamp, switch, socket, panel)</option>
+    <option value="Plumbing">🚰 Plumbing Works</option>
+    <option value="Building">🏗️ Building Issues</option>
+    <option value="Other">📝 Other</option>
+</select>
             </div>
             <div class="field-group" id="curativeEquipWrap"><label for="curativeEquipSelect">Equipment *</label><select
                     id="curativeEquipSelect"></select></div>
@@ -15266,6 +15268,24 @@ if (n.type === 'pm_submitted') {
                 });
                 return out;
             }
+            // STRICTLY return technicians registered under Infrastructure
+async function findInfrastructureTechnicians() {
+    const users = await loadUsersFromFirestore();
+
+    return Object.keys(users).filter(name => {
+        const u = users[name];
+
+        if (u.role !== 'technician') return false;
+
+        const ds = Array.isArray(u.depts)
+            ? u.depts
+            : (u.dept ? [u.dept] : []);
+
+        return ds.some(d =>
+            normalizeText(d) === normalizeText(INFRA_DEPT_NAME)
+        );
+    });
+}
             function renderCurativeCard(c, opts) {
                 opts = opts || {};
                 const sl = ({ pending: '⏳ Pending', in_progress: '🔧 In Progress', paused: '⏸️ Paused', completed: '📸 Awaiting Verification', verified: '✅ Verified', rejected: '❌ Rejected' })[c.status] || c.status;
@@ -16520,6 +16540,12 @@ bindCurativeButtons(wrap, all, { canVerify: _canVerify });
                     equipType = category;
                     dept = currentInchargeDept || inferDepartmentFromIncharge(currentLoggedInName) || '';
                     if (currentRole === 'duty_coordinator') dept = userWorkDepts_(assignTo)[0] || INFRA_DEPT_NAME;
+                    // Plumbing / Building always go to Infrastructure technicians
+                    if (category === 'Plumbing' || category === 'Building') {
+                        const fromDept = dept;
+                        dept = INFRA_DEPT_NAME;
+                        if (fromDept && normalizeText(fromDept) !== normalizeText(INFRA_DEPT_NAME)) loc = manualLoc + ' (' + fromDept + ')';
+                    }
                 }
                 const btn = document.getElementById('curativeRaiseSaveBtn');
                 const o = btn.innerHTML;
@@ -24215,6 +24241,15 @@ document.getElementById('delegateCurativeSaveBtn')?.addEventListener('click', sa
                 l.classList.add('selected');
             }));
             document.getElementById('curativeCategory')?.addEventListener('change', function () {
+                {
+                    const _as = document.getElementById('curativeAssignTo');
+                    const _infraOnly = (this.value === 'Plumbing' || this.value === 'Building');
+                    if (_as) Array.from(_as.options).forEach(o => {
+                        if (!o.value) return;
+                        o.hidden = _infraOnly && !userInDept_(o.value, INFRA_DEPT_NAME);
+                    });
+                    if (_as && _infraOnly && _as.selectedOptions[0] && _as.selectedOptions[0].hidden) _as.value = '';
+                }
                 const eqW = document.getElementById('curativeEquipWrap');
                 const locW = document.getElementById('curativeLocationWrap');
                 const ftW = document.getElementById('curativeFreeTextWrap');
@@ -26350,7 +26385,8 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
                 { group: 'My Work', items: [
                     { view: 'tech-tasks',    icon: '📋', label: 'My Tasks',      badge: 'techTaskCount' },
                     { view: 'tech-curative', icon: '🚨', label: 'Curative Jobs', badge: 'techCurativeCount' },
-                    { view: 'tech-progress', icon: '📈', label: 'PM Progress' }
+                    { view: 'tech-progress', icon: '📈', label: 'PM Progress' },
+                    ...(canSeeImihigo_() ? [{ view: 'tech-imihigo', icon: '🎯', label: 'IMIHIGO Reports' }] : [])
                 ]}
             ],
             incharge: () => [
@@ -26621,6 +26657,8 @@ ensureReqDom();
 wrapStandalone('reqMainCard', 'req-main');
 wrapStandalone('reqStoreCard', 'req-store');
 wrapStandalone('reqCardsCard', 'req-cards');
+ensureImihigoDom();
+wrapStandalone('imihigoCard', 'tech-imihigo');
         }
 
         /* ---------- Render sidebar ---------- */
@@ -26727,6 +26765,7 @@ wrapStandalone('reqCardsCard', 'req-cards');
 if (viewId === 'req-main') renderRequests();
 if (viewId === 'req-store') renderStore();
 if (viewId === 'req-cards') renderFuelCards();
+if (viewId === 'tech-imihigo') renderImihigo();
             if (viewId === 'sup-user-activity' && typeof renderUserActivityDashboard === 'function') {
                 renderUserActivityDashboard();
             }
@@ -26797,6 +26836,50 @@ if (viewId === 'req-cards') renderFuelCards();
    📦 REQUESTS · STORE STOCK · FUEL CARDS
    ============================================================ */
 const REQ_TABLE = 'stockRequests', STOCK_TABLE = 'stockItems', CARD_TABLE = 'fuelCards';
+const DEFAULT_STORE_DEPT = 'Infrastructure & Non-Medical';
+const STORE_TAXONOMY = {
+    'Infrastructure & Non-Medical': ['Generator spares', 'Incinerator spares', 'Domestic electricity', 'Lighting & lamps', 'Laundry spares',
+        'Plumbing & sanitary', 'Air conditioning & refrigeration spares', 'Water pump & treatment spares', 'UPS & batteries',
+        'Building & civil works', 'Tools & workshop', 'Lubricants & fuel', 'Safety & PPE', 'Cleaning & consumables', 'Other'],
+    'Biomedical': ['Spare parts', 'Sensors & probes', 'Batteries & chargers', 'Consumables & accessories', 'Calibration & test', 'Other']
+};
+const STORE_KEYWORDS = [
+    ['Generator spares', /generator|alternator|\bavr\b|injector|fuel filter|oil filter|coolant|radiator|fan belt|starter motor|governor|glow plug|perkins|cummins|\bdaf\b|\bats\b|speed sensor|control module/i],
+    ['Incinerator spares', /incinerat|burner|refractory|fire ?brick|chimney|flue|thermocouple|combustion/i],
+    ['Water pump & treatment spares', /pump|impeller|mechanical seal|pressure switch|float switch|chlorine|cartridge|aerat|borehole/i],
+    ['Lighting & lamps', /lamp|bulb|\bled\b|fluorescent|luminaire|ballast|spotlight|floodlight|tube light/i],
+    ['Domestic electricity', /socket|switch|breaker|\bmcb\b|\brcd\b|cable|wire|plug|fuse|contactor|junction|conduit|extension|distribution board|relay|isolator/i],
+    ['Laundry spares', /laundry|washing|washer|dryer|drum bearing|ironer|ironing|extractor/i],
+    ['Plumbing & sanitary', /pipe|\btap\b|faucet|valve|pvc|elbow|toilet|\bwc\b|basin|sink|siphon|flush|float|hose|sealant|teflon|shower|mixer/i],
+    ['Air conditioning & refrigeration spares', /compressor|refrigerant|r410|r134|r22|r404|gas bottle|capacitor|thermostat|evaporator|condenser|defrost|gasket/i],
+    ['UPS & batteries', /\bups\b|battery|batteries|inverter|charger|accumulator/i],
+    ['Lubricants & fuel', /\boil\b|grease|diesel|petrol|lubric|kerosene|wd-?40/i],
+    ['Tools & workshop', /spanner|wrench|pliers|screwdriver|drill|hammer|\bsaw\b|multimeter|tape measure|grinder|clamp/i],
+    ['Building & civil works', /cement|paint|brush|nail|screw|bolt|\bnut\b|hinge|padlock|\block\b|door|glass|tile|sand|gravel|timber|plywood/i],
+    ['Safety & PPE', /glove|helmet|boot|mask|goggle|vest|harness|ppe|extinguisher|overall/i],
+    ['Cleaning & consumables', /soap|detergent|bleach|broom|\bmop\b|bucket|disinfect|sponge|\brag\b|cloth/i]
+];
+function suggestSub_(text) {
+    const t = String(text || '');
+    const hit = STORE_KEYWORDS.find(k => k[1].test(t));
+    return hit ? hit[0] : '';
+}
+function suggestUnit_(name) {
+    const n = String(name || '').toLowerCase();
+    if (/cable|wire|pipe|hose|conduit|rope|tape/.test(n)) return 'm';
+    if (/\boil\b|diesel|petrol|paint|bleach|detergent|refrigerant/.test(n)) return 'L';
+    if (/glove|boot/.test(n)) return 'pairs';
+    if (/cement|\bbag\b/.test(n)) return 'bags';
+    return 'pcs';
+}
+const storeDeptOf_ = s => s.department || DEFAULT_STORE_DEPT;
+const subOf_ = s => String(s.category || '').trim() || 'Uncategorised';
+function subsFor_(dept) {
+    const set = new Set(STORE_TAXONOMY[dept] || []);
+    STOCK_CACHE.filter(s => storeDeptOf_(s) === dept).forEach(s => set.add(subOf_(s)));
+    return Array.from(set).sort((a, b) => (a === 'Other') - (b === 'Other') || a.localeCompare(b));
+}
+let STORE_DEPT_FILTER = 'all', STORE_SUB_FILTER = 'all';
 const DEFAULT_DIESEL_PRICE = 2938;
 const REQ_STEP_LABELS = { incharge: 'Dept In-Charge', infra_manager: 'Infrastructure Manager', storekeeper: 'Store Keeper', logistics_officer: 'Logistics Officer', logistics_director: 'Logistics Director' };
 const REQ_STEP_ICONS = { incharge: '👔', infra_manager: '🏗️', storekeeper: '🏬', logistics_officer: '📋', logistics_director: '🎖️' };
@@ -26957,12 +27040,17 @@ function ensureReqDom() {
       <div class="card-header"><span>🏬</span> Store Stock — remaining items <span id="storeCount" style="${bdg}">0</span></div>
       <div class="card-body">
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-          <input type="text" id="storeSearch" placeholder="🔍 Search item…" style="flex:1;min-width:200px;padding:10px 16px;border-radius:30px;border:1.5px solid #cfdfeb;font-family:inherit;">
+          <select id="storeDept" style="padding:10px 16px;border-radius:30px;border:1.5px solid #cfdfeb;font-weight:600;font-family:inherit;">
+            <option value="all">🏢 All departments</option>
+            ${Object.keys(STORE_TAXONOMY).map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('')}
+          </select>
+          <input type="text" id="storeSearch" placeholder="🔍 Search item, sub-category or type a need (e.g. bulb, fuel filter)…" style="flex:1;min-width:220px;padding:10px 16px;border-radius:30px;border:1.5px solid #cfdfeb;font-family:inherit;">
           <button class="btn-add" id="storeAddBtn" style="display:none;">➕ Add item</button>
           <button class="btn-secondary" id="storeRefreshBtn">🔄 Refresh</button>
         </div>
+        <div class="filter-selector" id="storeSubChips" style="margin-bottom:12px;"></div>
         <div style="overflow-x:auto;"><table class="inv-table"><thead><tr>
-          <th>Item</th><th>Category</th><th>In store</th><th>Min</th><th>Location</th><th>Status</th><th>Actions</th>
+          <th>Item</th><th>Sub-category</th><th>In store</th><th>Min</th><th>Location</th><th>Status</th><th>Actions</th>
         </tr></thead><tbody id="storeBody"></tbody></table></div>
       </div>`);
     mk('reqCardsCard', `
@@ -26984,6 +27072,11 @@ function ensureReqDom() {
     });
     document.getElementById('reqList').addEventListener('click', onReqListClick_);
     document.getElementById('storeSearch').oninput = renderStoreTable_;
+    document.getElementById('storeDept').onchange = function () { STORE_DEPT_FILTER = this.value; STORE_SUB_FILTER = 'all'; renderStoreTable_(); };
+    document.getElementById('storeSubChips').addEventListener('click', e => {
+        const c = e.target.closest('[data-sub]'); if (!c) return;
+        STORE_SUB_FILTER = c.dataset.sub; renderStoreTable_();
+    });
     document.getElementById('storeAddBtn').onclick = () => openItemModal_();
     document.getElementById('storeRefreshBtn').onclick = renderStore;
     document.getElementById('storeBody').addEventListener('click', onStoreClick_);
@@ -27174,12 +27267,33 @@ async function applyFinal_(r) {
 }
 
 /* ---------- STOCK REQUEST FORM ---------- */
+function myStoreDept_() { return isBiomedicalUser() ? 'Biomedical' : DEFAULT_STORE_DEPT; }
+function rqPool_() {
+    const mine = STOCK_CACHE.filter(s => storeDeptOf_(s) === myStoreDept_());
+    return mine.length ? mine : STOCK_CACHE;
+}
+function rqOptionsHtml_(sub, q) {
+    q = (q || '').toLowerCase().trim();
+    const qs = q ? suggestSub_(q) : '';
+    const list = rqPool_().filter(s => (!sub || subOf_(s) === sub) &&
+        (!q || (s.name + ' ' + subOf_(s)).toLowerCase().includes(q) || (qs && subOf_(s) === qs)));
+    const g = {};
+    list.forEach(s => { (g[subOf_(s)] = g[subOf_(s)] || []).push(s); });
+    return '<option value="">— Not in store list (type the name) —</option>' +
+        Object.keys(g).sort().map(k => `<optgroup label="${escapeHtml(k)}">` +
+            g[k].map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)} — ${fmtN_(s.qty)} ${escapeHtml(s.unit || '')} in store</option>`).join('') + '</optgroup>').join('');
+}
 function rqRowHtml_() {
+    const subs = Array.from(new Set(rqPool_().map(subOf_))).sort();
     return `<div class="rq-row" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:8px;align-items:start;">
-      <div><select class="rq-sel" style="width:100%;padding:10px;border-radius:12px;border:1.5px solid #cfdfeb;">
-        <option value="">— Not in store list (type the name) —</option>
-        ${STOCK_CACHE.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)} — ${fmtN_(s.qty)} ${escapeHtml(s.unit || '')} in store</option>`).join('')}
-      </select><input class="rq-name remark-input" placeholder="Item name" style="margin-top:6px;"></div>
+      <div>
+        <div style="display:flex;gap:6px;margin-bottom:6px;">
+          <select class="rq-sub" style="flex:1;padding:8px;border-radius:12px;border:1.5px solid #cfdfeb;">
+            <option value="">All sub-categories</option>${subs.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('')}</select>
+          <input class="rq-find remark-input" placeholder="🔍 search (e.g. bulb)" style="flex:1;margin:0;">
+        </div>
+        <select class="rq-sel" style="width:100%;padding:10px;border-radius:12px;border:1.5px solid #cfdfeb;">${rqOptionsHtml_('', '')}</select>
+        <input class="rq-name remark-input" placeholder="Item name" style="margin-top:6px;"></div>
       <input type="number" min="0" step="any" class="rq-qty remark-input" placeholder="Qty" style="margin:0;">
       <div><input class="rq-unit remark-input" placeholder="Unit" style="margin:0;"><div class="rq-avail" style="font-size:.75rem;margin-top:4px;"></div></div></div>`;
 }
@@ -27213,6 +27327,13 @@ async function openStockForm_() {
     document.getElementById('rqAddItem').onclick = add;
     const onCh = e => {
         const row = e.target.closest('.rq-row'); if (!row) return;
+        const sel = row.querySelector('.rq-sel');
+        if (e.target.classList.contains('rq-sub') || e.target.classList.contains('rq-find')) {
+            const keep = sel.value;
+            sel.innerHTML = rqOptionsHtml_(row.querySelector('.rq-sub').value, row.querySelector('.rq-find').value);
+            if (keep && Array.from(sel.options).some(o => o.value === keep)) sel.value = keep;
+            return;
+        }
         if (e.target.classList.contains('rq-sel')) {
             const s = STOCK_CACHE.find(x => x.id === e.target.value), nm = row.querySelector('.rq-name'), un = row.querySelector('.rq-unit');
             if (s) { nm.value = s.name; nm.readOnly = true; un.value = s.unit || ''; } else { nm.readOnly = false; }
@@ -27295,11 +27416,24 @@ async function renderStore() {
 }
 function renderStoreTable_() {
     const q = (gv_('storeSearch') || '').toLowerCase().trim(), sk = isStorekeeper_();
-    const rows = STOCK_CACHE.filter(s => !q || (s.name + ' ' + (s.category || '') + ' ' + (s.location || '')).toLowerCase().includes(q));
+    const qSub = q ? suggestSub_(q) : '';
+    const inDept = STOCK_CACHE.filter(s => STORE_DEPT_FILTER === 'all' || storeDeptOf_(s) === STORE_DEPT_FILTER);
+    const match = s => !q || (s.name + ' ' + subOf_(s) + ' ' + (s.location || '')).toLowerCase().includes(q) || (qSub && subOf_(s) === qSub);
+    const found = inDept.filter(match);
+    const counts = {};
+    found.forEach(s => { counts[subOf_(s)] = (counts[subOf_(s)] || 0) + 1; });
+    if (STORE_SUB_FILTER !== 'all' && !counts[STORE_SUB_FILTER]) STORE_SUB_FILTER = 'all';
+    document.getElementById('storeSubChips').innerHTML =
+        `<div class="filter-chip ${STORE_SUB_FILTER === 'all' ? 'active' : ''}" data-sub="all">📋 All (${found.length})</div>` +
+        Object.keys(counts).sort().map(k => `<div class="filter-chip ${STORE_SUB_FILTER === k ? 'active' : ''}" data-sub="${escapeHtml(k)}">${escapeHtml(k)} (${counts[k]})</div>`).join('') +
+        (qSub ? `<div style="width:100%;font-size:.78rem;color:#1b6b3f;">💡 Smart search: "${escapeHtml(q)}" also matches the <strong>${escapeHtml(qSub)}</strong> sub-category.</div>` : '');
+    const rows = found.filter(s => STORE_SUB_FILTER === 'all' || subOf_(s) === STORE_SUB_FILTER)
+        .sort((a, b) => (storeDeptOf_(a) + subOf_(a) + a.name).localeCompare(storeDeptOf_(b) + subOf_(b) + b.name));
     document.getElementById('storeCount').textContent = rows.length;
     document.getElementById('storeBody').innerHTML = rows.length ? rows.map(s => {
         const low = Number(s.qty) <= Number(s.minQty || 0);
-        return `<tr><td><strong>${escapeHtml(s.name)}</strong></td><td>${escapeHtml(s.category || '—')}</td>
+        return `<tr><td><strong>${escapeHtml(s.name)}</strong>${STORE_DEPT_FILTER === 'all' ? `<div style="font-size:.7rem;color:#5b7b96;">${escapeHtml(storeDeptOf_(s))}</div>` : ''}</td>
+          <td>${escapeHtml(subOf_(s))}</td>
           <td><strong>${fmtN_(s.qty)}</strong> ${escapeHtml(s.unit || '')}</td><td>${fmtN_(s.minQty)}</td><td>${escapeHtml(s.location || '—')}</td>
           <td>${Number(s.qty) <= 0 ? '<span class="status-badge overdue">Out of stock</span>' : low ? '<span class="status-badge pending">Low</span>' : '<span class="status-badge maintained">OK</span>'}</td>
           <td>${sk ? `<button class="btn-dl-row" data-si-adj="${escapeHtml(s.id)}">± Qty</button>
@@ -27307,23 +27441,72 @@ function renderStoreTable_() {
             <button class="btn-danger" data-si-del="${escapeHtml(s.id)}">🗑️</button>` : '—'}</td></tr>`;
     }).join('') : '<tr><td colspan="7" style="text-align:center;color:#9cb9d0;padding:14px;">No items.</td></tr>';
 }
+
 function openItemModal_(item) {
     item = item || {};
+    const E = id => document.getElementById(id);
     reqModal_(item.id ? '✏️ Edit item' : '➕ Add stock item', `
-      <div class="field-group"><label>Item name *</label><input type="text" id="siName" value="${escapeHtml(item.name || '')}"></div>
-      <div class="field-group"><label>Category</label><input type="text" id="siCat" value="${escapeHtml(item.category || '')}" placeholder="Electrical, Plumbing, Tools…"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field-group"><label>Department *</label><select id="siDept">
+          ${Object.keys(STORE_TAXONOMY).map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('')}</select></div>
+        <div class="field-group"><label>Sub-category *</label><select id="siSub"></select>
+          <input type="text" id="siSubNew" placeholder="New sub-category name" style="display:none;margin-top:6px;"></div></div>
+      <div class="field-group"><label>Item name *</label>
+        <input type="text" id="siName" list="siNameList" autocomplete="off" value="${escapeHtml(item.name || '')}" placeholder="e.g. Fuel filter Perkins 400KVA">
+        <datalist id="siNameList"></datalist><div id="siHint" style="margin-top:6px;font-size:.82rem;"></div></div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
         <div class="field-group"><label>Unit</label><input type="text" id="siUnit" value="${escapeHtml(item.unit || '')}" placeholder="pcs, m, L"></div>
         <div class="field-group"><label>Quantity *</label><input type="number" id="siQty" value="${item.qty != null ? item.qty : 0}"></div>
         <div class="field-group"><label>Minimum</label><input type="number" id="siMin" value="${item.minQty != null ? item.minQty : 0}"></div></div>
       <div class="field-group"><label>Shelf / location</label><input type="text" id="siLoc" value="${escapeHtml(item.location || '')}"></div>`,
         async () => {
-            const name = gv_('siName').trim(); if (!name) return 'Item name is required.';
-            const d = { name, category: gv_('siCat').trim(), unit: gv_('siUnit').trim(), qty: parseFloat(gv_('siQty')) || 0, minQty: parseFloat(gv_('siMin')) || 0, location: gv_('siLoc').trim(), updatedBy: currentLoggedInName, updatedAt: new Date().toISOString() };
+            const name = E('siName').value.trim(), dept = E('siDept').value;
+            const sub = E('siSub').value === '__new__' ? E('siSubNew').value.trim() : E('siSub').value;
+            if (!name) return 'Item name is required.';
+            if (!sub) return 'Choose or type a sub-category.';
+            const dup = STOCK_CACHE.find(s => s.id !== item.id && normalizeText(s.name) === normalizeText(name) && storeDeptOf_(s) === dept);
+            if (dup) return '"' + dup.name + '" already exists in ' + subOf_(dup) + '. Use ± Qty on that row.';
+            const d = { name, department: dept, category: sub, unit: E('siUnit').value.trim(), qty: parseFloat(E('siQty').value) || 0,
+                minQty: parseFloat(E('siMin').value) || 0, location: E('siLoc').value.trim(), updatedBy: currentLoggedInName, updatedAt: new Date().toISOString() };
             if (item.id) await window.FB.updateDoc(window.FB.doc(window.FB.db, STOCK_TABLE, item.id), d);
             else await window.FB.addDoc(window.FB.collection(window.FB.db, STOCK_TABLE), d);
             renderStore(); return true;
-        });
+        }, { width: '620px' });
+
+    E('siDept').value = item.department || DEFAULT_STORE_DEPT;
+    const fillNames = () => {
+        const sub = E('siSub').value;
+        E('siNameList').innerHTML = STOCK_CACHE.filter(s => storeDeptOf_(s) === E('siDept').value && (sub === '__new__' || subOf_(s) === sub))
+            .map(s => `<option value="${escapeHtml(s.name)}">`).join('');
+    };
+    const fillSubs = keep => {
+        const subs = subsFor_(E('siDept').value);
+        E('siSub').innerHTML = subs.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('') + '<option value="__new__">➕ New sub-category…</option>';
+        if (keep && subs.includes(keep)) E('siSub').value = keep;
+        E('siSubNew').style.display = E('siSub').value === '__new__' ? 'block' : 'none';
+        fillNames();
+    };
+    const analyse = () => {
+        const nm = E('siName').value.trim(), hint = E('siHint');
+        if (nm.length < 3) { hint.innerHTML = ''; return; }
+        let html = '';
+        const dup = STOCK_CACHE.find(s => s.id !== item.id && normalizeText(s.name) === normalizeText(nm) && storeDeptOf_(s) === E('siDept').value);
+        if (dup) html += `<div style="color:#b33a3a;">⚠️ Already in store under <strong>${escapeHtml(subOf_(dup))}</strong> (${fmtN_(dup.qty)} ${escapeHtml(dup.unit || '')}). Use <strong>± Qty</strong> on that row instead of adding it twice.</div>`;
+        const sg = suggestSub_(nm);
+        if (sg && sg !== E('siSub').value) html += `<div style="color:#1b6b3f;">💡 Looks like <strong>${escapeHtml(sg)}</strong> — <a href="#" id="siApply">use it</a></div>`;
+        hint.innerHTML = html;
+        const ap = E('siApply');
+        if (ap) ap.onclick = ev => {
+            ev.preventDefault();
+            const d = Object.keys(STORE_TAXONOMY).find(x => STORE_TAXONOMY[x].includes(sg)) || E('siDept').value;
+            E('siDept').value = d; fillSubs(sg); analyse();
+        };
+        if (!item.id && !E('siUnit').value.trim()) E('siUnit').value = suggestUnit_(nm);
+    };
+    E('siDept').onchange = () => { fillSubs(); analyse(); };
+    E('siSub').onchange = () => { E('siSubNew').style.display = E('siSub').value === '__new__' ? 'block' : 'none'; fillNames(); analyse(); };
+    E('siName').oninput = analyse;
+    fillSubs((item.category || '').trim());
 }
 async function onStoreClick_(e) {
     const b = e.target.closest('button'); if (!b || !isStorekeeper_()) return;
@@ -27501,6 +27684,326 @@ async function downloadReqPdf_(r) {
     }) : null;
     if (sb) downloadBytes(sb, fname); else doc.save(fname);
 } 
+/* ============================================================
+   🎯 IMIHIGO REPORTS (Infrastructure technicians)
+   ============================================================ */
+const IM_MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+let IM_LAST = null;
+
+function canSeeImihigo_() {
+    if (!currentLoggedInName || currentRole !== 'technician') return false;
+    if (!isInfrastructureUser()) return false;
+    return normalizeText(currentLoggedInName).indexOf('RUKUNDO') === -1;   // excluded
+}
+const imPct_ = (a, b) => b > 0 ? Math.round(a / b * 100) : null;
+const imPctTxt_ = p => p == null ? '—' : p + '%';
+const imColor_ = p => p == null ? '#5b7b96' : (p >= 80 ? '#1b6b3f' : (p >= 50 ? '#7a5300' : '#b33a3a'));
+const imKpi_ = (l, v, c) => `<div class="kpi-mini ${c || ''}"><div class="lbl">${l}</div><div class="val">${v}</div></div>`;
+function imTable_(head, rows, empty) {
+    if (!rows.length) return '<div style="text-align:center;padding:14px;color:#9cb9d0;font-style:italic;">' + (empty || '📭 No data.') + '</div>';
+    return '<div style="overflow-x:auto;"><table class="inv-table"><thead><tr>' + head.map(h => '<th>' + h + '</th>').join('') +
+        '</tr></thead><tbody>' + rows.map(r => '<tr>' + r.map(c => '<td>' + c + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>';
+}
+function imRange_(qk) {
+    const r = perfRangeForQuarter(qk);
+    return { start: r.start, end: r.end, from: toIsoDate_(r.start), to: toIsoDate_(r.end) };
+}
+function imMonths_(qk) {
+    const r = perfRangeForQuarter(qk), out = [];
+    for (let i = 0; i < 3; i++) {
+        const s = new Date(r.start.getFullYear(), r.start.getMonth() + i, 1);
+        const e = new Date(s.getFullYear(), s.getMonth() + 1, 0);
+        out.push({ label: IM_MONTHS_FULL[s.getMonth()] + ' ' + s.getFullYear(), from: toIsoDate_(s), to: toIsoDate_(e) });
+    }
+    return out;
+}
+async function imFetchRange_(table, field, from, to, mapper) {
+    const snap = await window.FB.getDocs(window.FB.query(window.FB.collection(window.FB.db, table),
+        window.FB.where(field, '>=', from), window.FB.where(field, '<=', to), window.FB.limit(3000)));
+    const out = [];
+    snap.forEach(d => { const x = mapper ? mapper(d.id, d.data()) : d.data(); if (x) out.push(x); });
+    return out;
+}
+
+function ensureImihigoDom() {
+    if (document.getElementById('imihigoCard')) return;
+    const host = document.querySelector('.app-main'); if (!host) return;
+    const d = document.createElement('div');
+    d.id = 'imihigoCard'; d.className = 'card';
+    d.style.cssText = 'margin-bottom:24px;border:2px solid #0b3d91;';
+    d.innerHTML = `
+      <div class="card-header" style="background:#e8f1fb;color:#0b3d91;"><span>🎯</span> IMIHIGO Reports — Quarterly Performance
+        <span style="margin-left:auto;font-size:.78rem;background:#0b3d91;color:white;padding:3px 12px;border-radius:20px;font-weight:700;">Infrastructure</span></div>
+      <div class="card-body">
+        <div class="dash-toolbar">
+          <label for="imQuarter">📅 Quarter:</label><select id="imQuarter"></select>
+          <label for="imMonth">🗓️ Month (report 2):</label><select id="imMonth"></select>
+          <label for="imScope">📦 Equipment (report 2):</label>
+          <select id="imScope"><option value="mine">My equipment</option><option value="all">All equipment</option></select>
+          <button class="btn-secondary" id="imRefreshBtn" style="padding:8px 18px;font-size:.85rem;">🔄 Refresh</button>
+          <button class="btn-pdf" id="imPdfBtn" style="padding:8px 18px;font-size:.85rem;margin-left:auto;">📄 Download IMIHIGO PDF</button>
+        </div>
+        <div style="font-size:.8rem;color:#5b7b96;margin-bottom:12px;">Quarters: Q1 Jul–Sep · Q2 Oct–Dec · Q3 Jan–Mar · Q4 Apr–Jun</div>
+        <div id="imR1" class="info-card"></div>
+        <div id="imR2" class="info-card"></div>
+        <div id="imR3" class="info-card"></div>
+        <div id="imR4" class="info-card"></div>
+      </div>`;
+    host.appendChild(d);
+    document.getElementById('imQuarter').onchange = () => { imFillMonths_(true); renderImihigo(); };
+    document.getElementById('imMonth').onchange = renderImihigo;
+    document.getElementById('imScope').onchange = renderImihigo;
+    document.getElementById('imRefreshBtn').onclick = () => { ['pmLogs', 'equipment', 'curative'].forEach(invalidateCache); renderImihigo(); };
+    document.getElementById('imPdfBtn').onclick = async function () {
+        if (!IM_LAST) { toast('Wait for the reports to load.', 'warn'); return; }
+        const o = this.innerHTML; this.disabled = true; this.innerHTML = '⏳ …';
+        try { await imihigoPdf_(IM_LAST); showStatus('📄 IMIHIGO report downloaded.', true); }
+        catch (e) { showStatus('⚠️ ' + e.message, false); }
+        this.disabled = false; this.innerHTML = o;
+    };
+}
+function imFillMonths_(reset) {
+    const qk = document.getElementById('imQuarter').value;
+    const sel = document.getElementById('imMonth'), prev = sel.value, ms = imMonths_(qk);
+    sel.innerHTML = ''; ms.forEach((x, i) => sel.add(new Option(x.label, i)));
+    const today = toIsoDate_(new Date()), idx = ms.findIndex(x => today >= x.from && today <= x.to);
+    sel.value = reset ? (idx >= 0 ? idx : 0) : (prev || 0);
+}
+
+async function imCompute_(qk, monthIdx, scope) {
+    const me = currentLoggedInName, R = imRange_(qk), months = imMonths_(qk), month = months[monthIdx] || months[0];
+    const todayIso = toIsoDate_(new Date());
+
+    // weeks (Monday → Sunday) covering the quarter
+    const weeks = [];
+    for (let d = dcWeekMonday_(R.start); d <= R.end; d.setDate(d.getDate() + 7)) {
+        const e = new Date(d); e.setDate(e.getDate() + 6);
+        weeks.push({ from: toIsoDate_(d), to: toIsoDate_(e), label: String(d.getDate()).padStart(2, '0') + ' ' + MONTHS_SHORT[d.getMonth()] });
+    }
+    const [inv, curAll, logs, mon] = await Promise.all([
+        fetchAllInventory(),
+        fetchCurativeRequests({ forceRefresh: true }),
+        imFetchRange_('pmLogs', 'workDate', R.from, R.to, mapFirestorePmLog),
+        imFetchRange_('equipmentMonitoring', 'date', weeks[0].from, R.to)
+    ]);
+    const visible = inv.filter(a => equipVisibleToMe(a));
+    const myEq = visible.filter(a => sameOwner(getInventoryOwner(a), me));
+    const valid = logs.filter(l => safeStr(l.inchargeReviewStatus) !== 'rejected');
+    const tagKey = t => normalizeText(t);
+
+    /* ---- 1) Reparation rate ---- */
+    const mine = curAll.filter(c => c.quarterKey === qk && sameOwner(c.assignedTo, me));
+    const escalatedByMe = curAll.filter(c => c.quarterKey === qk && sameOwner(c.escalatedBy, me) && !sameOwner(c.assignedTo, me)).length;
+    const repaired = mine.filter(c => c.status === 'completed' || c.status === 'verified').length;
+    const A = computeCurativeAnalytics(mine);
+    const r1 = {
+        jobs: mine, total: mine.length, repaired, verified: A.verified.length, rejected: A.rejected.length,
+        open: mine.filter(c => ['pending', 'in_progress', 'paused'].includes(c.status)).length,
+        escalatedByMe, rate: imPct_(repaired, mine.length), avgResMs: A.avgResMs,
+        damagedNow: myEq.filter(a => (a.workingStatus || 'Working') === 'Not Working').length
+    };
+
+    /* ---- 2) Status of equipment by department / service (monthly) ---- */
+    const eqList = scope === 'all' ? visible : myEq;
+    const pmByTag = {};
+    valid.forEach(l => {
+        const d = normalizeDateForCompare(l.workDate);
+        if (d >= month.from && d <= month.to) {
+            const k = tagKey(l.refTag);
+            if (!pmByTag[k] || d > pmByTag[k]) pmByTag[k] = d;
+        }
+    });
+    const rows2 = eqList.map(a => ({
+        dept: a.dept || '—', loc: a.loc || '—', tag: a.tag, name: a.equipName || a.type || '—',
+        working: (a.workingStatus || 'Working') === 'Working', pm: pmByTag[tagKey(a.tag)] || ''
+    }));
+    const grp = {};
+    rows2.forEach(r => {
+        const k = r.dept + '||' + r.loc;
+        if (!grp[k]) grp[k] = { dept: r.dept, loc: r.loc, total: 0, working: 0, notWorking: 0, pm: 0 };
+        grp[k].total++; if (r.working) grp[k].working++; else grp[k].notWorking++; if (r.pm) grp[k].pm++;
+    });
+    const groups = Object.values(grp).sort((a, b) => (a.dept + a.loc).localeCompare(b.dept + b.loc));
+    const r2 = { month, scope, rows: rows2, groups };
+
+    /* ---- 3) My equipment PM implementation ---- */
+    const done = {};
+    valid.forEach(l => { done[tagKey(l.refTag)] = true; });
+    const myLogsAll = logs.filter(l => sameOwner(l.technician, me));
+    const myValid = myLogsAll.filter(l => safeStr(l.inchargeReviewStatus) !== 'rejected');
+    const now = new Date();
+    const byCat = {};
+    myEq.forEach(a => {
+        const c = a.equipCategory || getCategoryForType(a.type);
+        if (!byCat[c]) byCat[c] = { cat: c, total: 0, done: 0 };
+        byCat[c].total++; if (done[tagKey(a.tag)]) byCat[c].done++;
+    });
+    const perMonth = months.map(mo => myValid.filter(l => { const d = normalizeDateForCompare(l.workDate); return d >= mo.from && d <= mo.to; }).length);
+    const r3 = {
+        totalEq: myEq.length, implemented: myEq.filter(a => done[tagKey(a.tag)]).length,
+        pmCount: myValid.length,
+        signed: myValid.filter(l => safeStr(l.inchargeSignedAt).trim()).length,
+        pendingSign: myValid.filter(l => !safeStr(l.inchargeSignedAt).trim()).length,
+        rejected: myLogsAll.length - myValid.length,
+        overdueNow: myEq.filter(a => computeRefStatus(a, [], now).status === 'overdue').length,
+        notServiced: myEq.filter(a => !done[tagKey(a.tag)]),
+        byCat: Object.values(byCat), perMonth, months
+    };
+    r3.rate = imPct_(r3.implemented, r3.totalEq);
+
+    /* ---- 4) Weekly testing of UPS & generators ---- */
+    // Only equipment I OWN. UPS counts only when it is THREE-PHASE.
+    const units = new Map();
+    inv.forEach(i => {
+        const c = i.equipCategory || getCategoryForType(i.type);
+        if (c !== 'generator' && c !== 'ups') return;
+        if (!sameOwner(getInventoryOwner(i), me)) return;
+        if (c === 'ups' && i.phaseType !== 'three') return;
+        const nm = i.equipName || i.tag;
+        units.set(c + '|' + normalizeText(i.tag || nm), { name: nm, tag: i.tag, cat: c, cells: weeks.map(() => []) });
+    });
+    mon.filter(l => l.category === 'generator' || l.category === 'ups').forEach(l => {
+        const key = normalizeText(l.unit);
+        const u = Array.from(units.values()).find(x => x.cat === l.category &&
+            (normalizeText(x.name) === key || normalizeText(x.tag) === key));
+        if (!u) return;
+        const dt = normalizeDateForCompare(l.date);
+        const wi = weeks.findIndex(w => dt >= w.from && dt <= w.to);
+        if (wi >= 0) u.cells[wi].push(l);
+    });
+    const elapsed = weeks.map(w => w.from <= todayIso);
+    const unitRows = Array.from(units.values()).sort((a, b) => (a.cat + a.name).localeCompare(b.cat + b.name)).map(u => {
+        const tested = u.cells.filter((c, i) => elapsed[i] && c.length).length;
+        return Object.assign(u, { tested, due: elapsed.filter(Boolean).length, rate: imPct_(tested, elapsed.filter(Boolean).length) });
+    });
+    const myTests = unitRows.reduce((s, u) => s + u.cells.reduce((a, c) => a + c.filter(l => sameOwner(l.technician, me)).length, 0), 0);
+    const sumT = unitRows.reduce((s, u) => s + u.tested, 0), sumD = unitRows.reduce((s, u) => s + u.due, 0);
+    const r4 = { weeks, elapsed, units: unitRows, myTests, rate: imPct_(sumT, sumD) };
+
+    return { qk, me, R, r1, r2, r3, r4 };
+}
+
+function imRender_(d) {
+    const { r1, r2, r3, r4 } = d;
+    const sl = { pending: 'Pending', in_progress: 'In progress', paused: 'Paused', completed: 'Awaiting verification', verified: 'Verified', rejected: 'Rejected' };
+
+    document.getElementById('imR1').innerHTML = `<h2>1️⃣ Reparation rate of damaged equipment — ${escapeHtml(quarterLabelOf(d.qk))}</h2>
+      <div class="kpi-strip">${imKpi_('DAMAGED JOBS', r1.total, 'kpi-blue')}${imKpi_('REPAIRED', r1.repaired, 'good')}
+        ${imKpi_('REPARATION RATE', imPctTxt_(r1.rate), r1.rate != null && r1.rate >= 80 ? 'good' : 'warn')}${imKpi_('VERIFIED', r1.verified, 'good')}
+        ${imKpi_('REJECTED', r1.rejected, 'bad')}${imKpi_('STILL OPEN', r1.open, 'warn')}${imKpi_('ESCALATED BY ME', r1.escalatedByMe, 'kpi-purple')}
+        ${imKpi_('AVG REPAIR TIME', formatDurationMs(r1.avgResMs), 'kpi-blue')}${imKpi_('MY UNITS NOT WORKING NOW', r1.damagedNow, 'bad')}</div>
+      ${imTable_(['Reported', 'Equipment', 'Location', 'Issue', 'Status', 'Completed'],
+        r1.jobs.map(c => [formatDateOnly(c.reportedAt), escapeHtml(c.equipName || c.tag), escapeHtml(c.loc || '—'),
+            escapeHtml((c.issue || '').substring(0, 70)), sl[c.status] || c.status, c.completedAt ? formatDateOnly(c.completedAt) : '—']),
+        '📭 No curative jobs assigned to you in this quarter.')}`;
+
+    document.getElementById('imR2').innerHTML = `<h2>2️⃣ Status of equipment by department / service — ${escapeHtml(r2.month.label)} <span class="jc-count">${r2.scope === 'all' ? 'all equipment' : 'my equipment'}</span></h2>
+      ${imTable_(['Department', 'Service / Location', 'Total', '✅ Working', '⛔ Not working', 'PM done this month', 'PM %'],
+        r2.groups.map(g => [escapeHtml(g.dept), escapeHtml(g.loc), g.total, g.working, g.notWorking, g.pm,
+            `<strong style="color:${imColor_(imPct_(g.pm, g.total))}">${imPctTxt_(imPct_(g.pm, g.total))}</strong>`]))}
+      <details style="margin-top:10px;"><summary style="cursor:pointer;font-weight:700;color:#12405e;">📋 Show every equipment (${r2.rows.length})</summary>
+      ${imTable_(['Department', 'Service', 'Tag', 'Equipment', 'Working?', 'PM this month'],
+        r2.rows.map(r => [escapeHtml(r.dept), escapeHtml(r.loc), escapeHtml(r.tag), escapeHtml(r.name),
+            r.working ? '✅' : '⛔', r.pm ? '✅ ' + formatDateOnly(r.pm) : '❌ not done']))}</details>`;
+
+    document.getElementById('imR3').innerHTML = `<h2>3️⃣ My equipment — PM implementation rate &amp; analysis — ${escapeHtml(quarterLabelOf(d.qk))}</h2>
+      <div class="kpi-strip">${imKpi_('MY EQUIPMENT', r3.totalEq, 'kpi-blue')}${imKpi_('PM IMPLEMENTED', r3.implemented, 'good')}
+        ${imKpi_('IMPLEMENTATION RATE', imPctTxt_(r3.rate), r3.rate != null && r3.rate >= 80 ? 'good' : 'warn')}${imKpi_('MY PMs DONE', r3.pmCount, 'kpi-blue')}
+        ${imKpi_('CO-SIGNED', r3.signed, 'good')}${imKpi_('AWAITING CO-SIGN', r3.pendingSign, 'warn')}${imKpi_('REJECTED', r3.rejected, 'bad')}
+        ${imKpi_('OVERDUE NOW', r3.overdueNow, 'bad')}</div>
+      <div style="font-size:.85rem;color:#3a6583;margin:6px 0 10px;">📈 PMs per month: ${r3.months.map((m, i) => '<strong>' + escapeHtml(m.label) + ':</strong> ' + r3.perMonth[i]).join(' · ')}</div>
+      ${imTable_(['Category', 'Equipment', 'PM done', 'Rate'],
+        r3.byCat.map(c => [escapeHtml(c.cat), c.total, c.done, `<strong style="color:${imColor_(imPct_(c.done, c.total))}">${imPctTxt_(imPct_(c.done, c.total))}</strong>`]), '📭 You own no equipment.')}
+      ${r3.notServiced.length ? `<details style="margin-top:10px;"><summary style="cursor:pointer;font-weight:700;color:#b33a3a;">⚠️ Equipment WITHOUT a PM this quarter (${r3.notServiced.length})</summary>
+        ${imTable_(['Tag', 'Equipment', 'Department', 'Location'], r3.notServiced.map(a => [escapeHtml(a.tag), escapeHtml(a.equipName || a.type), escapeHtml(a.dept), escapeHtml(a.loc)]))}</details>` : ''}`;
+
+    document.getElementById('imR4').innerHTML = `<h2>4️⃣ Weekly testing of my emergency generators &amp; three-phase UPS — ${escapeHtml(quarterLabelOf(d.qk))}</h2>
+      <div class="kpi-strip">${imKpi_('UNITS', r4.units.length, 'kpi-blue')}${imKpi_('WEEKLY TEST RATE', imPctTxt_(r4.rate), r4.rate != null && r4.rate >= 80 ? 'good' : 'warn')}
+        ${imKpi_('TESTS DONE BY ME', r4.myTests, 'kpi-purple')}</div>
+      ${imTable_(['Type', 'Unit'].concat(r4.weeks.map(w => w.label)).concat(['Tested', 'Rate']),
+        r4.units.map(u => [u.cat === 'ups' ? '🔋 UPS' : '⚡ Generator', '<strong>' + escapeHtml(u.name) + '</strong>']
+            .concat(u.cells.map((c, i) => !r4.elapsed[i] ? '<span style="color:#cfdfeb;">·</span>'
+                : (c.length ? `<span title="${escapeHtml(c.map(x => x.technician).join(', '))}">✅</span>` : '❌')))
+            .concat([u.tested + '/' + u.due, `<strong style="color:${imColor_(u.rate)}">${imPctTxt_(u.rate)}</strong>`])),
+        '📭 You own no generator or three-phase UPS. (Set the UPS phase in Equipment Monitoring → Edit.)')}
+      <div style="font-size:.78rem;color:#5b7b96;margin-top:8px;">A week counts as tested when a monitoring log exists for the unit in <strong>Equipment Monitoring</strong>. Hover ✅ to see who did it.</div>`;
+}
+
+async function renderImihigo() {
+    ensureImihigoDom();
+    const qSel = document.getElementById('imQuarter'); if (!qSel) return;
+    if (!qSel.options.length) {
+        listQuarters(8).forEach(q => qSel.add(new Option(quarterLabelOf(q), q)));
+        qSel.value = quarterKeyOf(new Date());
+        imFillMonths_(true);
+    }
+    ['imR1', 'imR2', 'imR3', 'imR4'].forEach(id => renderSkeletons(document.getElementById(id), 2, 'row'));
+    try {
+        const d = await imCompute_(qSel.value, parseInt(document.getElementById('imMonth').value, 10) || 0, document.getElementById('imScope').value);
+        IM_LAST = d;
+        imRender_(d);
+    } catch (e) {
+        console.error('[imihigo]', e);
+        ['imR1', 'imR2', 'imR3', 'imR4'].forEach(id => document.getElementById(id).innerHTML = '<div class="info-error">⚠️ ' + escapeHtml(e.message) + '</div>');
+    }
+}
+
+async function imihigoPdf_(d) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const m = 14, pH = 210;
+    let y = drawChubHeader(doc, {
+        title: 'IMIHIGO REPORT',
+        subtitle: quarterLabelOf(d.qk) + '   |   ' + pdfSanitize(d.me) + '   |   ' + formatDateOnly(d.R.from) + ' to ' + formatDateOnly(d.R.to),
+        ref: 'CHUB/IMIHIGO/' + d.qk, date: new Date().toLocaleDateString('en-GB')
+    });
+    const sec = t => {
+        if (y > pH - 55) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'IMIHIGO REPORT (cont.)', ref: 'CHUB/IMIHIGO' }); }
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(18, 64, 94); doc.text(t, m, y); y += 3;
+    };
+    const tbl = (head, body, color) => {
+        doc.autoTable({ startY: y, margin: { left: m, right: m, top: 18 }, head: [head], body: body, theme: 'striped',
+            styles: { fontSize: 7.5, cellPadding: 1.6 }, headStyles: { fillColor: color || [30, 74, 109], textColor: 255 } });
+        y = doc.lastAutoTable.finalY + 8;
+    };
+    const { r1, r2, r3, r4 } = d;
+
+    sec('1. REPARATION RATE OF DAMAGED EQUIPMENT (' + quarterLabelOf(d.qk) + ')');
+    tbl(['Damaged jobs', 'Repaired', 'Reparation rate', 'Verified', 'Rejected', 'Still open', 'Escalated by me', 'Avg repair time'],
+        [[r1.total, r1.repaired, imPctTxt_(r1.rate), r1.verified, r1.rejected, r1.open, r1.escalatedByMe, formatDurationMs(r1.avgResMs)]], [179, 58, 58]);
+    if (r1.jobs.length) tbl(['Reported', 'Equipment', 'Location', 'Issue', 'Status', 'Completed'],
+        r1.jobs.map(c => [formatDateOnly(c.reportedAt), pdfSanitize(c.equipName || c.tag), pdfSanitize(c.loc || '-'), pdfSanitize((c.issue || '').substring(0, 80)), c.status, c.completedAt ? formatDateOnly(c.completedAt) : '-']));
+
+    sec('2. STATUS OF EQUIPMENT BY DEPARTMENT / SERVICE - ' + r2.month.label.toUpperCase() + (r2.scope === 'all' ? ' (all equipment)' : ' (my equipment)'));
+    tbl(['Department', 'Service / Location', 'Total', 'Working', 'Not working', 'PM done', 'PM %'],
+        r2.groups.map(g => [pdfSanitize(g.dept), pdfSanitize(g.loc), g.total, g.working, g.notWorking, g.pm, imPctTxt_(imPct_(g.pm, g.total))]), [11, 61, 145]);
+
+    sec('3. MY EQUIPMENT - PM IMPLEMENTATION RATE & ANALYSIS (' + quarterLabelOf(d.qk) + ')');
+    tbl(['My equipment', 'PM implemented', 'Implementation rate', 'My PMs', 'Co-signed', 'Awaiting co-sign', 'Rejected', 'Overdue now'],
+        [[r3.totalEq, r3.implemented, imPctTxt_(r3.rate), r3.pmCount, r3.signed, r3.pendingSign, r3.rejected, r3.overdueNow]], [27, 107, 63]);
+    tbl(['Category', 'Equipment', 'PM done', 'Rate'], r3.byCat.map(c => [pdfSanitize(c.cat), c.total, c.done, imPctTxt_(imPct_(c.done, c.total))]), [27, 107, 63]);
+    if (r3.notServiced.length) tbl(['Without PM this quarter: Tag', 'Equipment', 'Department', 'Location'],
+        r3.notServiced.map(a => [pdfSanitize(a.tag), pdfSanitize(a.equipName || a.type), pdfSanitize(a.dept), pdfSanitize(a.loc)]), [179, 58, 58]);
+
+    sec('4. WEEKLY TESTING OF MY EMERGENCY GENERATORS & THREE-PHASE UPS (overall rate ' + imPctTxt_(r4.rate) + ', tests done by me: ' + r4.myTests + ')');
+    tbl(['Type', 'Unit'].concat(r4.weeks.map(w => w.label)).concat(['Tested', 'Rate']),
+        r4.units.map(u => [u.cat === 'ups' ? 'UPS' : 'Generator', pdfSanitize(u.name)]
+            .concat(u.cells.map((c, i) => !r4.elapsed[i] ? '-' : (c.length ? 'V' : 'X')))
+            .concat([u.tested + '/' + u.due, imPctTxt_(u.rate)])), [122, 83, 0]);
+
+    // prepared by
+    if (y + 20 > pH - 20) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'IMIHIGO REPORT (cont.)', ref: 'CHUB/IMIHIGO' }); }
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(31, 60, 84);
+    doc.text('Prepared by: ' + pdfSanitize(d.me) + '   |   ' + new Date().toLocaleString('en-GB'), m, y + 4);
+    try {
+        const sg = await getDisposalSignerSig(d.me);
+        if (sg && sg.url) doc.addImage(sg.url, getImageFormat(sg.url), m, y + 6, 40, 14);
+    } catch (e) { }
+
+    const tp = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= tp; p++) { doc.setPage(p); drawChubFooter(doc, p, tp); }
+    doc.save('CHUB_IMIHIGO_' + d.qk + '_' + pdfSanitize(d.me).replace(/\s+/g, '_') + '.pdf');
+}
         // ===== NEW: INFRA IN-CHARGE TEAM TRACKING & GLOBAL ANALYSIS =====
         let IC_TEAM_STATUS_FILTER = 'all';
 
