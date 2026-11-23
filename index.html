@@ -7672,6 +7672,69 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
         (function () {
             'use strict';
 
+            /* ============================================================
+               🔄 FRESH-VERSION ENGINE
+               Runs on every login: clears data caches + service-worker
+               caches, then reloads ONCE so the newest deployed version loads.
+               ============================================================ */
+            const FRESH_FLAG = 'chub_fresh_after_login';
+            const FRESH_LOGIN_KEY = 'chub_pending_login';
+
+            async function clearAppCaches() {
+                // 1) Data caches only (keeps signatures, offline queue, drafts, dark mode, language)
+                try {
+                    Object.keys(localStorage).forEach(k => {
+                        if (k.startsWith('chub_fb_cache_') ||        // Supabase data cache
+                            k.startsWith('chub_ref_cache_v4_') ||    // inventory cache
+                            k === 'chub_departments_cache_v1') {
+                            localStorage.removeItem(k);
+                        }
+                    });
+                } catch (e) { console.warn('[fresh] localStorage clear failed', e); }
+
+                // 2) Browser Cache Storage (what the service worker serves from)
+                try {
+                    if ('caches' in window) {
+                        const keys = await caches.keys();
+                        await Promise.all(keys.map(k => caches.delete(k)));
+                    }
+                } catch (e) { console.warn('[fresh] caches clear failed', e); }
+
+                // 3) Ask the service worker to fetch a fresh copy of itself
+                try {
+                    if ('serviceWorker' in navigator) {
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        await Promise.all(regs.map(r => r.update().catch(() => { })));
+                    }
+                } catch (e) { console.warn('[fresh] SW update failed', e); }
+            }
+
+            // Called right after a successful login. Reloads once, then resumes the session.
+            async function freshReloadAfterLogin(sessionPayload) {
+                try {
+                    // Save the session so the user lands back in the app after the reload
+                    sessionStorage.setItem('chub_ref_session_v5',
+                        JSON.stringify({ ...sessionPayload, time: Date.now() }));
+                    sessionStorage.setItem(FRESH_FLAG, '1');
+                } catch (e) { }
+                await clearAppCaches();
+                // cache-busting reload (bypasses HTTP cache)
+                const u = new URL(window.location.href);
+                u.searchParams.set('_v', Date.now());
+                window.location.replace(u.toString());
+            }
+
+            // On page load: if we just reloaded after login, clean the URL and continue normally
+            (function cleanFreshUrl() {
+                try {
+                    const u = new URL(window.location.href);
+                    if (u.searchParams.has('_v')) {
+                        u.searchParams.delete('_v');
+                        window.history.replaceState({}, '', u.toString());
+                    }
+                } catch (e) { }
+            })();
+
             // 🔒 SECURITY: Refuse to run over plain HTTP (except local dev)
             if (location.protocol !== 'https:' &&
                 location.hostname !== 'localhost' &&
@@ -22452,6 +22515,7 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
 
                 try {
                     // ✅ NEW: Fetch the equipment inventory to translate tags into real names
+                    if (!Object.keys(LIVE_USERS).length) LIVE_USERS = await loadUsersFromFirestore();
                     const [logs, tasks, curatives, allUsers, allEquip] = await Promise.all([
                         fetchAllLogs(),
                         fetchAllTasks({ forceRefresh: true }),
@@ -22488,9 +22552,9 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                         return d.getMonth() === month && d.getFullYear() === year;
                     };
 
-                    const monthPms = logs.filter(r => isMatch(r.workDate || r['Work Date']));
-                    const monthTasks = tasks.filter(t => isMatch(t.completedAt));
-                    const monthCuratives = curatives.filter(c => isMatch(c.completedAt) || isMatch(c.verifiedAt));
+                    let monthPms = logs.filter(r => isMatch(r.workDate || r['Work Date']));
+let monthTasks = tasks.filter(t => isMatch(t.completedAt));
+let monthCuratives = curatives.filter(c => isMatch(c.completedAt) || isMatch(c.verifiedAt));
 
                     // Automatically restrict data to the user's department
                     let targetDepts = [];
@@ -22504,10 +22568,26 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                         }
                     }
 
+                    const _coreNames = [normalizeText(INFRA_DEPT_NAME), normalizeText(BIOMEDICAL_DEPT_NAME)];
+                    const _isCoreDept = targetDepts.some(d => _coreNames.includes(normalizeText(d)));
+                    const _deptByTag = {};
+                    allEquip.forEach(a => { _deptByTag[normalizeText(a.tag)] = normalizeText(a.dept); });
+                    const _belongs = (c) => targetDepts.some(d => {
+                        const n = normalizeText(d);
+                        return normalizeText(c.dept) === n || _deptByTag[normalizeText(c.tag)] === n ||
+                               normalizeText(c.loc).includes('(' + n + ')') || userInDept_(c.reportedBy, d);
+                    });
+                    // Non-core departments (Laboratory, Pharmacy...): filter by the DATA, not by the technician's own dept
+                    if (!_isCoreDept && targetDepts.length) {
+                        monthPms = monthPms.filter(r => targetDepts.some(d => normalizeText(r.refDept || r['Department']) === normalizeText(d)));
+                        monthCuratives = monthCuratives.filter(_belongs);
+                        monthTasks = monthTasks.filter(t => targetDepts.some(d => userInDept_(t.assignedBy, d)));
+                    }
                     const isUserInScope = (name) => {
                         if (targetDepts.length === 0) return true;
                         const u = allUsers[name];
                         if (!u) return false;
+                        if (!_isCoreDept) return true;   // empty technicians are skipped later (acts.length === 0)
                         const ds = Array.isArray(u.depts) && u.depts.length > 0 ? u.depts : (u.dept ? [u.dept] : []);
                         return ds.some(d => targetDepts.includes(d));
                     };
@@ -22543,7 +22623,7 @@ document.getElementById('imPerfExportBtn')?.addEventListener('click', perfExport
                         }
                     });
                     monthCuratives.forEach(c => {
-                        if (c.status === 'verified' && techActivities[c.assignedTo]) {
+                        if ((c.status === 'verified' || c.status === 'completed') && techActivities[c.assignedTo]) {
                             techActivities[c.assignedTo].push({
                                 date: c.completedAt || c.verifiedAt,
                                 type: 'Curative (Repair)',
@@ -23983,8 +24063,16 @@ const t = _pd ? _pd.getTime() : NaN;
 
             /* Gate the login flow behind a 6-digit TOTP check when enabled */
             async function completeLoginAfter2FA(sessionPayload) {
-                saveSession(sessionPayload);
-                await unlockApp(sessionPayload);
+                // If we already reloaded once for this login, just continue normally.
+                if (sessionStorage.getItem(FRESH_FLAG) === '1') {
+                    sessionStorage.removeItem(FRESH_FLAG);
+                    saveSession(sessionPayload);
+                    await unlockApp(sessionPayload);
+                    return;
+                }
+                // First time after the login click: clean caches + reload once.
+                showStatus('🔄 Loading the latest version…', true);
+                await freshReloadAfterLogin(sessionPayload);
             }
 
             async function maybeGateWith2FA(name, sessionPayload) {
@@ -25700,7 +25788,15 @@ document.getElementById('wrGo')?.addEventListener('click', async function () {
             wrUnion_('tasks', 'createdAt', 'completedAt', rg.from, rg.to)
         ]);
         const pms = pmAll.filter(r => normalizeText(r.refDept) === nd).sort((a, b) => String(a.workDate).localeCompare(String(b.workDate)));
-        const curs = curAll.filter(c => normalizeText(c.dept) === nd).sort((a, b) => String(a.reportedAt).localeCompare(String(b.reportedAt)));
+        const _invWR = await fetchAllInventory();
+const _deptByTagWR = {};
+_invWR.forEach(a => { _deptByTagWR[normalizeText(a.tag)] = normalizeText(a.dept); });
+const curs = curAll.filter(c =>
+    normalizeText(c.dept) === nd ||                              // stored dept
+    _deptByTagWR[normalizeText(c.tag)] === nd ||                 // real dept of the equipment
+    normalizeText(c.loc).includes('(' + nd + ')') ||             // "Room (Laboratory)" suffix
+    userInDept_(c.reportedBy, dept)                              // raised by someone of this dept
+).sort((a, b) => String(a.reportedAt).localeCompare(String(b.reportedAt)));
         const tasks = taskAll.filter(t => normalizeText(t.dept) === nd || userInDept_(t.assignedTo, dept))
             .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
 
@@ -25926,6 +26022,7 @@ document.getElementById('wrGo')?.addEventListener('click', async function () {
         const users = await loadUsersFromFirestore();
         if (s && users[s.name] && Date.now() - (s.time || 0) < 8 * 3600 * 1000) {
             LIVE_USERS = users;
+            sessionStorage.removeItem(FRESH_FLAG);   // fresh reload already done
             await unlockApp(s);
         } else clearSession();
     }
