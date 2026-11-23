@@ -5335,6 +5335,7 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
                 <button class="btn-pdf" id="inchargeDownloadAnalysisBtn"><span>📊</span> Download My Department
                     Analysis</button>
                 <button class="btn-qr" id="inchargeQrAllBtn"><span>🔳</span> Print All QR Stickers (My Dept)</button>
+                <button class="btn-pdf-all" id="inchargeWorkReportBtn" style="background:#0b6b3a;"><span>🗓️</span> Department Work Report (Week / Month / Quarter / Year)</button>
             </div>
         </div>
 
@@ -6507,6 +6508,7 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
                 <label for="newRefOwner">Assign Owner / Technician *</label>
                 <select id="newRefOwner"></select>
             </div>
+                        <div id="newRefLabWrap"></div>
             <div class="modal-actions">
                 <button class="btn-cancel" id="addRefCancel">Cancel</button>
                 <button class="btn-go" id="addRefSave">💾 Save Equipment to Cloud</button>
@@ -6597,6 +6599,7 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
                 <label for="editRefOwner">Assign Owner / Technician *</label>
                 <select id="editRefOwner"></select>
             </div>
+                        <div id="editRefLabWrap"></div>
             <div class="modal-actions">
                 <button class="btn-cancel" id="editRefCancel">Cancel</button>
                 <button class="btn-go" id="editRefSave">💾 Save Changes</button>
@@ -9129,7 +9132,7 @@ function escapeHtml(s) {
         
         const q = window.FB.query(
             window.FB.collection(window.FB.db, 'equipment'),
-            window.FB.limit(100)
+            window.FB.limit(1000)
         );
         const snap = await window.FB.getDocs(q);
         
@@ -11057,6 +11060,7 @@ filterOwnerSelectForDomain(document.getElementById('newRefOwner'));
 
                 // Filter the category list + rebuild type dropdown & checklist block
                 await applyCategoryFilterByDept('newRef');
+                labMount_('newRef', document.getElementById('newRefDept').value, null, true);
                 document.getElementById('dupWarning').classList.remove('show');
                 const wg = document.querySelector('#newRefWorkingGroup input[value="Working"]');
                 if (wg) wg.checked = true;
@@ -11161,6 +11165,7 @@ if (_isBioDept && _catChosen !== 'biomedical' && _catChosen !== 'equipment') {
 
                     const res = await addInventoryItemToCloud(newRef, currentLoggedInName);
                     newRef._docId = res.id;
+                    if (isLabDept_(dept)) await labSave_(res.id, labCollect_('newRef'));
 
                     if (PENDING_NEW_REF_PHOTO && res.id) {
                         const okPhoto = await saveEquipmentPhoto(res.id, PENDING_NEW_REF_PHOTO);
@@ -11248,7 +11253,7 @@ if (_isBioDept && _catChosen !== 'biomedical' && _catChosen !== 'equipment') {
             async function openEditRefModal(ref) {
                 populateEditRefDeptSelect();
                 document.getElementById('editRefTag').value = ref.tag || '';
-document.getElementById('editRefTag').readOnly = false;
+{ const _t = document.getElementById('editRefTag'); _t.readOnly = false; _t.disabled = false; _t.removeAttribute('readonly'); _t.removeAttribute('disabled'); _t.style.background = ''; }
                 document.getElementById('editRefDept').value = ref.dept || Object.keys(DEPARTMENTS)[0] || '';
                 populateEditRefServiceSelect();
                 document.getElementById('editRefLocation').value = ref.loc || '';
@@ -11316,6 +11321,7 @@ document.getElementById('editRefTag').readOnly = false;
                     ownerRow.style.display = 'none';
                 }
                 editRefModal._originalRef = ref;
+                labMount_('editRef', ref.dept, ref._docId, true);
                 editRefModal.classList.add('show');
             }
             document.getElementById('editRefCancel')?.addEventListener('click',
@@ -11354,12 +11360,22 @@ document.getElementById('editRefTag').readOnly = false;
                 if (!updated.tag || !updated.dept || !updated.loc || !updated.brand || !updated.model) {
                     alert('Please fill all required fields.'); return;
                 }
+                if (normalizeText(updated.tag) !== normalizeText(original.tag)) {
+                    const clash = await findEquipmentByTag(updated.tag);
+                    if (clash && clash._docId !== original._docId) {
+                        alert('⚠️ The tag "' + updated.tag + '" is already used by ' + (clash.equipName || 'another equipment') + ' at ' + clash.loc + '.');
+                        return;
+                    }
+                    if (!await smartConfirm('Change the tag from "' + original.tag + '" to "' + updated.tag + '"? Old PM cards stay filed under the old tag.',
+                        { title: '🏷️ Change Tag', icon: '🏷️', okText: 'Change tag', danger: false })) return;
+                }
                 const btn = this;
                 const orig = btn.innerHTML;
                 btn.disabled = true;
                 btn.innerHTML = '⏳ Saving...';
                 try {
                     const res = await editInventoryItemInCloud(original, updated, currentLoggedInName);
+                    if (isLabDept_(updated.dept)) await labSave_(res.id, labCollect_('editRef'));
                     if (PENDING_EDIT_REF_PHOTO_CHANGED && res.id) {
                         await saveEquipmentPhoto(res.id, PENDING_EDIT_REF_PHOTO || '');
                         updated.photo = PENDING_EDIT_REF_PHOTO || '';
@@ -15163,7 +15179,7 @@ if (n.type === 'pm_submitted') {
         
         const q = window.FB.query(
             window.FB.collection(window.FB.db, 'curativeRequests'),
-            window.FB.limit(100)
+            window.FB.limit(1000)
         );
         const snap = await window.FB.getDocs(q);
         const out = [];
@@ -20636,7 +20652,7 @@ document.getElementById('dcSchedNext')?.addEventListener('click', () => {
                     
                     const q = window.FB.query(
                         window.FB.collection(window.FB.db, 'tasks'),
-                        window.FB.limit(100) // ✅ OPTIMIZED: Reduced to 100
+                        window.FB.limit(1000) // ✅ OPTIMIZED: Reduced to 100
                     );
                     const snap = await window.FB.getDocs(q);
                     const out = [];
@@ -25417,6 +25433,361 @@ bindUpsPhaseSync('editMonPhaseType', 'editMonChecklist');
             /* ============================================================
                INIT
                ============================================================ */
+               /* ============================================================
+   🧪 LABORATORY — ISO 15189 §6.4.7 EQUIPMENT RECORD
+   ============================================================ */
+const LAB_DEPT = 'Laboratory';
+const LAB_LIFE = { active: 'Active / in service', out_of_service: 'Out of service', quarantined: 'Quarantined', retired: 'Retired', obsolete: 'Obsolete' };
+function isLabDept_(d) { return normalizeText(d) === normalizeText(LAB_DEPT); }
+function labKey_(id) { return 'LabRecord_' + id; }
+
+function labFieldsHtml_(p) {
+    const g2 = 'display:grid;grid-template-columns:1fr 1fr;gap:12px;';
+    const inp = (id, label, type, ph) => `<div class="field-group"><label for="${p}${id}">${label}</label><input type="${type || 'text'}" id="${p}${id}" placeholder="${ph || ''}"></div>`;
+    const ta = (id, label, ph) => `<div class="field-group"><label for="${p}${id}">${label}</label><textarea id="${p}${id}" class="remark-input" rows="2" placeholder="${ph || ''}"></textarea></div>`;
+    return `<div style="background:#f0fdf4;border:1.5px solid #b8dfc3;border-radius:16px;padding:14px 16px;margin-bottom:16px;">
+      <div style="font-weight:800;color:#1b6b3f;">🧪 Laboratory equipment record (ISO 15189 · 6.4.7)</div>
+      <div style="font-size:.78rem;color:#5b7b96;margin:2px 0 12px;">Kept for the lifespan of the equipment or longer.</div>
+
+      <div style="font-weight:700;color:#12405e;margin-bottom:6px;">a) Manufacturer, supplier &amp; unique identification</div>
+      <div style="${g2}">${inp('LabManufacturer', 'Manufacturer', 'text', 'e.g. Sysmex')}${inp('LabSupplier', 'Supplier / vendor', 'text')}</div>
+      <div style="${g2}">${inp('LabSupplierContact', 'Supplier contact (phone / email)', 'text')}${inp('LabSoftware', 'Software version', 'text')}</div>
+      ${inp('LabFirmware', 'Firmware version', 'text')}
+
+      <div style="font-weight:700;color:#12405e;margin:6px 0;">b) Dates</div>
+      <div style="${g2}">${inp('LabDateReceived', 'Date of receipt', 'date')}${inp('LabDateAcceptance', 'Acceptance testing date', 'date')}</div>
+      ${inp('LabDateService', 'Date entered into service', 'date')}
+
+      <div style="font-weight:700;color:#12405e;margin:6px 0;">c, e, f) Acceptance, condition &amp; manufacturer's instructions</div>
+      ${ta('LabAcceptance', 'Evidence that equipment conforms with acceptability criteria', 'e.g. acceptance test report no., criteria met')}
+      <div class="field-group"><label for="${p}LabCondition">Condition when received</label>
+        <select id="${p}LabCondition"><option value="new">New</option><option value="used">Used</option><option value="reconditioned">Reconditioned</option></select></div>
+      ${inp('LabManual', "Manufacturer's instructions (where kept / link)", 'text', 'e.g. Lab shelf 3 / https://…')}
+
+      <div style="font-weight:700;color:#12405e;margin:6px 0;">g, i) Maintenance programme &amp; modifications</div>
+      ${ta('LabPmProgramme', 'Preventive maintenance programme (frequency / notes)', 'Quarterly PM is scheduled automatically by the system')}
+      ${ta('LabModifications', 'Modifications / upgrades / repairs notes', 'Malfunctions &amp; repairs are pulled automatically from Curative jobs in the PDF')}
+
+      <div style="font-weight:700;color:#12405e;margin:6px 0;">j) Calibration &amp; verification records</div>
+      ${inp('LabNextCal', 'Next calibration / verification due', 'date')}
+      <div style="overflow-x:auto;"><div id="${p}LabCalRows" style="min-width:640px;"></div></div>
+      <button type="button" class="btn-secondary" id="${p}LabAddCal" style="padding:8px 16px;font-size:.85rem;margin-bottom:12px;">➕ Add calibration / verification record</button>
+
+      <div style="font-weight:700;color:#12405e;margin:6px 0;">k) Status of the equipment</div>
+      <div class="field-group"><label for="${p}LabLife">Lifecycle status</label>
+        <select id="${p}LabLife">${Object.keys(LAB_LIFE).map(k => `<option value="${k}">${LAB_LIFE[k]}</option>`).join('')}</select></div>
+
+      <button type="button" class="btn-pdf" id="${p}LabPdfBtn" style="display:none;padding:10px 20px;font-size:.88rem;">📄 Download Equipment Record (PDF)</button>
+    </div>`;
+}
+function labAddCalRow_(p, r) {
+    const box = document.getElementById(p + 'LabCalRows'); if (!box) return;
+    r = r || {};
+    const st = 'padding:8px;border-radius:10px;border:1.5px solid #cfdfeb;font-family:inherit;font-size:.85rem;width:100%;';
+    const d = document.createElement('div');
+    d.className = 'lab-cal-row';
+    d.style.cssText = 'display:grid;grid-template-columns:1fr .8fr 1fr 1.3fr 1.2fr auto;gap:6px;margin-bottom:6px;align-items:center;';
+    d.innerHTML = `<input type="date" class="lc-date" style="${st}" value="${escapeHtml(r.date || '')}">
+      <input type="time" class="lc-time" style="${st}" value="${escapeHtml(r.time || '')}">
+      <select class="lc-type" style="${st}"><option>Calibration</option><option>Verification</option></select>
+      <input type="text" class="lc-result" style="${st}" placeholder="Result" value="${escapeHtml(r.result || '')}">
+      <input type="text" class="lc-ref" style="${st}" placeholder="Certificate / ref no." value="${escapeHtml(r.ref || '')}">
+      <button type="button" class="btn-danger" style="padding:6px 10px;">🗑️</button>`;
+    d.querySelector('.lc-type').value = r.type || 'Calibration';
+    d.querySelector('button').onclick = () => d.remove();
+    box.appendChild(d);
+}
+function labCollect_(p) {
+    const v = id => (document.getElementById(p + id)?.value || '').trim();
+    const cal = Array.from(document.querySelectorAll('#' + p + 'LabCalRows .lab-cal-row')).map(r => ({
+        date: r.querySelector('.lc-date').value, time: r.querySelector('.lc-time').value,
+        type: r.querySelector('.lc-type').value, result: r.querySelector('.lc-result').value.trim(),
+        ref: r.querySelector('.lc-ref').value.trim()
+    })).filter(x => x.date || x.result || x.ref);
+    return {
+        manufacturer: v('LabManufacturer'), supplier: v('LabSupplier'), supplierContact: v('LabSupplierContact'),
+        software: v('LabSoftware'), firmware: v('LabFirmware'),
+        dateReceived: v('LabDateReceived'), dateAcceptance: v('LabDateAcceptance'), dateService: v('LabDateService'),
+        acceptance: v('LabAcceptance'), condition: v('LabCondition') || 'new', manual: v('LabManual'),
+        pmProgramme: v('LabPmProgramme'), modifications: v('LabModifications'),
+        nextCal: v('LabNextCal'), calibrations: cal, lifecycle: v('LabLife') || 'active'
+    };
+}
+function labFill_(p, r) {
+    r = r || {};
+    const set = (id, val) => { const e = document.getElementById(p + id); if (e) e.value = val || ''; };
+    set('LabManufacturer', r.manufacturer); set('LabSupplier', r.supplier); set('LabSupplierContact', r.supplierContact);
+    set('LabSoftware', r.software); set('LabFirmware', r.firmware);
+    set('LabDateReceived', r.dateReceived); set('LabDateAcceptance', r.dateAcceptance); set('LabDateService', r.dateService);
+    set('LabAcceptance', r.acceptance); set('LabCondition', r.condition || 'new'); set('LabManual', r.manual);
+    set('LabPmProgramme', r.pmProgramme); set('LabModifications', r.modifications);
+    set('LabNextCal', r.nextCal); set('LabLife', r.lifecycle || 'active');
+    const box = document.getElementById(p + 'LabCalRows'); if (box) box.innerHTML = '';
+    (r.calibrations || []).forEach(c => labAddCalRow_(p, c));
+}
+async function labLoad_(id) {
+    try { const raw = await firestoreConfigGet(labKey_(id)); return raw ? JSON.parse(raw) : {}; } catch (e) { return {}; }
+}
+async function labSave_(id, rec) {
+    rec.updatedBy = currentLoggedInName; rec.updatedAt = new Date().toISOString();
+    const ok = await firestoreConfigSet(labKey_(id), JSON.stringify(rec), 'application/json', 'labrecord.json');
+    if (!ok) toast('Lab record could not be saved.', 'warn');
+    return ok;
+}
+async function labMount_(p, dept, equipId, force) {
+    const wrap = document.getElementById(p + 'LabWrap'); if (!wrap) return;
+    if (!isLabDept_(dept)) { wrap.innerHTML = ''; wrap.dataset.on = ''; return; }
+    if (wrap.dataset.on === '1' && !force) return;
+    wrap.innerHTML = labFieldsHtml_(p);
+    wrap.dataset.on = '1';
+    document.getElementById(p + 'LabAddCal').onclick = () => labAddCalRow_(p, {});
+    if (p === 'editRef') {
+        const b = document.getElementById('editRefLabPdfBtn');
+        b.style.display = 'inline-flex';
+        b.onclick = async () => {
+            const ref = document.getElementById('editRefModal')._originalRef;
+            if (!ref) return;
+            const o = b.innerHTML; b.disabled = true; b.innerHTML = '⏳ …';
+            try { await labRecordPdf_(ref, labCollect_('editRef')); } catch (e) { showStatus('⚠️ ' + e.message, false); }
+            b.disabled = false; b.innerHTML = o;
+        };
+    }
+    labFill_(p, equipId ? await labLoad_(equipId) : {});
+}
+document.getElementById('newRefDept')?.addEventListener('change', function () { labMount_('newRef', this.value, null, false); });
+document.getElementById('editRefDept')?.addEventListener('change', function () {
+    const r = document.getElementById('editRefModal')._originalRef;
+    labMount_('editRef', this.value, r && r._docId, false);
+});
+
+async function labRecordPdf_(ref, rec) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const m = 14;
+    const s = x => pdfSanitize(x == null ? '' : String(x)) || '-';
+    let y = drawChubHeader(doc, {
+        title: 'EQUIPMENT RECORD (ISO 15189 - 6.4.7)',
+        subtitle: s((ref.equipName || ref.type || '') + ' - ' + ref.tag),
+        ref: 'CHUB/LAB/' + String(ref.tag || '').replace(/[^A-Za-z0-9]/g, '_').substring(0, 18),
+        date: new Date().toLocaleDateString('en-GB')
+    });
+    const tbl = (head, body, color) => {
+        doc.autoTable({
+            startY: y, margin: { left: m, right: m, top: 18 }, head: [head], body: body, theme: 'striped',
+            styles: { fontSize: 8, cellPadding: 1.6 }, headStyles: { fillColor: color || [30, 74, 109], textColor: 255 },
+            columnStyles: head.length === 2 ? { 0: { cellWidth: 66, fontStyle: 'bold' } } : {}
+        });
+        y = doc.lastAutoTable.finalY + 6;
+    };
+    const d = x => x ? formatDateOnly(x) : '-';
+    tbl(['Requirement', 'Record'], [
+        ['a) Equipment name', s(ref.equipName)], ['a) Tag / unique ID', s(ref.tag)], ['a) Type', s(ref.type)],
+        ['a) Brand / model', s((ref.brand || '') + ' ' + (ref.model || ''))], ['a) Serial number', s(ref.serial)],
+        ['a) Manufacturer', s(rec.manufacturer)], ['a) Supplier', s(rec.supplier)], ['a) Supplier contact', s(rec.supplierContact)],
+        ['a) Software version', s(rec.software)], ['a) Firmware version', s(rec.firmware)],
+        ['b) Date of receipt', d(rec.dateReceived)], ['b) Acceptance testing', d(rec.dateAcceptance)], ['b) Entered into service', d(rec.dateService)],
+        ['c) Conformity with acceptability criteria', s(rec.acceptance)],
+        ['d) Current location', s((ref.dept || '') + ' / ' + (ref.loc || ''))],
+        ['e) Condition when received', s(rec.condition)], ["f) Manufacturer's instructions", s(rec.manual)],
+        ['g) Preventive maintenance programme', s(rec.pmProgramme)], ['g) Last PM / next PM', d(ref.lastPmDate) + ' / ' + d(ref.nextPmDate)],
+        ['i) Modifications / upgrades', s(rec.modifications)],
+        ['k) Status', s(LAB_LIFE[rec.lifecycle] || 'Active / in service') + ' (' + s(ref.workingStatus || 'Working') + ')']
+    ]);
+    tbl(['j) Date', 'Time', 'Type', 'Result', 'Certificate / ref'],
+        (rec.calibrations || []).length ? rec.calibrations.map(c => [d(c.date), s(c.time), s(c.type), s(c.result), s(c.ref)]) : [['-', '-', '-', 'No record yet', '-']],
+        [122, 83, 0]);
+    if (rec.nextCal) { doc.setFontSize(8); doc.setTextColor(31, 60, 84); doc.text('Next calibration / verification due: ' + formatDateOnly(rec.nextCal), m, y - 2); y += 4; }
+
+    try {
+        const res = await fetchRefInfoFromCloud(ref.tag);
+        const pms = (res && res.ok) ? res.records : [];
+        tbl(['h) PM date', 'Technician', 'Co-signed by', 'Status'],
+            pms.length ? pms.map(r => [d(r.workDate), s(r.technician), s(r.inchargeSigner || r.inchargeName),
+                r.inchargeReviewStatus === 'rejected' ? 'REJECTED' : (safeStr(r.inchargeSignedAt).trim() ? 'CO-SIGNED' : 'AWAITING')]) : [['-', '-', '-', 'No PM recorded']],
+            [27, 107, 63]);
+    } catch (e) { }
+    try {
+        const snap = await window.FB.getDocs(window.FB.query(window.FB.collection(window.FB.db, 'curativeRequests'), window.FB.where('tag', '==', ref.tag)));
+        const cur = snap.docs.map(x => x.data()).sort((a, b) => new Date(b.reportedAt) - new Date(a.reportedAt));
+        tbl(['i) Reported', 'Malfunction / damage', 'Repaired by', 'Status', 'Completed'],
+            cur.length ? cur.map(c => [d(c.reportedAt), s((c.issue || '').substring(0, 90)), s(c.assignedTo), s(c.status), d(c.completedAt)]) : [['-', 'No malfunction recorded', '-', '-', '-']],
+            [179, 58, 58]);
+    } catch (e) { }
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(91, 123, 150);
+    doc.text('Generated by ' + s(currentLoggedInName) + ' on ' + new Date().toLocaleString('en-GB') + '. Record must be retained for the lifespan of the equipment or longer.', m, y);
+    const tp = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= tp; p++) { doc.setPage(p); drawChubFooter(doc, p, tp); }
+    doc.save('CHUB_Equipment_Record_' + String(ref.tag || 'unit').replace(/[^\w\-]/g, '_') + '.pdf');
+}
+/* ============================================================
+   🗓️ IN-CHARGE: DEPARTMENT WORK REPORT (week / month / quarter / year)
+   ============================================================ */
+document.body.insertAdjacentHTML('beforeend', `
+<div class="modal-overlay" id="workReportModal"><div class="modal-box" style="max-width:460px;">
+  <h2>🗓️ Department Work Report</h2>
+  <p>Works done in <strong id="wrDeptName">—</strong>: PMs, curative jobs and tasks.</p>
+  <div class="field-group"><label for="wrType">Period *</label>
+    <select id="wrType">
+      <option value="week">📅 Weekly (Mon–Sun)</option>
+      <option value="month" selected>📅 Monthly</option>
+      <option value="quarter">📅 Quarterly (fiscal: Jul–Sep, Oct–Dec, Jan–Mar, Apr–Jun)</option>
+      <option value="year">📅 Annual — fiscal year (Jul–Jun)</option>
+      <option value="calyear">📅 Annual — calendar year (Jan–Dec)</option>
+    </select></div>
+  <div class="field-group"><label for="wrDate">Pick any date inside the period *</label><input type="date" id="wrDate"></div>
+  <div id="wrPreview" style="background:#eef6fc;border-left:3px solid #1e4a6d;padding:10px 14px;border-radius:8px;font-size:.85rem;font-weight:600;color:#12405e;margin-bottom:10px;"></div>
+  <div id="wrErr" style="color:#b33a3a;font-size:.85rem;min-height:18px;"></div>
+  <div class="modal-actions"><button class="btn-cancel" id="wrCancel">Cancel</button><button class="btn-go" id="wrGo">📄 Generate PDF</button></div>
+</div></div>`);
+
+function wrDept_() {
+    if (currentRole === 'head_biomedical') return BIOMEDICAL_DEPT_NAME;
+    return currentInchargeDept || inferDepartmentFromIncharge(currentLoggedInName) || '';
+}
+function wrRange_(type, iso) {
+    const d = parseToDate(iso) || new Date();
+    let s, e, tag;
+    if (type === 'week') { s = dcWeekMonday_(d); e = new Date(s); e.setDate(s.getDate() + 6); tag = 'Week'; }
+    else if (type === 'month') { s = new Date(d.getFullYear(), d.getMonth(), 1); e = new Date(d.getFullYear(), d.getMonth() + 1, 0); tag = MONTHS_SHORT[d.getMonth()] + ' ' + d.getFullYear(); }
+    else if (type === 'quarter') { const qk = quarterKeyOf(d), r = perfRangeForQuarter(qk); s = r.start; e = r.end; tag = quarterLabelOf(qk); }
+    else if (type === 'calyear') { s = new Date(d.getFullYear(), 0, 1); e = new Date(d.getFullYear(), 11, 31); tag = 'Year ' + d.getFullYear(); }
+    else { const fy = d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1; s = new Date(fy, 6, 1); e = new Date(fy + 1, 5, 30); tag = 'FY' + fy + '/' + String(fy + 1).slice(-2); }
+    return { from: toIsoDate_(s), to: toIsoDate_(e), tag, label: tag + ':  ' + formatDateOnly(toIsoDate_(s)) + '  →  ' + formatDateOnly(toIsoDate_(e)) };
+}
+function wrPreview_() {
+    const r = wrRange_(document.getElementById('wrType').value, document.getElementById('wrDate').value);
+    document.getElementById('wrPreview').textContent = '🗓️ ' + r.label;
+}
+document.getElementById('inchargeWorkReportBtn')?.addEventListener('click', () => {
+    const dept = wrDept_();
+    if (!dept) { showStatus('⚠️ No department assigned to your account.', false); return; }
+    document.getElementById('wrDeptName').textContent = dept;
+    document.getElementById('wrDate').value = toIsoDate_(new Date());
+    document.getElementById('wrErr').textContent = '';
+    wrPreview_();
+    document.getElementById('workReportModal').classList.add('show');
+});
+document.getElementById('wrType')?.addEventListener('change', wrPreview_);
+document.getElementById('wrDate')?.addEventListener('change', wrPreview_);
+document.getElementById('wrCancel')?.addEventListener('click', () => document.getElementById('workReportModal').classList.remove('show'));
+
+async function wrUnion_(table, f1, f2, from, to) {
+    const toTs = to + 'T23:59:59';
+    const [a, b] = await Promise.all([
+        imFetchRange_(table, f1, from, toTs),
+        imFetchRange_(table, f2, from, toTs)
+    ]);
+    const mp = new Map();
+    a.concat(b).forEach(x => mp.set(x.id || JSON.stringify(x), x));
+    return Array.from(mp.values());
+}
+
+document.getElementById('wrGo')?.addEventListener('click', async function () {
+    const btn = this, o = btn.innerHTML, err = document.getElementById('wrErr');
+    const dept = wrDept_();
+    const rg = wrRange_(document.getElementById('wrType').value, document.getElementById('wrDate').value);
+    err.textContent = '';
+    btn.disabled = true; btn.innerHTML = '⏳ Building…';
+    try {
+        if (!Object.keys(LIVE_USERS).length) LIVE_USERS = await loadUsersFromFirestore();
+        const nd = normalizeText(dept);
+        const inR = v => { if (!v) return false; const x = String(v).slice(0, 10); return x >= rg.from && x <= rg.to; };
+
+        const [pmAll, curAll, taskAll] = await Promise.all([
+            imFetchRange_('pmLogs', 'workDate', rg.from, rg.to, mapFirestorePmLog),
+            wrUnion_('curativeRequests', 'reportedAt', 'completedAt', rg.from, rg.to),
+            wrUnion_('tasks', 'createdAt', 'completedAt', rg.from, rg.to)
+        ]);
+        const pms = pmAll.filter(r => normalizeText(r.refDept) === nd).sort((a, b) => String(a.workDate).localeCompare(String(b.workDate)));
+        const curs = curAll.filter(c => normalizeText(c.dept) === nd).sort((a, b) => String(a.reportedAt).localeCompare(String(b.reportedAt)));
+        const tasks = taskAll.filter(t => normalizeText(t.dept) === nd || userInDept_(t.assignedTo, dept))
+            .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+
+        if (!pms.length && !curs.length && !tasks.length) { err.textContent = '📭 No work recorded in this period.'; btn.disabled = false; btn.innerHTML = o; return; }
+
+        const pmSigned = pms.filter(r => safeStr(r.inchargeSignedAt).trim()).length;
+        const pmRej = pms.filter(r => r.inchargeReviewStatus === 'rejected').length;
+        const curDone = curs.filter(c => (c.status === 'completed' || c.status === 'verified') && inR(c.completedAt)).length;
+        const curOpen = curs.filter(c => ['pending', 'in_progress', 'paused'].includes(c.status)).length;
+        const taskDone = tasks.filter(t => (t.status === 'completed' || t.status === 'verified') && inR(t.completedAt)).length;
+
+        const per = {};
+        const P = n => { const k = String(n || '').trim(); if (!k) return null; return per[k] || (per[k] = { pm: 0, cur: 0, task: 0 }); };
+        pms.forEach(r => { const p = P(r.technician); if (p) p.pm++; });
+        curs.forEach(c => { if ((c.status === 'completed' || c.status === 'verified') && inR(c.completedAt)) { const p = P(c.assignedTo); if (p) p.cur++; } });
+        tasks.forEach(t => { if ((t.status === 'completed' || t.status === 'verified') && inR(t.completedAt)) { const p = P(t.assignedTo); if (p) p.task++; } });
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        const m = 14, pW = 297, pH = 210, cW = pW - m * 2;
+        const s = x => pdfSanitize(x == null ? '' : String(x)) || '-';
+        let y = drawChubHeader(doc, {
+            title: 'DEPARTMENT WORK REPORT',
+            subtitle: s(dept) + '   |   ' + rg.label,
+            ref: 'CHUB/WORK/' + rg.from.replace(/-/g, ''), date: new Date().toLocaleDateString('en-GB')
+        });
+        const tiles = [
+            ['PMs DONE', pms.length, [238, 246, 252], [11, 59, 92]], ['CO-SIGNED', pmSigned, [226, 240, 230], [27, 107, 63]],
+            ['PM REJECTED', pmRej, [255, 230, 230], [179, 58, 58]], ['CURATIVES RAISED', curs.length, [255, 243, 205], [122, 83, 0]],
+            ['CURATIVES DONE', curDone, [226, 240, 230], [27, 107, 63]], ['CURATIVES OPEN', curOpen, [255, 230, 230], [179, 58, 58]],
+            ['TASKS', tasks.length, [238, 246, 252], [11, 59, 92]], ['TASKS DONE', taskDone, [226, 240, 230], [27, 107, 63]]
+        ];
+        const kW = (cW - 7 * 3) / 8;
+        tiles.forEach((k, i) => drawKpiTile(doc, m + i * (kW + 3), y, kW, 16, k[0], String(k[1]), null, k[2], k[3]));
+        y += 22;
+
+        const section = (t, c) => {
+            if (y > pH - 45) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'WORK REPORT (cont.)', ref: 'CHUB/WORK' }); }
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(c[0], c[1], c[2]); doc.text(t, m, y); y += 3;
+        };
+        const tbl = (head, body, color) => {
+            doc.autoTable({ startY: y, margin: { left: m, right: m, top: 18 }, head: [head], body: body, theme: 'striped',
+                styles: { fontSize: 7.5, cellPadding: 1.6 }, headStyles: { fillColor: color, textColor: 255 } });
+            y = doc.lastAutoTable.finalY + 8;
+        };
+        const empty = t => { doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(91, 123, 150); doc.text(t, m, y + 4); y += 10; };
+
+        section('1.  WORK PER TECHNICIAN', [11, 59, 92]);
+        const names = Object.keys(per).sort();
+        names.length ? tbl(['Technician', 'PMs done', 'Curatives completed', 'Tasks completed', 'Total'],
+            names.map(n => [s(n), per[n].pm, per[n].cur, per[n].task, per[n].pm + per[n].cur + per[n].task]), [11, 61, 145]) : empty('(no technician activity)');
+
+        section('2.  PREVENTIVE MAINTENANCE (PM)', [27, 107, 63]);
+        pms.length ? tbl(['Work date', 'Equipment', 'Tag', 'Location', 'Technician', 'Co-signed by', 'Status'],
+            pms.map(r => [formatDateOnly(r.workDate), s(r.refEquipName || r.refType), s(r.refTag), s(r.refLocation), s(r.technician),
+                s(r.inchargeSigner || r.inchargeName),
+                r.inchargeReviewStatus === 'rejected' ? 'REJECTED' : (safeStr(r.inchargeSignedAt).trim() ? 'CO-SIGNED' : 'AWAITING')]), [27, 107, 63]) : empty('(no PM in this period)');
+
+        section('3.  CURATIVE (REPAIR) JOBS', [179, 58, 58]);
+        curs.length ? tbl(['Reported', 'Equipment', 'Location', 'Issue', 'Technician', 'Status', 'Completed'],
+            curs.map(c => [formatDateOnly(c.reportedAt), s(c.equipName || c.tag), s(c.loc), s((c.issue || '').substring(0, 70)), s(c.assignedTo),
+                s(String(c.status || '').replace(/_/g, ' ').toUpperCase()), c.completedAt ? formatDateOnly(c.completedAt) : '-']), [179, 58, 58]) : empty('(no curative job in this period)');
+
+        section('4.  TASKS / ACTIVITIES', [122, 83, 0]);
+        tasks.length ? tbl(['Created', 'Task', 'Location', 'Priority', 'Assigned to', 'Status', 'Completed'],
+            tasks.map(t => [formatDateOnly(t.createdAt), s(t.title), s(t.location), s(String(t.priority || '').toUpperCase()), s(t.assignedTo),
+                s(String(t.status || '').replace(/_/g, ' ').toUpperCase()), t.completedAt ? formatDateOnly(t.completedAt) : '-']), [122, 83, 0]) : empty('(no task in this period)');
+
+        if (y + 26 > pH - 20) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'WORK REPORT (cont.)', ref: 'CHUB/WORK' }); }
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(31, 60, 84);
+        doc.text('Prepared by (In-Charge): ' + s(currentLoggedInName) + '   |   ' + new Date().toLocaleString('en-GB'), m, y + 4);
+        try {
+            const sg = await getDisposalSignerSig(currentLoggedInName);
+            if (sg && sg.url) doc.addImage(sg.url, getImageFormat(sg.url), m, y + 6, 40, 14);
+        } catch (e) { }
+
+        const tp = doc.internal.getNumberOfPages();
+        for (let p = 1; p <= tp; p++) { doc.setPage(p); drawChubFooter(doc, p, tp); }
+        doc.save('CHUB_Work_Report_' + s(dept).replace(/\s+/g, '_') + '_' + rg.from + '_to_' + rg.to + '.pdf');
+        document.getElementById('workReportModal').classList.remove('show');
+        showStatus('📄 Work report downloaded.', true);
+    } catch (e) {
+        console.error(e);
+        err.textContent = '⚠️ ' + e.message;
+    }
+    btn.disabled = false; btn.innerHTML = o;
+});
             document.addEventListener('DOMContentLoaded', async () => {
                 document.querySelectorAll('.collapsible-card > .card-header').forEach(h => {
                     h.addEventListener('click', function (e) {
@@ -25864,7 +26235,7 @@ async function fetchMyFeedback() {
         const snap = await window.FB.getDocs(
             window.FB.query(
                 window.FB.collection(window.FB.db, FEEDBACK_COLLECTION),
-                window.FB.limit(100)
+                window.FB.limit(1000)
             )
         );
         const out = [];
