@@ -1,7 +1,8 @@
-// sw.js — CHUB Equipment Fleet PM (merged + fixed)
-// v6 — Adds Firebase + Firestore protection and keeps Google Sheets protection.
+// sw.js — CHUB Equipment Fleet PM
+// v10 — Network-first for HTML (always latest deployed version),
+//       cache-first only for pinned CDN libraries, Supabase never cached.
 
-const CACHE_NAME = 'chub-ref-cache-v9-supabase'; // 🔼 Bumped to v9 to force clear all old Firebase/jQuery caches
+const CACHE_NAME = 'chub-ref-cache-v10-fresh'; // 🔼 bumped: clears every older cache
 
 const ASSETS_TO_CACHE = [
     './',
@@ -19,94 +20,124 @@ const ASSETS_TO_CACHE = [
     'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'
 ];
 
-// 1. Install — cache the app files
+// 1. Install — pre-cache files (for offline use), activate immediately
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('✅ Service Worker v6: caching assets');
+                console.log('✅ Service Worker v10: caching assets');
                 return cache.addAll(ASSETS_TO_CACHE).catch(err => {
-                    // Some CDN assets might fail (offline first run) — do not block install
                     console.warn('⚠️ Some assets failed to cache:', err);
                 });
             })
     );
-    self.skipWaiting(); // take over immediately
+    self.skipWaiting();
 });
 
-// 2. Activate — delete old caches (this clears v5 and earlier)
+// 2. Activate — delete ALL old caches and take control of open pages
 self.addEventListener('activate', event => {
     event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheName !== CACHE_NAME) {
-                        console.log('🗑️ Deleting old cache:', cacheName);
-                        return caches.delete(cacheName);
+        caches.keys()
+            .then(names => Promise.all(
+                names.map(name => {
+                    if (name !== CACHE_NAME) {
+                        console.log('🗑️ Deleting old cache:', name);
+                        return caches.delete(name);
                     }
                 })
-            );
-        })
+            ))
+            .then(() => self.clients.claim())
     );
-    self.clients.claim();
 });
 
-// 3. Fetch — cache-first for assets, NEVER cache live API calls
+// 3. Messages from the page (optional helpers)
+self.addEventListener('message', event => {
+    const type = event.data && event.data.type;
+    if (type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    } else if (type === 'CLEAR_CACHES') {
+        event.waitUntil(
+            caches.keys().then(names => Promise.all(names.map(n => caches.delete(n))))
+        );
+    }
+});
+
+// 4. Fetch
 self.addEventListener('fetch', event => {
-    const url = event.request.url;
-
-    // ⛔ Do NOT cache live Google Sheets calls (old protection — kept)
-    if (url.includes('script.google.com')) {
-        return;
-    }
-
-    // ⛔ Do NOT cache Supabase API calls (NEW — CRITICAL for Supabase)
-    if (
-        url.includes('supabase.co') || 
-        url.includes('supabase.in') ||
-        url.includes('supabase.net')
-    ) {
-        return; // Let the network handle it directly so you always get fresh data
-    }
-
-    // ⛔ Do NOT cache jQuery CDN (fixes the jQuery 3.4.1 caching error)
-    if (url.includes('code.jquery.com') || url.includes('jquery')) {
-        return;
-    }
+    const req = event.request;
+    const url = req.url;
 
     // Only handle GET requests
-    if (event.request.method !== 'GET') return;
+    if (req.method !== 'GET') return;
 
-    // 🌟 FIX: Ignore chrome-extension:// and other weird protocols
-    if (!url.startsWith('http')) {
-        return; 
+    // Ignore chrome-extension:// and other non-http protocols
+    if (!url.startsWith('http')) return;
+
+    // ⛔ Never cache live API calls
+    if (url.includes('script.google.com')) return;
+    if (url.includes('supabase.co') || url.includes('supabase.in') || url.includes('supabase.net')) return;
+    if (url.includes('code.jquery.com') || url.includes('jquery')) return;
+
+    const sameOrigin = new URL(url).origin === self.location.origin;
+
+    // 🌟 A) HTML pages / navigation → NETWORK-FIRST
+    //    Guarantees users get the newest deployed version.
+    //    Cache is used only when the device is offline.
+    if (req.mode === 'navigate' || req.destination === 'document') {
+        event.respondWith(
+            fetch(req, { cache: 'no-store' })
+                .then(networkResponse => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const copy = networkResponse.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
+                    }
+                    return networkResponse;
+                })
+                .catch(() =>
+                    caches.match(req).then(r => r || caches.match('./index.html') || caches.match('./'))
+                )
+        );
+        return;
     }
 
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) return response; // cache hit
-
-                // Network fallback
-                return fetch(event.request).then(networkResponse => {
-                    if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+    // 🌟 B) Same-origin files (logo, icons, manifest, version.json, etc.)
+    //    → STALE-WHILE-REVALIDATE: fast, but refreshed in the background.
+    if (sameOrigin) {
+        event.respondWith(
+            caches.match(req).then(cached => {
+                const networkFetch = fetch(req)
+                    .then(networkResponse => {
+                        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+                            const copy = networkResponse.clone();
+                            caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+                        }
                         return networkResponse;
-                    }
-                    // Dynamically cache new same-origin assets
-                    const responseToCache = networkResponse.clone();
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, responseToCache);
-                    });
-                    return networkResponse;
-                }).catch(() => {
-                    // Offline fallback: only for HTML navigation
-                    if (event.request.mode === 'navigate') {
-                        return caches.match('./index.html');
-                    }
-                });
+                    })
+                    .catch(() => cached);
+                return cached || networkFetch;
             })
+        );
+        return;
+    }
+
+    // 🌟 C) Third-party CDN libraries (version-pinned) → CACHE-FIRST
+    event.respondWith(
+        caches.match(req).then(cached => {
+            if (cached) return cached;
+            return fetch(req)
+                .then(networkResponse => {
+                    // Cache successful CDN responses (including opaque/cors ones)
+                    if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
+                        const copy = networkResponse.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+                    }
+                    return networkResponse;
+                })
+                .catch(() => cached);
+        })
     );
 });
+
 // ===== PUSH NOTIFICATIONS (WhatsApp-style) =====
 self.addEventListener('push', (event) => {
   let data = {};
