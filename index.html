@@ -5142,6 +5142,25 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
                     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
                         <button class="btn-add" id="inchargeAddEquipBtn">➕ Add New Equipment</button>
                         <button class="btn-secondary" id="inchargeRefreshInvBtn">🔄 Refresh</button>
+                        <select id="icInvCategory" style="padding:10px 16px;border-radius:40px;border:1.5px solid #cfdfeb;font-weight:600;font-family:inherit;">
+                            <option value="all">🗂️ All categories</option>
+                            <option value="fridge">🧊 Fridge / Freezer</option>
+                            <option value="ac">❄️ Air Conditioner</option>
+                            <option value="electrical">⚡ Electrical</option>
+                            <option value="biomedical">🏥 Biomedical</option>
+                            <option value="ups">🔋 UPS</option>
+                            <option value="laundry">🧺 Laundry</option>
+                            <option value="compressor">🌬️ Air Compressor</option>
+                            <option value="vacuum">🌀 Vacuum System</option>
+                            <option value="wastewater">💧 Waste Water</option>
+                            <option value="generator">🔌 Generators</option>
+                            <option value="mortuary">⚰️ Mortuary</option>
+                            <option value="incinerator">🔥 Incinerators</option>
+                            <option value="lightning">⚡ Lightening</option>
+                            <option value="access_control">🚪 Access Control</option>
+                            <option value="equipment">📦 Other</option>
+                        </select>
+                        <button class="btn-pdf" id="icInvDownloadBtn" style="padding:10px 20px;font-size:.88rem;">📄 Download Inventory (PDF)</button>
                     </div>
                     <div class="filter-selector" id="inventoryFilterBar" style="margin-bottom:12px;">
                         <div class="filter-chip active" data-status="all">📋 All</div>
@@ -5177,7 +5196,28 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
                     </div>
                 </div>
             </div>
-
+            <div class="card collapsible-card collapsed" id="icCreatedTasksCard" style="margin-bottom:28px;border:2px solid #1b6b3f;">
+                <div class="card-header" style="background:#e2f0e6;color:#1b6b3f;">
+                    <span>📤</span> Tasks I Assigned to My Technicians
+                    <span id="icCreatedCount" style="margin-left:auto;background:#1b6b3f;color:white;padding:3px 12px;border-radius:20px;font-size:.8rem;font-weight:700;">0</span>
+                    <span class="collapse-caret">▼</span>
+                </div>
+                <div class="card-body">
+                    <p style="font-size:.88rem;color:#3a6583;margin-bottom:14px;">Create an activity for a technician of your department. They are notified, do the work, and you verify it. These tasks appear in your Department Work Report.</p>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                        <button class="btn-primary" id="icCreateTaskBtn" style="padding:12px 26px;font-size:.95rem;">➕ Create Task for My Technician</button>
+                        <button class="btn-secondary" id="icCreatedRefreshBtn" style="padding:12px 22px;font-size:.9rem;">🔄 Refresh</button>
+                    </div>
+                    <div class="filter-selector" id="icCreatedFilterBar" style="margin-bottom:12px;">
+                        <div class="filter-chip active" data-status="open">🔧 Open</div>
+                        <div class="filter-chip" data-status="completed">📸 Awaiting my verification</div>
+                        <div class="filter-chip" data-status="verified">✅ Verified</div>
+                        <div class="filter-chip" data-status="rejected">❌ Rejected</div>
+                        <div class="filter-chip" data-status="all">📋 All</div>
+                    </div>
+                    <div id="icCreatedTaskList"></div>
+                </div>
+            </div>
             <!-- ⬇️ NEW CARD: IN-CHARGE PM STATUS ⬇️ -->
             <div class="card collapsible-card collapsed" id="inchargePmStatusCard"
                 style="margin-bottom:28px;border:2px solid #0b3d91;">
@@ -21028,7 +21068,7 @@ document.getElementById('dcSchedNext')?.addEventListener('click', () => {
                 const dl = document.getElementById('taskLocationSuggestions');
                 if (dl) {
                     dl.innerHTML = '';
-                    const svcs = (DEPARTMENTS[INFRA_DEPT_NAME] && DEPARTMENTS[INFRA_DEPT_NAME].services) || [];
+                    const svcs = (DEPARTMENTS[taskCreatorDept_()] && DEPARTMENTS[taskCreatorDept_()].services) || [];
                     svcs.forEach(s => { const o = document.createElement('option'); o.value = s; dl.appendChild(o); });
                 }
 
@@ -21037,7 +21077,9 @@ document.getElementById('dcSchedNext')?.addEventListener('click', () => {
                 const icSet = new Set();
                 
                 // Check if the current user is the Infra Manager or Supervisor
-                const isInfraManager = currentRole === 'infra_manager' || currentRole === 'supervisor' || userHasPermission('infra_manager');
+                const _icCreator = isInchargeTaskCreator_();
+                const _myTaskDept = taskCreatorDept_();
+                const isInfraManager = !_icCreator && (currentRole === 'infra_manager' || currentRole === 'supervisor' || userHasPermission('infra_manager'));
 
                 Object.keys(users).forEach(n => {
                     const u = users[n];
@@ -21055,7 +21097,7 @@ document.getElementById('dcSchedNext')?.addEventListener('click', () => {
                         } 
                         // 👔 REGULAR INFRAS In-Charge: Can only assign to Infra Technicians
                         else {
-                            if (inInfra) techSet.add(n.trim());
+                            if (_icCreator ? ds.some(d => normalizeText(d) === normalizeText(_myTaskDept)) : inInfra) techSet.add(n.trim());
                         }
                     }
                     
@@ -21070,7 +21112,7 @@ document.getElementById('dcSchedNext')?.addEventListener('click', () => {
                 });
 
                 const techs = Array.from(techSet).sort();
-                const incharges = Object.keys(users).filter(n => {
+                const incharges = _icCreator ? [] : Object.keys(users).filter(n => {
                     const u = users[n];
                     // Must have incharge or supervisor permissions
                     if (!userRecHasPermission(u, 'incharge') && !userRecHasPermission(u, 'supervisor')) return false;
@@ -21163,17 +21205,18 @@ document.getElementById('dcSchedNext')?.addEventListener('click', () => {
                 try {
                     const id = await createTaskDoc({
                         title, description, priority, category,
-                        dept: INFRA_DEPT_NAME, location,
+                        dept: taskCreatorDept_(), location,
                         plannedDate, duration,
                         assignedBy: currentLoggedInName,
                         assignedTo, targetRole,
                         availabilityOverride: override,
                         availabilityNote: override ? (av.reason || '') : ''
                     });
+                    invalidateCache('tasks');
                     await createTaskNotification(assignedTo, 'task_assigned',
                         '📋 New Activity Assigned — ' + title,
                         `${currentLoggedInName} assigned you "${title}" for ${formatDateOnly(plannedDate)}. Priority: ${priority.toUpperCase()}.${override ? ' ⚠️ Assigned despite unavailability.' : ''}`,
-                        { _docId: id, title, dept: INFRA_DEPT_NAME });
+                        { _docId: id, title, dept: taskCreatorDept_() });
 
                     showStatus('✅ Task created and assigned.', true);
                     document.getElementById('createTaskModal').classList.remove('show');
@@ -21577,7 +21620,7 @@ document.getElementById('dcSchedNext')?.addEventListener('click', () => {
             function refreshAllTaskViews() {
                 if (currentRole === 'infra_manager') refreshInfraManagerTasks();
                 if (currentRole === 'technician') refreshMyTasksForRole('technician');
-                if (currentRole === 'incharge') refreshMyTasksForRole('incharge');
+                if (currentRole === 'incharge' || currentRole === 'head_biomedical') { refreshMyTasksForRole('incharge'); refreshIcCreatedTasks(); }
                 if (currentRole === 'supervisor') refreshMyTasksForRole('supervisor');
             }
             /* ============================================================
@@ -21933,6 +21976,150 @@ document.getElementById('tasksRepGenerate')?.addEventListener('click', async fun
 });
 
             document.getElementById('createTaskBtn')?.addEventListener('click', openCreateTaskModal);
+
+            /* ===== IN-CHARGE: create tasks for own technicians ===== */
+            function isInchargeTaskCreator_() {
+                if (currentRole === 'infra_manager') return false;
+                const ic = currentRole === 'incharge' || currentRole === 'head_biomedical' ||
+                           userHasPermission('incharge') || userHasPermission('head_biomedical');
+                return ic && (isInfrastructureUser() || isBiomedicalUser());
+            }
+            function taskCreatorDept_() {
+                if (isInchargeTaskCreator_()) return isBiomedicalUser() ? BIOMEDICAL_DEPT_NAME : INFRA_DEPT_NAME;
+                return INFRA_DEPT_NAME;   // Infra Manager / Manager keep the old behaviour
+            }
+            let IC_CREATED_FILTER = 'open';
+            async function refreshIcCreatedTasks() {
+                const wrap = document.getElementById('icCreatedTaskList');
+                if (!wrap) return;
+                renderSkeletons(wrap, 3, 'card');
+                try {
+                    const me = normalizeText(currentLoggedInName);
+                    const all = await fetchAllTasks({ forceRefresh: true });
+                    const mine = all.filter(t => normalizeText(t.assignedBy) === me && normalizeText(t.assignedTo) !== me);
+                    const OPEN = ['pending', 'in_progress', 'paused'];
+                    const cnt = document.getElementById('icCreatedCount');
+                    if (cnt) cnt.textContent = mine.filter(t => OPEN.includes(t.status)).length;
+                    let f = mine;
+                    if (IC_CREATED_FILTER === 'open') f = mine.filter(t => OPEN.includes(t.status));
+                    else if (IC_CREATED_FILTER !== 'all') f = mine.filter(t => t.status === IC_CREATED_FILTER);
+                    if (!f.length) {
+                        wrap.innerHTML = '<div style="text-align:center;padding:18px;color:#9cb9d0;font-style:italic;">📭 No tasks in this filter.</div>';
+                        return;
+                    }
+                    const o = { canVerify: true };
+                    wrap.innerHTML = f.map(t => renderTaskCard(t, o)).join('');
+                    bindTaskCardButtons(wrap, f, o);
+                } catch (e) {
+                    wrap.innerHTML = '<div class="info-error">⚠️ ' + escapeHtml(e.message) + '</div>';
+                }
+            }
+            document.getElementById('icCreateTaskBtn')?.addEventListener('click', () => {
+                if (!isInchargeTaskCreator_()) { toast('Only Infrastructure / Biomedical In-Charges can create tasks here.', 'warn'); return; }
+                openCreateTaskModal();
+            });
+            document.getElementById('icCreatedRefreshBtn')?.addEventListener('click', refreshIcCreatedTasks);
+            document.querySelectorAll('#icCreatedFilterBar .filter-chip').forEach(c => c.addEventListener('click', function () {
+                document.querySelectorAll('#icCreatedFilterBar .filter-chip').forEach(x => x.classList.remove('active'));
+                this.classList.add('active');
+                IC_CREATED_FILTER = this.dataset.status;
+                refreshIcCreatedTasks();
+            }));
+
+            /* ===== IN-CHARGE: download department inventory by category ===== */
+            const IC_INV_CAT_LABELS = { fridge: 'Fridge / Freezer', ac: 'Air Conditioner', electrical: 'Electrical', biomedical: 'Biomedical', ups: 'UPS', laundry: 'Laundry', compressor: 'Air Compressor', vacuum: 'Vacuum System', wastewater: 'Waste Water', generator: 'Generators', mortuary: 'Mortuary', incinerator: 'Incinerators', lightning: 'Lightening', access_control: 'Access Control', equipment: 'Other' };
+            document.getElementById('icInvDownloadBtn')?.addEventListener('click', async function () {
+                const btn = this, orig = btn.innerHTML;
+                btn.disabled = true; btn.innerHTML = '⏳ Generating…';
+                try {
+                    const cat = document.getElementById('icInvCategory').value || 'all';
+                    const dept = currentRole === 'head_biomedical' ? BIOMEDICAL_DEPT_NAME
+                        : (currentInchargeDept || inferDepartmentFromIncharge(currentLoggedInName));
+                    if (!dept) throw new Error('No department assigned to your account.');
+                    const [inv, logs] = await Promise.all([fetchAllInventory(), fetchAllLogs()]);
+                    const now = new Date();
+                    const rows = inv
+                        .filter(a => normalizeText(a.dept) === normalizeText(dept) && equipVisibleToMe(a))
+                        .filter(a => cat === 'all' || (a.equipCategory || getCategoryForType(a.type)) === cat)
+                        .map(a => Object.assign({ ref: a, cat: a.equipCategory || getCategoryForType(a.type) }, computeRefStatus(a, logs, now)))
+                        .sort((a, b) => (a.cat + (a.ref.equipName || '')).localeCompare(b.cat + (b.ref.equipName || '')));
+                    if (!rows.length) { showStatus('📭 No equipment for this category.', false); return; }
+
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                    const m = 10, pW = 297, pH = 210, cW = pW - m * 2;
+                    const catLabel = cat === 'all' ? 'All categories' : (IC_INV_CAT_LABELS[cat] || cat);
+                    let y = drawChubHeader(doc, {
+                        title: 'DEPARTMENT EQUIPMENT INVENTORY',
+                        subtitle: 'Department: ' + pdfSanitize(dept) + '   |   Category: ' + catLabel + '   |   ' + rows.length + ' unit(s)',
+                        ref: 'CHUB/INV/' + pdfSanitize(dept).replace(/\s+/g, '').substring(0, 6).toUpperCase() + '/' + new Date().toISOString().slice(0, 10).replace(/-/g, ''),
+                        date: new Date().toLocaleDateString('en-GB')
+                    });
+
+                    const nW = rows.filter(r => (r.ref.workingStatus || 'Working') === 'Not Working').length;
+                    const k = [
+                        ['TOTAL UNITS', rows.length, [238, 246, 252], [11, 59, 92]],
+                        ['WORKING', rows.length - nW, [226, 240, 230], [27, 107, 63]],
+                        ['NOT WORKING', nW, [255, 230, 230], [179, 58, 58]],
+                        ['PM OVERDUE', rows.filter(r => r.status === 'overdue').length, [255, 243, 205], [122, 83, 0]],
+                        ['NEVER SERVICED', rows.filter(r => r.status === 'never').length, [231, 240, 248], [91, 123, 150]]
+                    ];
+                    const kW = (cW - 4 * 3) / 5;
+                    k.forEach((x, i) => drawKpiTile(doc, m + i * (kW + 3), y, kW, 16, x[0], String(x[1]), null, x[2], x[3]));
+                    y += 22;
+
+                    const byCat = {};
+                    rows.forEach(r => { byCat[r.cat] = (byCat[r.cat] || 0) + 1; });
+                    const slim = d => { if (d.pageNumber > 1) drawChubSlimHeader(doc, { title: 'EQUIPMENT INVENTORY (cont.)', ref: 'CHUB/INV' }); };
+                    doc.autoTable({
+                        startY: y, margin: { left: m, right: m, top: 18 },
+                        head: [['Category', 'Units']],
+                        body: Object.keys(byCat).sort().map(c => [IC_INV_CAT_LABELS[c] || c, byCat[c]]),
+                        theme: 'striped', styles: { fontSize: 8, cellPadding: 1.5 },
+                        headStyles: { fillColor: [27, 107, 63], textColor: 255 },
+                        columnStyles: { 0: { cellWidth: 90 }, 1: { cellWidth: 25, halign: 'center' } },
+                        tableWidth: 115, didDrawPage: slim
+                    });
+                    y = doc.lastAutoTable.finalY + 8;
+
+                    const lbl = { maintained: 'Maintained', pending: 'Due soon', overdue: 'OVERDUE', never: 'Never serviced' };
+                    doc.autoTable({
+                        startY: y, margin: { left: m, right: m, top: 18 },
+                        head: [['Equipment', 'Tag', 'Category', 'Type', 'Brand / Model', 'Serial', 'Location', 'Working?', 'Owner', 'Last PM', 'Next PM', 'PM status']],
+                        body: rows.map(r => [
+                            pdfSanitize(r.ref.equipName || '-'), pdfSanitize(r.ref.tag), IC_INV_CAT_LABELS[r.cat] || r.cat,
+                            pdfSanitize(r.ref.type || '-'), pdfSanitize(((r.ref.brand || '') + ' ' + (r.ref.model || '')).trim() || '-'),
+                            pdfSanitize((r.ref.serial && r.ref.serial.toUpperCase() !== 'N/A') ? r.ref.serial : '-'),
+                            pdfSanitize(r.ref.loc || '-'), (r.ref.workingStatus || 'Working') === 'Working' ? 'Yes' : 'NO',
+                            pdfSanitize(getInventoryOwner(r.ref) || '-'),
+                            r.lastPm ? formatDateOnly(r.lastPm) : '-', r.nextPm ? formatDateOnly(r.nextPm) : '-', lbl[r.status] || r.status
+                        ]),
+                        theme: 'striped', styles: { fontSize: 6.8, cellPadding: 1.3, overflow: 'linebreak' },
+                        headStyles: { fillColor: [30, 74, 109], textColor: 255, fontSize: 7 },
+                        didDrawPage: slim,
+                        didParseCell: d => {
+                            if (d.section !== 'body') return;
+                            if (d.column.index === 7 && d.cell.raw === 'NO') { d.cell.styles.textColor = [179, 58, 58]; d.cell.styles.fontStyle = 'bold'; }
+                            if (d.column.index === 11 && d.cell.raw === 'OVERDUE') { d.cell.styles.textColor = [179, 58, 58]; d.cell.styles.fontStyle = 'bold'; }
+                        }
+                    });
+                    y = doc.lastAutoTable.finalY + 8;
+
+                    if (y + 24 > pH - 20) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'EQUIPMENT INVENTORY (cont.)', ref: 'CHUB/INV' }); }
+                    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(31, 60, 84);
+                    doc.text('Prepared by (In-Charge): ' + pdfSanitize(currentLoggedInName) + '   |   ' + new Date().toLocaleString('en-GB'), m, y + 4);
+                    try {
+                        const sg = await getDisposalSignerSig(currentLoggedInName);
+                        if (sg && sg.url) doc.addImage(sg.url, getImageFormat(sg.url), m, y + 6, 40, 14);
+                    } catch (e) { }
+
+                    const tp = doc.internal.getNumberOfPages();
+                    for (let p = 1; p <= tp; p++) { doc.setPage(p); drawChubFooter(doc, p, tp); }
+                    doc.save('CHUB_Inventory_' + pdfSanitize(dept).replace(/\s+/g, '_') + '_' + (cat === 'all' ? 'AllCategories' : cat) + '_' + new Date().toISOString().slice(0, 10) + '.pdf');
+                    showStatus('📄 Inventory PDF downloaded (' + rows.length + ' unit(s)).', true);
+                } catch (e) { showStatus('⚠️ ' + e.message, false); }
+                btn.disabled = false; btn.innerHTML = orig;
+            });
             document.getElementById('createTaskCancel')?.addEventListener('click',
                 () => document.getElementById('createTaskModal').classList.remove('show'));
             document.getElementById('createTaskSaveBtn')?.addEventListener('click', saveNewTask);
@@ -25861,8 +26048,8 @@ const curs = curAll.filter(c =>
                 s(String(c.status || '').replace(/_/g, ' ').toUpperCase()), c.completedAt ? formatDateOnly(c.completedAt) : '-']), [179, 58, 58]) : empty('(no curative job in this period)');
 
         section('4.  TASKS / ACTIVITIES', [122, 83, 0]);
-        tasks.length ? tbl(['Created', 'Task', 'Location', 'Priority', 'Assigned to', 'Status', 'Completed'],
-            tasks.map(t => [formatDateOnly(t.createdAt), s(t.title), s(t.location), s(String(t.priority || '').toUpperCase()), s(t.assignedTo),
+        tasks.length ? tbl(['Created', 'Task', 'Location', 'Priority', 'Created by', 'Assigned to', 'Status', 'Completed'],
+            tasks.map(t => [formatDateOnly(t.createdAt), s(t.title), s(t.location), s(String(t.priority || '').toUpperCase()), s(t.assignedBy), s(t.assignedTo),
                 s(String(t.status || '').replace(/_/g, ' ').toUpperCase()), t.completedAt ? formatDateOnly(t.completedAt) : '-']), [122, 83, 0]) : empty('(no task in this period)');
 
         if (y + 26 > pH - 20) { doc.addPage(); y = drawChubSlimHeader(doc, { title: 'WORK REPORT (cont.)', ref: 'CHUB/WORK' }); }
@@ -26841,7 +27028,7 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
         const MON_ITEM = { view: 'tech-monitoring', icon: '📊', label: 'Equipment Monitoring' };
 
        function canSeeIcTasks() {
-    return currentRole === 'incharge' && (isInfrastructureUser() || isBiomedicalUser());
+    return (currentRole === 'incharge' || currentRole === 'head_biomedical') && (isInfrastructureUser() || isBiomedicalUser());
 }
 
         const SIDEBAR_MENUS = {
@@ -26940,6 +27127,7 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
                 { group: 'Operations', items: [
                     { view: 'ic-curative',      icon: '🚨', label: 'Curative Requests', badge: 'curativeRaisedCount' },
                     { view: 'sup-curative',     icon: '📋', label: 'Curative (Fleet)' },
+                    { view: 'ic-tasks', icon: '📋', label: 'Tasks (Assign & Track)', badge: 'icTaskCount' },
                     { view: 'sup-escalated',    icon: '⚠️', label: 'Escalated Jobs', badge: 'escalatedCount' },
                     { view: 'ic-disposal',      icon: '🗑️', label: 'Disposal Requests', badge: 'inchargeDisposalCount' },
                     { view: 'sup-availability', icon: '👥', label: 'Team Availability' }
@@ -27076,7 +27264,7 @@ document.getElementById('technicianSection')?.addEventListener('change', e => {
 
             wrapGroup('inchargeSection', [
                 { view: 'ic-approvals', selectors: ['#pendingApprovalsCard'] },
-                { view: 'ic-tasks',     selectors: ['#icMyTasksCard'] },
+                { view: 'ic-tasks',     selectors: ['#icMyTasksCard', '#icCreatedTasksCard'] },
                 { view: 'ic-curative',  selectors: ['#curativeRaisedCount'] },
                 { view: 'ic-pm-status', selectors: ['#inchargePmStatusCard'] },
                 { view: 'ic-inventory', selectors: ['#invDeptIcon'] },
@@ -27230,6 +27418,7 @@ wrapStandalone('imihigoCard', 'tech-imihigo');
                 renderInchargePmStatus();
             }
             if (viewId === 'dc-schedules') renderDcSchedules();
+            if (viewId === 'ic-tasks') { refreshIcCreatedTasks(); refreshMyTasksForRole('incharge'); }
 if (viewId === 'req-main') renderRequests();
 if (viewId === 'req-store') renderStore();
 if (viewId === 'req-cards') renderFuelCards();
