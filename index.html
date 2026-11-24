@@ -5162,6 +5162,11 @@ body[class*="theme-"] .notif-bell:hover{ border-color:var(--t2); background:var(
                         </select>
                         <button class="btn-pdf" id="icInvDownloadBtn" style="padding:10px 20px;font-size:.88rem;">📄 Download Inventory (PDF)</button>
                     </div>
+                    <div class="filter-selector" id="inventoryDomainBar" style="display:none;margin-bottom:10px;">
+                        <div class="filter-chip active" data-domain="all">🗂️ All equipment</div>
+                        <div class="filter-chip" data-domain="infra">🏗️ Infrastructure / Non-medical</div>
+                        <div class="filter-chip" data-domain="bio">🏥 Biomedical</div>
+                    </div>
                     <div class="filter-selector" id="inventoryFilterBar" style="margin-bottom:12px;">
                         <div class="filter-chip active" data-status="all">📋 All</div>
                         <div class="filter-chip" data-status="maintained">✅ Maintained</div>
@@ -8100,7 +8105,37 @@ function bioRegroupTypeSelect(select, existing) {
     select.appendChild(n);
     if (prev && Array.from(select.options).some(o => o.value === prev)) select.value = prev;
 }
-
+const LAB_BIO_DEVICES = [
+ 'Hematology analyzer','Biochemistry / chemistry analyzer','Immunoassay analyzer','Coagulation analyzer',
+ 'Urine analyzer','Electrolyte analyzer','Blood gas analyzer','ELISA reader','ELISA washer',
+ 'PCR thermal cycler','Real-time PCR machine','Nucleic acid extractor','GeneXpert','Flow cytometer','CD4 counter',
+ 'Blood culture analyzer','Microscope','Centrifuge','Refrigerated centrifuge','Microcentrifuge',
+ 'Incubator','CO2 incubator','Water bath','Hot air oven','Autoclave (lab)',
+ 'Biosafety cabinet','Laminar flow hood','Spectrophotometer','pH meter','Analytical balance',
+ 'Vortex mixer','Hotplate stirrer','Tube roller / mixer','Distilled water system',
+ 'Blood bank refrigerator','Plasma freezer','Ultra-low freezer (-80 °C)','Platelet agitator / incubator',
+ 'Tissue processor','Microtome','Slide stainer','Embedding station'
+];
+/* Type dropdown for biomedical equipment in the LABORATORY department */
+function labRegroupTypeSelect_(select, labUsed) {
+    select.innerHTML = '<option value="" disabled selected>— Choose laboratory equipment —</option>';
+    const placed = new Set();
+    const g = document.createElement('optgroup'); g.label = '🧪 Laboratory equipment';
+    LAB_BIO_DEVICES.forEach(d => {
+        const o = document.createElement('option'); o.value = d; o.textContent = d; g.appendChild(o);
+        placed.add(normalizeText(d));
+    });
+    select.appendChild(g);
+    const extra = Array.from(new Set(labUsed || [])).filter(t => t && !placed.has(normalizeText(t))).sort();
+    if (extra.length) {
+        const g2 = document.createElement('optgroup'); g2.label = '🗂️ Already in the Laboratory';
+        extra.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; g2.appendChild(o); });
+        select.appendChild(g2);
+    }
+    const n = document.createElement('option'); n.value = '__NEW__';
+    n.textContent = '➕ Not in the list — add a new unit…';
+    select.appendChild(n);
+}
 const TYPES_BY_CATEGORY = {
                 fridge: ['Fridge', 'Fridge-Freezer', 'Upright Freezer', 'Chest Freezer', 'Lab Fridge', 'Vaccine Fridge'],
                 ac: ['Split AC', 'Cassette AC', 'Portable AC'],
@@ -8168,7 +8203,8 @@ const TYPES_BY_CATEGORY = {
     const isCustomCat = CUSTOM_PM_CATEGORIES.includes(category);
 
     // 🔒 Custom flow (Biomedical, UPS, Generators, etc.) allows dynamic checklists and typed names
-    if (isCustomCat && (isBioDept || isBioUser || isInfraDept || isInfraUser)) {
+    if (isCustomCat && (isBioDept || isBioUser || isInfraDept || isInfraUser
+        || (category === 'biomedical' && inchargeCanAddBio_()))) {
         select.style.display = 'block';
         if (manualInput) manualInput.style.display = 'none';
 
@@ -8202,7 +8238,19 @@ const TYPES_BY_CATEGORY = {
         newOpt.textContent = '➕ Type a new equipment name…';
         select.appendChild(newOpt);
 
-        if (category === 'biomedical') bioRegroupTypeSelect(select, existing);
+        if (category === 'biomedical') {
+    if (isLabDept_(selectedDept)) {
+        let labUsed = [];
+        try {
+            labUsed = (await fetchAllInventory())
+                .filter(a => isLabDept_(a.dept) && (a.equipCategory || getCategoryForType(a.type)) === 'biomedical')
+                .map(a => a.type);
+        } catch (e) { }
+        labRegroupTypeSelect_(select, labUsed);
+    } else {
+        bioRegroupTypeSelect(select, existing);
+    }
+}
         if (!merged.length) {
             select.value = '__NEW__';
             if (manualInput) { manualInput.style.display = 'block'; manualInput.focus(); }
@@ -9730,6 +9778,7 @@ function invalidateCache(key) {
             let CURRENT_DUAL_VIEW_MODE = sessionStorage.getItem('chub_dual_view') || 'incharge';
             let inchargeFilterScope = 'mine';
             let inventoryFilterStatus = 'all';
+            let inventoryDomainFilter = 'all';
             let currentInchargeDept = '';
             let supervisorStatusFilter = 'all';
             let supervisorOwnerFilter = 'all';
@@ -9885,6 +9934,34 @@ function isInfrastructureUser() {
 
 
 //    Add / Edit Equipment modal.
+/* In-Charges of ordinary departments (Lab, Pharmacy, OT…) may also register biomedical equipment */
+function inchargeCanAddBio_() {
+    return (currentRole === 'incharge' || userHasPermission('incharge'))
+        && !isInfrastructureUser() && !isBiomedicalUser();
+}
+/* A valid owner of biomedical equipment = a TECHNICIAN of the Biomedical department only */
+function isBioTech_(name) {
+    const u = LIVE_USERS[name]; if (!u) return false;
+    if (!userRecHasPermission(u, 'technician') && u.role !== 'technician') return false;
+    const ds = (Array.isArray(u.depts) && u.depts.length) ? u.depts : (u.dept ? [u.dept] : []);
+    return ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
+}
+/* Biomedical category → owner list contains ONLY biomedical technicians */
+async function syncOwnerToCategory_(prefix) {
+    const sel = document.getElementById(prefix + 'Owner');
+    const row = document.getElementById(prefix + 'OwnerRow');
+    const cat = document.getElementById(prefix + 'Category')?.value;
+    if (!sel || !row || row.style.display === 'none') return;
+    const keep = sel.value;
+    await populateOwnerSelect(sel);
+    if (cat === 'biomedical') {
+        if (!Object.keys(LIVE_USERS).length) LIVE_USERS = await loadUsersFromFirestore();
+        Array.from(sel.options).forEach(o => { if (!isBioTech_(o.value)) o.remove(); });
+        if (!sel.options.length) toast('No Biomedical technician found. Ask the Manager to add one.', 'warn');
+        else toast('🏥 Biomedical equipment can only be assigned to a Biomedical technician.', 'info');
+    }
+    if (keep && Array.from(sel.options).some(o => o.value === keep)) sel.value = keep;
+}
 async function isUserBiomedicalAsync() {
     if (currentRole === 'head_biomedical') return true;
     if (currentRole === 'incharge') {
@@ -9927,7 +10004,8 @@ async function applyCategoryFilterByDept(prefix) {
         } else if (isBioUser) {
             opt.style.display = (opt.value === 'biomedical' || opt.value === 'equipment') ? 'block' : 'none';
         } else {
-            opt.style.display = (opt.value === 'fridge' || opt.value === 'ac' || opt.value === 'electrical' || opt.value === 'equipment') ? 'block' : 'none';
+            opt.style.display = (opt.value === 'fridge' || opt.value === 'ac' || opt.value === 'electrical' || opt.value === 'equipment'
+                || (opt.value === 'biomedical' && inchargeCanAddBio_())) ? 'block' : 'none';
         }
     });
 }
@@ -9946,12 +10024,7 @@ function equipVisibleToMe(item) {
 }
 function filterOwnerSelectForDomain(sel) {
     if (!sel || !isBiomedicalUser()) return;
-    Array.from(sel.options).forEach(o => {
-        const u = LIVE_USERS[o.value]; if (!u) return;
-        const ds = (Array.isArray(u.depts) && u.depts.length) ? u.depts : (u.dept ? [u.dept] : []);
-        const isBioPerson = o.value === BIOMEDICAL_MANAGER_NAME || ds.some(d => normalizeText(d) === normalizeText(BIOMEDICAL_DEPT_NAME));
-        if (!isBioPerson) o.remove();
-    });
+    Array.from(sel.options).forEach(o => { if (!isBioTech_(o.value)) o.remove(); });
 }
 function configureCategoryUI() {
     const bio = isBiomedicalUser();
@@ -10326,8 +10399,15 @@ console.log("🔍 DEBUG: Checking checklist for type:", ref.type, "Found:", cl);
     });
     updateChecklistProgress();
 }
+            function isInchargeEditor_() { return currentRole === 'incharge' || currentRole === 'head_biomedical'; }
             function canEditItem(item) {
                 if (currentRole === 'supervisor' || currentRole === 'assetsmanager') return true;
+                if (isInchargeEditor_()) {
+                    if (currentRole === 'head_biomedical') {
+                        return equipIsBiomedical(item) || normalizeText(item.dept) === normalizeText(BIOMEDICAL_DEPT_NAME);
+                    }
+                    return normalizeText(item.dept) === normalizeText(currentInchargeDept);   // only their own department
+                }
                 if (currentRole !== 'technician') return false;
                 return sameOwner(getInventoryOwner(item), currentLoggedInName);
             }
@@ -11164,6 +11244,7 @@ filterOwnerSelectForDomain(document.getElementById('newRefOwner'));
                 // Filter the category list + rebuild type dropdown & checklist block
                 await applyCategoryFilterByDept('newRef');
                 labMount_('newRef', document.getElementById('newRefDept').value, null, true);
+                syncOwnerToCategory_('newRef');
                 document.getElementById('dupWarning').classList.remove('show');
                 const wg = document.querySelector('#newRefWorkingGroup input[value="Working"]');
                 if (wg) wg.checked = true;
@@ -11213,7 +11294,7 @@ const _isBioUser = isBiomedicalUser();
 
 // Biomedical equipment can be saved by a BMET to ANY department.
 // Non-bio users must save it under the Biomedical department.
-if (_catChosen === 'biomedical' && !_isBioDept && !_isBioUser) {
+if (_catChosen === 'biomedical' && !_isBioDept && !_isBioUser && !inchargeCanAddBio_()) {
     alert('Biomedical equipment can only be saved by Biomedical staff or under the Biomedical department.');
     return;
 }
@@ -11226,14 +11307,22 @@ if (_isBioDept && _catChosen !== 'biomedical' && _catChosen !== 'equipment') {
                 const _isCustomCatSave = CUSTOM_PM_CATEGORIES.includes(_catChosen);
                 
                 // ✅ Allow BOTH Bio and Infra users to save checklists for their custom items
-                if (_isCustomCatSave && (_isBioDept || _isBioUser || isInfrastructureUser())) {
+                if (_isCustomCatSave && (_isBioDept || _isBioUser || isInfrastructureUser()
+    || (_catChosen === 'biomedical' && inchargeCanAddBio_()))) {
                     _bioData = parseStructuredChecklist(document.getElementById('newRefBioChecklist').value);
                     if (!_bioData.flatItems.length) {
                         alert('Please enter at least one checklist item for this equipment type.');
                         return;
                     }
                 }
-                
+                if (catVal === 'biomedical') {
+    const _ownerPick = document.getElementById('newRefOwnerRow').style.display !== 'none'
+        ? document.getElementById('newRefOwner').value : currentLoggedInName;
+    if (!isBioTech_(_ownerPick)) {
+        alert('⚠️ Biomedical equipment can only be assigned to a Biomedical technician. Infrastructure users are not allowed.');
+        return;
+    }
+}
                 const btn = document.getElementById('addRefSave');
                 const orig = btn.innerHTML;
                 btn.disabled = true;
@@ -11358,6 +11447,7 @@ if (_isBioDept && _catChosen !== 'biomedical' && _catChosen !== 'equipment') {
                 document.getElementById('editRefTag').value = ref.tag || '';
 { const _t = document.getElementById('editRefTag'); _t.readOnly = false; _t.disabled = false; _t.removeAttribute('readonly'); _t.removeAttribute('disabled'); _t.style.background = ''; }
                 document.getElementById('editRefDept').value = ref.dept || Object.keys(DEPARTMENTS)[0] || '';
+                document.getElementById('editRefDept').disabled = isInchargeEditor_();
                 populateEditRefServiceSelect();
                 document.getElementById('editRefLocation').value = ref.loc || '';
                 document.getElementById('editRefEquipName').value = ref.equipName || '';
@@ -11381,7 +11471,7 @@ if (_isBioDept && _catChosen !== 'biomedical' && _catChosen !== 'equipment') {
 
                 const _editSel    = document.getElementById('editRefType');
                 const _editManual = document.getElementById('editRefTypeManual');
-                const _bioUser    = isBiomedicalUser();
+                const _bioUser    = isBiomedicalUser() || inchargeCanAddBio_();
                 if (currentRole === 'assetsmanager') {
                     // Assets Manager always edits the type manually.
                     if (_editManual) { _editManual.style.display = 'block'; _editManual.value = ref.type || ''; }
@@ -11416,10 +11506,11 @@ if (_isBioDept && _catChosen !== 'biomedical' && _catChosen !== 'equipment') {
                 const inp = document.getElementById('editRefPhotoInput');
                 if (inp) inp.value = '';
                 const ownerRow = document.getElementById('editRefOwnerRow');
-                if (currentRole === 'assetsmanager' || currentRole === 'supervisor') {
+                if (currentRole === 'assetsmanager' || currentRole === 'supervisor' || isInchargeEditor_()) {
                     ownerRow.style.display = 'block';
                     await populateOwnerSelect(document.getElementById('editRefOwner'));
                     document.getElementById('editRefOwner').value = getInventoryOwner(ref) || '';
+                    await syncOwnerToCategory_('editRef');
                 } else {
                     ownerRow.style.display = 'none';
                 }
@@ -11455,7 +11546,7 @@ if (_isBioDept && _catChosen !== 'biomedical' && _catChosen !== 'equipment') {
                     lastPmDate: document.getElementById('editRefLastPm').value || '',
                     nextPmDate: document.getElementById('editRefNextPm').value || ''
                 };
-                if (currentRole === 'assetsmanager' || currentRole === 'supervisor') {
+                if (currentRole === 'assetsmanager' || currentRole === 'supervisor' || isInchargeEditor_()) {
                     updated.owner = document.getElementById('editRefOwner').value || getInventoryOwner(original);
                 } else {
                     updated.owner = getInventoryOwner(original);
@@ -11494,6 +11585,7 @@ if (_isBioDept && _catChosen !== 'biomedical' && _catChosen !== 'equipment') {
                     if (currentRole === 'technician') renderRefSelector();
                     if (currentRole === 'assetsmanager') refreshAssetsInventory();
                     if (currentRole === 'supervisor') refreshSupervisorInventory();
+                    if (isInchargeEditor_()) loadDepartmentInventory();
                     showStatus('✅ Equipment updated.', true);
                     editRefModal.classList.remove('show');
                 } catch (e) {
@@ -11807,6 +11899,8 @@ window.__ckOwner = '';
             document.querySelectorAll('input[name^="rating"]').forEach(el => el.addEventListener('change', scheduleDraftSave));
             
                         // Category → Type cascade (Add + Edit modals)
+            document.getElementById('newRefCategory')?.addEventListener('change', () => syncOwnerToCategory_('newRef'));
+            document.getElementById('editRefCategory')?.addEventListener('change', () => syncOwnerToCategory_('editRef'));
             document.getElementById('newRefCategory')?.addEventListener('change', async function () {
                 await populateTypeSelect(document.getElementById('newRefType'), this.value);
                 refreshBioChecklistBlock(true);
@@ -12855,16 +12949,40 @@ const icTaskCard = document.getElementById('icMyTasksCard');
         </div>
         ${eqData ? renderTransferHistoryHtml(eqData.transferHistory) : ''}`;
 
-                document.getElementById('infoLatestPmBtn')?.addEventListener('click', () => {
+                window.__qrLatestRecord = records[0];
+                const _latestBtn = document.getElementById('infoLatestPmBtn');
+                if (_latestBtn) _latestBtn.onclick = function () {
                     try {
-                        if (!records || records.length === 0) return;
                         const modal = document.getElementById('jobCardModal');
-                        if (modal) modal.style.zIndex = '6000';
-                        openJobCard(records[0]);
+                        if (modal && modal.parentNode !== document.body) document.body.appendChild(modal);
+                        if (modal) modal.style.zIndex = '9500';
+                        openJobCard(window.__qrLatestRecord);
+                        if (modal) modal.classList.add('show');
                     } catch (err) {
                         console.error('Open latest PM card failed:', err);
+                        toast('⚠️ Could not open the PM card: ' + err.message, 'error');
                     }
-                });
+                };
+
+                // The report card was erased by body.innerHTML above, so put it back
+                if (!document.getElementById('qrReportFrom')) {
+                    body.insertAdjacentHTML('beforeend', `
+                    <div class="info-card" style="margin-top:16px;border:2px solid #1e4a6d;">
+                        <h2>📄 Download PM Report</h2>
+                        <p style="font-size:.85rem;color:#5b7b96;margin-bottom:12px;">Pick a period to download every PM record for this equipment.</p>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <div class="field-group" style="flex:1;min-width:140px;margin-bottom:12px;"><label for="qrReportFrom" style="font-size:.82rem;">From date</label><input type="date" id="qrReportFrom"></div>
+                            <div class="field-group" style="flex:1;min-width:140px;margin-bottom:12px;"><label for="qrReportTo" style="font-size:.82rem;">To date</label><input type="date" id="qrReportTo"></div>
+                        </div>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <button id="qrReportQuick30" class="refresh-btn" style="background:#e7f0f8;color:#1e4a6d;">📅 Last 30 days</button>
+                            <button id="qrReportQuick90" class="refresh-btn" style="background:#e7f0f8;color:#1e4a6d;">📅 Last 90 days</button>
+                            <button id="qrReportQuickAll" class="refresh-btn" style="background:#e7f0f8;color:#1e4a6d;">📅 All time</button>
+                        </div>
+                        <button id="qrDownloadBtn" class="refresh-btn" style="background:#1b6b3f;margin-top:12px;width:100%;">📄 Download PM PDF</button>
+                        <div id="qrReportStatus" style="font-size:.85rem;margin-top:10px;min-height:18px;"></div>
+                    </div>`);
+                }
 
                 const fromI = document.getElementById('qrReportFrom');
                 const toI = document.getElementById('qrReportTo');
@@ -13401,7 +13519,21 @@ return false;
                 }
                 const allInv = await fetchAllInventory();
                 const records = await fetchAllLogs();
-                const mine = allInv.filter(a => normalizeText(a.dept) === normalizeText(dept) && equipVisibleToMe(a));
+                const mineAll = allInv.filter(a => normalizeText(a.dept) === normalizeText(dept) && equipVisibleToMe(a));
+                const _isBioEq = a => (a.equipCategory || getCategoryForType(a.type)) === 'biomedical';
+                const _domBar = document.getElementById('inventoryDomainBar');
+                const _showDom = inchargeCanAddBio_();
+                if (_domBar) {
+                    _domBar.style.display = _showDom ? 'flex' : 'none';
+                    const nBio = mineAll.filter(_isBioEq).length;
+                    const lbl = { all: '🗂️ All equipment (' + mineAll.length + ')', infra: '🏗️ Infrastructure / Non-medical (' + (mineAll.length - nBio) + ')', bio: '🏥 Biomedical (' + nBio + ')' };
+                    _domBar.querySelectorAll('[data-domain]').forEach(c => {
+                        c.textContent = lbl[c.dataset.domain];
+                        c.classList.toggle('active', c.dataset.domain === inventoryDomainFilter);
+                    });
+                }
+                const mine = (!_showDom || inventoryDomainFilter === 'all') ? mineAll
+                    : mineAll.filter(a => inventoryDomainFilter === 'bio' ? _isBioEq(a) : !_isBioEq(a));
                 if (!mine.length) {
                     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#5b7b96;padding:14px;">No equipment under ' + dept + '.</td></tr>';
                     return;
@@ -13434,6 +13566,7 @@ return false;
             <td>
                 <div style="display:flex;gap:4px;flex-wrap:wrap;">
                     <button class="btn-dl-row" data-dl-ref="inv_${idx}" data-tag="${escapeHtml(ref.tag)}">📥 Download</button>
+                    <button class="btn-editCurrent" style="padding:6px 14px;font-size:.78rem;" data-edit-ref="${escapeHtml(ref._docId || ref.tag)}">✏️ Edit</button>
                     <button class="btn-secondary" style="padding:6px 14px;font-size:.78rem;background:#e8f1fb;color:#0b3d91;border-color:#bdd3e6;" data-transfer-ref="${escapeHtml(ref.tag)}">🔄 Transfer</button>
                 </div>
             </td>
@@ -13447,8 +13580,19 @@ return false;
                     const ref = mine.find(x => x.tag === this.getAttribute('data-transfer-ref'));
                     if (ref) openTransferModal(ref);
                 }));
+                tbody.querySelectorAll('[data-edit-ref]').forEach(b => b.addEventListener('click', function () {
+                    const k = this.getAttribute('data-edit-ref');
+                    const ref = mine.find(x => (x._docId || x.tag) === k);
+                    if (!ref) return;
+                    if (!canEditItem(ref)) { toast('⛔ You can only edit equipment of your own department.', 'error'); return; }
+                    openEditRefModal(ref);
+                }));
             }
             document.getElementById('inchargeAddEquipBtn')?.addEventListener('click', () => addRefBtn.click());
+            document.querySelectorAll('#inventoryDomainBar .filter-chip').forEach(c => c.addEventListener('click', function () {
+                inventoryDomainFilter = this.dataset.domain;
+                loadDepartmentInventory();
+            }));
             document.getElementById('inchargeRefreshInvBtn')?.addEventListener('click', loadDepartmentInventory);
             document.querySelectorAll('#inventoryFilterBar .filter-chip').forEach(c => c.addEventListener('click', function () {
                 document.querySelectorAll('#inventoryFilterBar .filter-chip').forEach(x => x.classList.remove('active'));
@@ -25833,6 +25977,16 @@ document.getElementById('newRefDept')?.addEventListener('change', function () { 
 document.getElementById('editRefDept')?.addEventListener('change', function () {
     const r = document.getElementById('editRefModal')._originalRef;
     labMount_('editRef', this.value, r && r._docId, false);
+    
+});
+['newRef', 'editRef'].forEach(p => {
+    document.getElementById(p + 'Dept')?.addEventListener('change', async () => {
+        const cat = document.getElementById(p + 'Category')?.value;
+        if (cat !== 'biomedical') return;
+        await populateTypeSelect(document.getElementById(p + 'Type'), 'biomedical');
+        if (p === 'newRef') refreshBioChecklistBlock(true);
+        syncOwnerToCategory_(p);
+    });
 });
 
 async function labRecordPdf_(ref, rec) {
@@ -28173,10 +28327,16 @@ async function onStoreClick_(e) {
         if (!await smartConfirm('Delete "' + s.name + '" from the store?', { danger: true, okText: '🗑️ Delete' })) return;
         await window.FB.deleteDoc(window.FB.doc(window.FB.db, STOCK_TABLE, id)); return renderStore();
     }
-    const v = parseFloat(prompt('Quantity to ADD to "' + s.name + '" (use a negative number to remove):', '0'));
-    if (!v) return;
-    await window.FB.updateDoc(window.FB.doc(window.FB.db, STOCK_TABLE, id), { qty: Math.max(0, Number(s.qty) + v), updatedBy: currentLoggedInName, updatedAt: new Date().toISOString() });
-    renderStore();
+    reqModal_('± Quantity — ' + s.name, `
+      <div class="field-group"><label>Current quantity</label><input type="text" readonly value="${fmtN_(s.qty)} ${escapeHtml(s.unit || '')}"></div>
+      <div class="field-group"><label>Quantity to add (use a negative number to remove) *</label><input type="number" id="siAdj" step="any" placeholder="e.g. 10 or -3"></div>`,
+        async () => {
+            const v = parseFloat(gv_('siAdj'));
+            if (!v) return 'Enter a quantity (not 0).';
+            await window.FB.updateDoc(window.FB.doc(window.FB.db, STOCK_TABLE, id),
+                { qty: Math.max(0, Number(s.qty) + v), updatedBy: currentLoggedInName, updatedAt: new Date().toISOString() });
+            renderStore(); return true;
+        }, { width: '440px' });
 }
 
 /* ---------- FUEL CARDS ---------- */
@@ -28210,11 +28370,21 @@ async function onCardClick_(e) {
     const name = b.dataset.cardTop || b.dataset.cardEdit, c = cardOf_(name) || {};
     const id = cardId_(name);
     if (b.dataset.cardTop) {
-        const v = parseFloat(prompt('Litres added to the card of ' + name + ':', '0')); if (!(v > 0)) return;
-        const after = Number(c.balanceLitres || 0) + v, h = Array.isArray(c.history) ? c.history.slice() : [];
-        h.push({ at: new Date().toISOString(), by: currentLoggedInName, delta: v, note: 'Top-up', balanceAfter: after });
-        await window.FB.setDoc(window.FB.doc(window.FB.db, CARD_TABLE, id), { generatorName: name, balanceLitres: after, history: h.slice(-30), updatedBy: currentLoggedInName, updatedAt: new Date().toISOString() }, { merge: true });
-        return renderFuelCards();
+        reqModal_('➕ Top-up — ' + name, `
+          <div class="field-group"><label>Current balance</label><input type="text" readonly value="${fmtN_(c.balanceLitres || 0)} L"></div>
+          <div class="field-group"><label>Litres added *</label><input type="number" id="fcAdd" min="0" step="any" placeholder="e.g. 500"></div>
+          <div class="field-group"><label>Note (optional)</label><input type="text" id="fcNote" placeholder="e.g. Delivery from supplier"></div>`,
+            async () => {
+                const v = parseFloat(gv_('fcAdd'));
+                if (!(v > 0)) return 'Enter the litres added (greater than 0).';
+                const after = Number(c.balanceLitres || 0) + v, h = Array.isArray(c.history) ? c.history.slice() : [];
+                h.push({ at: new Date().toISOString(), by: currentLoggedInName, delta: v, note: gv_('fcNote').trim() || 'Top-up', balanceAfter: after });
+                await window.FB.setDoc(window.FB.doc(window.FB.db, CARD_TABLE, id),
+                    { generatorName: name, balanceLitres: after, history: h.slice(-30), updatedBy: currentLoggedInName, updatedAt: new Date().toISOString() }, { merge: true });
+                showStatus('✅ Added ' + fmtN_(v) + ' L to ' + name + '.', true);
+                renderFuelCards(); return true;
+            }, { okText: '➕ Add to card', width: '440px' });
+        return;
     }
     reqModal_('✏️ Fuel card — ' + name, `
       <div class="field-group"><label>Card number</label><input type="text" id="fcNo" value="${escapeHtml(c.cardNumber || '')}"></div>
